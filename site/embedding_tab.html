@@ -1,0 +1,128 @@
+<div class="emb" id="emb">
+  <header class="emb-head">
+    <h1>Depth embedding: the probe images moving through each network</h1>
+    <p>Each mode of the <a href="#method/through-depth">through-depth operator</a> is one function on (image, site)
+    pairs, so at every site each image gets a row of K numbers in <i>one</i> K-dimensional space for that network. The
+    plot shows those rows at one site. Drag the depth slider (or press Play) to watch the cloud move from the input to
+    the logits. Choose several networks to compare them. Each network's operator is built on its own. Their depths
+    are then matched (fractional depth or DTW), and their coordinates are rotated onto the reference network's
+    (Procrustes). Both steps are post-hoc fits, labelled as such.</p>
+  </header>
+  <div class="emb-grid">
+    <aside class="emb-ctl" aria-label="Depth embedding controls">
+      <label>Embedding
+        <select id="emb-method">
+          <option value="modes" selected>through-depth modes (the construction)</option>
+          <option value="pca">baseline: PCA per site, chained by Procrustes</option>
+          <option value="umap">baseline: UMAP per site, chained by Procrustes</option>
+        </select></label>
+      <fieldset class="emb-nets"><legend>Networks</legend><div id="emb-nets"></div>
+        <div class="emb-row"><button type="button" id="emb-one">Reference only</button><button type="button" id="emb-all">All</button></div>
+      </fieldset>
+      <label>Reference network<select id="emb-ref"></select></label>
+      <label>Checkpoint (training step)<select id="emb-step"></select></label>
+      <label>Variant<select id="emb-variant"></select></label>
+      <label>Coupling <span id="emb-tlabel" class="emb-hint"></span><input type="range" id="emb-coup" min="0" max="5" step="1"></label>
+      <label>Modes used (K)<select id="emb-K"><option value="2" hidden>2 (UMAP)</option><option value="4">4</option><option value="8" selected>8</option><option value="16">16</option></select></label>
+      <label>Scale of each site
+        <select id="emb-norm"><option value="site" selected>per site, |G_l|_F = 1 (shape only)</option><option value="raw">raw (shows where the space lives)</option></select></label>
+      <div class="emb-multi">
+        <label>Layout<select id="emb-layout"><option value="grid" selected>side by side</option><option value="overlay">one plot: all networks in the same space</option></select></label>
+        <div id="emb-ov-opts" class="emb-multi" hidden>
+          <label>Colour points by<select id="emb-ocol"><option value="net" selected>network (one colour and shape each)</option><option value="plot">the Colour setting below (shape = network)</option></select></label>
+          <label>Show<select id="emb-show"><option value="all" selected>all images</option><option value="sample">300 images (fixed sample)</option><option value="centroids">class centroids and their paths (colour = class; labels for display)</option></select></label>
+          <label class="emb-check"><input type="checkbox" id="emb-links" checked> Link each selected image across networks</label>
+        </div>
+        <label>Match depths by
+          <select id="emb-dmode"><option value="frac" selected>fractional depth</option><option value="dtw">DTW on subspace distance</option></select></label>
+        <label class="emb-check"><input type="checkbox" id="emb-align" checked> Rotate each network onto the reference (Procrustes)</label>
+      </div>
+      <hr>
+      <label>Axes from
+        <select id="emb-basis">
+          <option value="pooled" selected>pooled PCA of the reference, all sites (per-site scale)</option>
+          <option value="anchor">PCA of the reference at the anchor site</option>
+          <option value="modes">raw modes of the reference</option>
+        </select></label>
+      <div class="emb-axes">
+        <label>x<select id="emb-ax0"></select></label>
+        <label>y<select id="emb-ax1"></select></label>
+        <label>z<select id="emb-ax2"></select></label>
+      </div>
+      <label class="emb-check"><input type="checkbox" id="emb-three"> 3D (drag to rotate)</label>
+      <hr>
+      <label>Colour
+        <select id="emb-color">
+          <option value="class" selected>CIFAR class (validation only)</option>
+          <option value="pos">position in the reference at the anchor site</option>
+          <option value="seba">SEBA sets through depth (sparse, on the stacked modes)</option>
+          <option value="set5a">sets k=5, shape-aligned (each network's own)</option>
+          <option value="set10a">sets k=10, shape-aligned (each network's own)</option>
+          <option value="set5s">sets k=5, shared coordinates (each network's own)</option>
+          <option value="set10s">sets k=10, shared coordinates (each network's own)</option>
+        </select></label>
+      <label id="emb-r-row" hidden>SEBA vectors r (constant + r−1 modes)<select id="emb-r"><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="8">8</option><option value="10">10</option><option value="12">12</option><option value="14">14</option><option value="16">16</option></select></label>
+      <label>Anchor site (reference)<select id="emb-anchor"></select></label>
+      <hr>
+      <div class="emb-sel">Export a GIF of the current view (first to last site)
+        <span class="emb-row"><select id="emb-gifw" aria-label="GIF width"><option value="640">640 px</option><option value="900" selected>900 px</option><option value="1200">1200 px</option></select>
+        <select id="emb-gifspeed" aria-label="Frames per site"><option value="3">fast</option><option value="5" selected>normal</option><option value="8">slow</option></select>
+        <button type="button" id="emb-gif">Export GIF</button></span>
+        <span id="emb-gifinfo" class="emb-hint"></span>
+      </div>
+      <hr>
+      <div class="emb-sel">Selection
+        <span class="emb-hint">Drag a box on any plot (2D) or click a legend entry. Shift adds. The same images are selected in every network.</span>
+        <span class="emb-row"><button type="button" id="emb-clear">Clear</button><button type="button" id="emb-rand">Random 60</button></span>
+        <span id="emb-selinfo"></span>
+      </div>
+      <label class="emb-check"><input type="checkbox" id="emb-trails" checked> Trails for the selection</label>
+      <label class="emb-check"><input type="checkbox" id="emb-fix" checked> Same axis limits at every depth</label>
+      <details class="emb-notes"><summary>How to read this</summary>
+        <p><b>Same space within a network.</b> Mode k is one vector over all (image, site) pairs, so image i's coordinates
+        at site l are (f<sub>1</sub>(i,l), …, f<sub>K</sub>(i,l)). Within one network, coordinates at different sites are
+        directly comparable. The coupling sets how much they may differ between neighbouring sites.</p>
+        <p><b>Across networks</b> nothing is shared by construction. Depth matching: <i>fractional</i> puts site l of L at
+        l/(L−1). <i>DTW</i> warps each network's sites onto the reference's. Its cost is the subspace distance
+        1 − |Q<sub>A</sub><sup>T</sup>Q<sub>B</sub>|<sub>F</sub><sup>2</sup>/K between the K-column spaces of two sites,
+        which ignores rotations. <i>Procrustes</i> then fits one orthogonal K×K rotation per network, the same at every
+        depth, so a network's own motion is untouched. The relative residual after the rotation measures how
+        transferable the embeddings are; it is shown per network and per depth.</p>
+        <p><b>Baselines.</b> PCA and UMAP are computed at each site separately (on the centred cosine activations), so
+        nothing ties one site's coordinates to the next. They are chained along depth by Procrustes: each site is rotated
+        onto the previous, already rotated, site. This is the usual way to animate independent embeddings. The
+        through-depth modes need no chaining: one mode is one function over all sites.</p>
+        <p><b>SEBA sets through depth.</b> SEBA (the sparse rotation used for the explorer's sets) is run once on the
+        stacked low space: the constant eigenfunction plus the first r−1 modes, each a vector over all (site, image)
+        pairs. Each of the r sparse vectors is a set of (site, image) pairs, so its support can grow, persist or shrink
+        along depth. The modes enter unrescaled, since only then are they orthonormal. The construction's other
+        slice-constant modes, which carry no image information, are left out. The chart counts hard labels, so a set's
+        count can also fall because another set's vector wins at those images while its own support persists. Other
+        networks run their own SEBA; their colours are matched to the reference by overlap (a display choice).</p>
+        <p><b>Scale.</b> In "raw", sites holding little of the low space collapse to the centre (the bars over the slider show
+        where the space lives). "Per site" rescales each site by one number, as the post-hoc set readout does.</p>
+        <p><b>In-between frames</b> are linear interpolations between neighbouring sites, for the eye only. Mode signs and tied
+        eigenvalues are arbitrary. With per-site scale, pooled PCA fixes the axes within ties. In raw scale the pooled spectrum is flat (the modes are orthonormal over all sites), so the raw modes are used. Procrustes removes the rest across networks.</p>
+      </details>
+    </aside>
+    <section class="emb-stage">
+      <div class="emb-card emb-depth">
+        <button type="button" id="emb-play">▶ Play</button>
+        <div class="emb-sitehead" id="emb-sitehead"></div>
+        <div><canvas id="emb-occ"></canvas><input type="range" id="emb-depth" min="0" max="11" step="0.01" value="0" aria-label="Depth"></div>
+      </div>
+      <div class="emb-card emb-plots" id="emb-plots"></div>
+      <div class="emb-card"><div id="emb-legend"></div><div id="emb-status">loading…</div></div>
+      <div class="emb-card" id="emb-strip-card"><div class="emb-strip" id="emb-strip"></div></div>
+      <div class="emb-card" id="emb-seba-card" hidden>
+        <div class="emb-dis-head">SEBA sets through depth: share of the probe images assigned to each set at each site of the reference (an image at a site goes to the set whose sparse vector is largest there, if positive)</div>
+        <canvas id="emb-seba"></canvas>
+      </div>
+      <div class="emb-card" id="emb-dis-card" hidden>
+        <div class="emb-dis-head">Disagreement with the reference, <span id="emb-dis-what">after the Procrustes rotation</span>: Σ|Y<sub>B</sub> − Y<sub>ref</sub>|² / Σ|Y<sub>ref</sub>|² at each reference site, over all K dimensions (0 = identical coordinates). Between sites the other network's rows are interpolated, which can shrink their norm.</div>
+        <canvas id="emb-dis"></canvas>
+      </div>
+      <div id="emb-tip" class="emb-tip"></div>
+    </section>
+  </div>
+</div>

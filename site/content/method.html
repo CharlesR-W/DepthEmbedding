@@ -1,0 +1,105 @@
+<p class="lede">The viewer plots the low modes of one operator per network. This page says what that operator is,
+what the viewer's options do, and which steps are fits added for display. The per-site construction it starts from is
+described in full on the <a href="https://charlesr-w.github.io/CoherentModes/#method">Coherent Modes site</a>, which this viewer was split from.</p>
+
+<h2 id="setup">Networks, probe images, sites</h2>
+<ul>
+<li><b>Networks.</b> ResNet-20, ResNet-32 and ResNet-56 (two seeds each) and one VGG-16-BN, all trained on CIFAR-10.
+Each is measured at several saved training steps (checkpoints).</li>
+<li><b>Probe images.</b> The same $N = 2{,}000$ CIFAR-10 test images, 200 per class, for every network. Class
+labels are used only to colour the plot, never to build an operator.</li>
+<li><b>Sites.</b> The places in a network where activations are read: for the ResNets the stem, each residual
+block, the pooled features and the logits. A network with $L$ sites gives $L$ sets of activations of the probe.</li>
+<li><b>Walk at one site.</b> At site $l$, activations are flattened, centred over the probe and normalised, and a
+graph joins each image to its 15 nearest neighbours by cosine distance. Scaling that graph to be symmetric and
+doubly stochastic and averaging it with the identity gives a walk $M_l$ on the probe images
+(<a href="https://charlesr-w.github.io/CoherentModes/#method/operator">details</a>). Nothing is trained on top of the network.</li>
+</ul>
+
+<h2 id="through-depth">One operator through depth</h2>
+
+<p>The <a href="#embedding">viewer</a> uses one operator for all of a network's sites at once. (The
+<a href="https://charlesr-w.github.io/CoherentModes/#experiments/x-through-depth">through-depth experiment</a> on the Coherent Modes site measures the same
+operator on ResNet-20.) Its functions $f = (f_0, \dots, f_{L-1})$ have one slice per site, each a function on the probe
+images, and its energy charges for roughness within each site and for change between neighbouring sites:</p>
+<div class="eq" id="eq-m-supra">$$ E_t(f) \;=\; \sum_{l} \frac{f_l^\top (I - M_l)\, f_l}{c_l}
+\;+\; t \sum_{l} \lVert f_{l+1} - f_l \rVert^2 . $$</div>
+<p>This is the supra-Laplacian of <a href="https://arxiv.org/abs/2409.11984" target="_blank" rel="noopener">Froyland,
+Kalia and Koltai</a>, with the identity as the link between sites: image $i$ at one site <i>is</i> image $i$ at the
+next. Its low modes give each image a row of $K$ numbers at every site, all in one $K$-dimensional space. That row is
+what the viewer plots. It offers three variants.</p>
+<ul>
+<li><b>Relative site units</b> (the default): $c_l$ is the mean of site $l$'s first eight nontrivial values of
+$1 - \lambda$, the least mean roughness any eight orthonormal mean-zero functions can have at that site.</li>
+<li><b>Native walk units</b>: $c_l = 1$.</li>
+<li><b>Paper transition</b>: the matrix of <a href="https://doi.org/10.1063/5.0228419" target="_blank"
+rel="noopener">Trower, Djurdjevac Conrad and Klus</a>, used as is.</li>
+</ul>
+
+<h3 id="through-depth-why-relative">Why relative units are the default rather than the paper's matrix</h3>
+<p><b>Against the paper's matrix.</b> For these symmetric walks its eigenproblem has an exact energy
+(<a href="https://github.com/CharlesR-W/DepthEmbedding/blob/main/SPEC_SPACETIME.md"><code>SPEC_SPACETIME.md</code></a>, S2): $1 - \lambda = \sum_l \sum_{i,j} (M_l)_{ij}\,(f_l(i) - f_{l+1}(j))^2$. Image $i$ at
+one site is linked to a <i>random neighbour</i> $j$ at the next. Roughness within a site and change between sites are
+therefore paid through the same walk step, and nothing sets their relative price. Three consequences follow.</p>
+<ul>
+<li>Its graph is not the identity link, so "the same image, followed through depth" is not what it encodes.</li>
+<li>Site $l$'s walk is used for both slices $l$ and $l+1$, and the last site's walk never enters.</li>
+<li>Its spectrum mixes in slice-constant ("temporal") modes that say nothing about the images. The paper filters them
+by inspection, so the number of groups cannot be read from a gap.</li>
+</ul>
+<p>The additive operator above keeps the two charges separate, with an explicit rate $t$. The slice-constant modes form
+an exactly invariant sector and are removed (S1). Its two limits are objects the Coherent Modes site already uses: as
+$t \to 0$, the separate sites; as $t \to \infty$, a block average over all sites (S3). As $t$ grows, the trade between
+roughness and change is exact and monotone (S6). The paper's matrix is still shown alongside, with the same readings,
+as a comparison.</p>
+<p><b>Against native units.</b> With $c_l = 1$ the price of roughness at a site is set by that site's walk. In ResNet-20
+seed 0 the late walks are much smoother: smooth functions are about 8 times cheaper at logits
+than in the middle blocks. So the cheapest modes pile onto the last sites. At the final checkpoint, b9, pool and
+logits hold 0.99 of the 16-mode space at $t^*/64$ and
+0.55 at $t^*$. That pile-up is mostly the gap landscape, not image geometry: a
+scalar control that sees only each site's gap approximately reproduces mode $1$'s depth profile (S5; see <a href="https://charlesr-w.github.io/CoherentModes/#experiments/x-through-depth">the experiment</a> for where it does not). Relative units divide out
+that one number per site, so each site's cheapest eight-frame costs the same, and leave everything else. The space
+then spreads over all sites: at $t^*$, each site holds between 0.050 and
+0.121, against an even share of 0.083. For
+comparison, the paper's matrix puts 0.49 on b9 to logits.</p>
+<p><b>What relative units do not do.</b> They do not equalise spectral gaps or best cuts, and the eight-mode
+reference is a convention. The default is a choice about what counts as "equally rough at every site", not a
+result. The coupling $t$ is also a free rate. The six stops are multiples of the balance coupling $t^*$, which is a
+ruler, not an optimum.</p>
+
+<h3 id="through-depth-seba">SEBA sets through depth</h3>
+<p>The viewer can also colour by <a href="https://charlesr-w.github.io/CoherentModes/#method/seba">SEBA</a> run once on the stacked low space. The input is the
+constant eigenfunction plus the first $r-1$ modes, each a vector of length $L \cdot N$ over all (site, image) pairs,
+re-orthonormalised after the int8 rounding of the shipped data. The algorithm, threshold ($0.99/\sqrt{LN}$), sign,
+scaling and reliability order are those of the Coherent Modes explorer's SEBA. For the paper's matrix the shipped slices are of
+$B^{1/2} f$, so its constant enters as $B^{1/2}\mathbf 1$. Each of the $r$ sparse vectors is a set of (site, image)
+pairs whose support can grow, persist or shrink along depth. The hard label of image $i$ at site $l$ is the set whose
+vector is largest there, if positive, else unassigned; so a set's count at a site can also fall because another
+vector wins there while its own support persists. The modes enter unrescaled, since only then are they orthonormal.
+The construction's other slice-constant modes, which carry no information about the images, are left out.
+<a href="https://arxiv.org/abs/2409.11984" target="_blank" rel="noopener">Froyland, Kalia and Koltai</a> also apply
+SEBA to supra-Laplacian eigenvectors. Their procedure differs: it pairs each nontrivial spatial eigenvector with a
+slice-norm companion and screens out spurious outputs, and neither step is reproduced here. Each network runs its own
+SEBA. In the side-by-side view, other networks' sets are matched one-to-one to the reference's by overlap, greedily,
+for colour only. SEBA is a readout of the modes, like the $k$-means sets, not part of the construction.</p>
+
+<h3 id="through-depth-compare">Comparing networks, and the baselines</h3>
+<p>Each network's operator is built on its own, from that network's walks alone; nothing ties two networks together
+in the construction. To show them side by side, the viewer makes two post-hoc fits, both labelled and
+switchable.</p>
+<ul>
+<li><b>Depth matching</b>: either <i>fractional depth</i> (site $l$ of $L$ sits at $l/(L-1)$), or <i>DTW</i> on the
+subspace distance $1 - \lVert Q_A^\top Q_B \rVert_F^2 / K$ between the $K$-column spaces of two sites, which ignores
+rotations.</li>
+<li><b>Coordinates</b>: one orthogonal $K \times K$ rotation per network onto the reference network, fitted by
+Procrustes over the matched sites and the same at every depth, so each network's own motion is unchanged.</li>
+</ul>
+<p>The relative residual after the rotation, $\sum \lVert Y_B - Y_{\mathrm{ref}} \rVert^2 / \sum \lVert
+Y_{\mathrm{ref}} \rVert^2$, is shown per network and per reference site; 0 means identical coordinates. It measures how far one network's embedding transfers to
+another's, under these two fits.</p>
+<p>As baselines, the viewer also shows ordinary embeddings computed at each site separately: the leading principal
+coordinates of the centred cosine activations (PCA), and a 2-d UMAP. Nothing links one site's baseline coordinates
+to the next, so they are chained along depth by Procrustes, each site rotated onto the previous rotated one: the
+usual way to animate independent embeddings. Any smoothness of their motion through depth comes from that chaining
+fit. In the through-depth modes, one mode is a single function over all sites.</p>
+
