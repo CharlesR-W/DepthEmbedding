@@ -26,7 +26,7 @@ from scipy.stats import spearmanr
 ROOT = Path(__file__).resolve().parents[2]
 ASSETS = 'site/assets/x'
 FRAG = 'site/content/experiments'
-BUILD = 'data/build_G/index.html'
+BUILD = 'build/site/index.html'
 INV = 'data/invert'
 FETCH = 'data/fetch'
 IV = 'crw-depth-invert-results'
