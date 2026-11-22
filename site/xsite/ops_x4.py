@@ -5,11 +5,11 @@ import numpy as np
 
 if __package__:
     from .opdata import require, write_paths
-    from .ops import SEED, package_operator, write_sprite
+    from .ops import SEED, cifar10_labels, package_operator, write_sprite
     from .validate import validate_operator
 else:
     from opdata import require, write_paths
-    from ops import SEED, package_operator, write_sprite
+    from ops import SEED, cifar10_labels, package_operator, write_sprite
     from validate import validate_operator
 
 STARTS = ('pixels', 'b3', 'b6', 'b9')
@@ -29,6 +29,7 @@ def sample_pairs(kind):
 
 def package(inputs, root):
     endpoints = None
+    label_space = cifar10_labels()
     for start in STARTS:
         op_id, set_id = f'x4-{start}-suffix', f'x4-{start}-paths'
         raw = validate_operator(inputs, op_id)
@@ -53,6 +54,6 @@ def package(inputs, root):
             meta = dict(pair_pos=pos.tolist(), kind=np.where(kind[pos] == 0, 'same', 'diff').tolist(),
                         label_a=labels[pos, 0].tolist(), label_b=labels[pos, 1].tolist(),
                         s_switch=[float(v) if np.isfinite(v) else None for v in z['s_switch'][pos]])
-            write_paths(root, op, set_id, coords=coords, l0=start, sites=z['sites'], s=s, meta=meta,
+            write_paths(root, op, set_id, coords=coords, l0=start, sites=z['sites'], s=s, labels=label_space, meta=meta,
                         provenance=inputs.provenance(op_id, key=record['file'], entry=f'inputs.json#paths/{key}'),
                         sprite=sprite)

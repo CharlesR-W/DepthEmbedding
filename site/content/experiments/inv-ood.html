@@ -1,24 +1,23 @@
 <section class="experiment" id="x-inv-ood">
 <h2>Where do other datasets, noisy and adversarial images land?</h2>
 <p class="x-scope">Tested: one CIFAR-10 ResNet-20 checkpoint. Overlay and support plots use the frozen 2,000-image CIFAR-10 probe P2 pr300. The quantitative decoding comparison uses the 8,000-image probe P8 pr400. Neither probe nor decoder was fitted to the shifted inputs.</p>
-<p class="x-answer"><strong>Shifted inputs need not be harder to decode.</strong> At b4, SVHN has higher mean centred cosine than held-out CIFAR-10 ({{fact:x.inv-ood.svhn.b4}} vs {{fact:x.inv-ood.h.b4}}, P8 pr400, K = 64). Each decode is compared with the activation the network actually produced on that input, not with its clean counterpart or a class target.</p>
+<p class="x-answer"><strong>SVHN has higher reconstruction cosine and captured share at b4, but similar patched top-1 agreement.</strong> The reference is the network’s activation and prediction on the same input, not a clean counterpart or a class target.</p>
 <figure class="emb-fig" data-emb="assets/x/inv-ood.json#emb_lead">
-  <figcaption><strong>Plotted:</strong> The class-coloured CIFAR-10 probe and sampled images from one selected set, placed out of sample in P2 pr300. Source coordinates use only the selected site’s activation; joint coordinates mix sources along depth. Both use the first 16 mode indices. The 2-D projections are illustrations; apparent overlap is not evidence of equal full-dimensional support or class identity between datasets.</figcaption>
+  <figcaption><strong>Plotted:</strong> CIFAR-10 probe and one selected set in P2 pr300. True labels belong to the input dataset; predictions are CIFAR-10 labels. Both coordinate kinds use axes fitted to the site-normalised joint probe, with their own site Frobenius scaling. At b9, SVHN/P2 source variance ratios average {{fact:x.inv-ood.display.svhn.full}} across the full coordinates but {{fact:x.inv-ood.display.svhn.plane}} across the displayed axes; neither measures absolute affinity.</figcaption>
 </figure>
 <div class="x-numbers">
-  <div><b>{{fact:x.inv-ood.svhn.b4}}</b><span>SVHN, b4 cosine</span></div>
-  <div><b>{{fact:x.inv-ood.h.b4}}</b><span>Held-out CIFAR-10, b4 cosine</span></div>
-  <div><b>{{fact:x.inv-ood.c100.b9}}</b><span>CIFAR-100, b9 cosine</span></div>
-  <div><b>{{fact:x.inv-ood.pgd8.b9}}</b><span>PGD 8/255, b9 cosine</span></div>
+  <div><b>{{fact:x.inv-ood.svhn.b4}} vs {{fact:x.inv-ood.h.b4}}</b><span>b4 cosine · SVHN vs CIFAR-10</span></div>
+  <div><b>{{fact:x.inv-ood.svhn.b4_captured}} vs {{fact:x.inv-ood.h.b4_captured}}</b><span>b4 captured share</span></div>
+  <div><b>{{fact:x.inv-ood.svhn.b4_agree}} vs {{fact:x.inv-ood.h.b4_agree}}</b><span>b4 patched agreement</span></div>
 </div>
-<p>All four tiles use P8 pr400 at K = 64.</p>
+<p>All tiles use P8 pr400 at K = 64.</p>
 <h3>What was computed</h3>
 <div class="x-tablewrap"><table class="x-defs"><thead><tr><th>Quantity</th><th>Equation</th><th>Symbols and choices</th><th>Code</th></tr></thead><tbody>
 <tr><th>Frozen row</th><td>$d(x,j)=1-\cos(x-\mu_l,x_j-\mu_l)$<br>$p_l(j\mid x)\propto v_j[q(j\mid x)+q(j\!\to\!x)]$</td><td>$q(j\mid x)$ is the new point’s normalised Gaussian conditional, fitted to participation ratio 300 or 400. The reverse term uses probe image $j$’s frozen width, shift and normaliser; $v_j$ is its probe balancing factor. Normalise the resulting row to sum to one.</td><td><code>modal_invert:gram, set_rows; dm:ea_oos_rows</code></td></tr>
-<tr><th>Source and joint</th><td>$s_{l,k}=p_l(x)f_{l,k}$<br>$y_{\cdot,k}=T_k^{-1}(s_{\cdot,k}/(2c))$</td><td>$f_{l,k}$ is the slice of joint mode $k$; $T_k=\operatorname{diag}(1/(2c))+tD_{\mathrm{path}}-\mu_k I$, with eigenvalue $\mu_k$. No per-set refit.</td><td><code>modal_invert:joint; dm:joint_forward</code></td></tr>
+<tr><th>Source and joint</th><td>$s_{l,k}=p_l(x)f_{l,k}$<br>$y_{\cdot,k}=T_k^{-1}(s_{\cdot,k}/(2c))$</td><td>$f_{l,k}$ is the slice of joint mode $k$; $\mu_k$ is the fitted joint operator’s eigenvalue; it shifts $T_k=\operatorname{diag}(1/(2c))+tD_{\mathrm{path}}-\mu_k I$. No per-set refit.</td><td><code>modal_invert:joint; dm:joint_forward</code></td></tr>
 <tr><th>Decode cosine and row concentration</th><td>$\cos(x-\mu_l,\hat x-\mu_l)$<br>$\max_j p_l(j\mid x)$</td><td>Cosine uses the decode from joint coordinates and the actual activation on the same input (P8 pr400). The largest kernel-row weight (P2 pr300) measures concentration, not distance to the probe.</td><td><code>stage_decode:score, run; modal_invert:joint</code></td></tr>
-<tr><th>Shifted inputs</th><td>$x_\sigma=\operatorname{clip}_{[0,1]}(x+\sigma\eta),\ \eta\sim\mathcal N(0,I)$</td><td>First 2,000 CIFAR-100 and SVHN test images; noise on all 2,000 H images. Untargeted $L^\infty$ PGD on the first 1,000 H images, using labels, budgets 2/255 and 8/255, random start, 20 steps at $\epsilon/4$. All attempts are included.</td><td><code>modal_invert:extract</code></td></tr>
-<tr><th>Paired displacement</th><td>$K^{-1}\sum_k((z^{\mathrm{adv}}_{l,k}-z^{\mathrm{clean}}_{l,k})/\sigma_{l,k})^2$</td><td>$z$ is source or joint, K = 16; $\sigma_{l,k}$ is the spread on the paired clean half of H at that site, using population standard deviation. A value of 2 is the expectation for two independent points from the same clean distribution.</td><td><code>adv.py:21–56</code></td></tr>
+<tr><th>Shifted inputs</th><td>$x_\sigma=\operatorname{clip}_{[0,1]}(x+\sigma\eta),\ \eta\sim\mathcal N(0,I)$</td><td>First 2,000 CIFAR-100 and SVHN test images; noise on all 2,000 H images. Untargeted $L^\infty$ PGD on the first {{fact:x.inv-ood.attack.n}} rows of sorted H, using labels, budgets 2/255 and 8/255, random start, 20 steps at $\epsilon/4$. All attempts are included.</td><td><code>modal_invert:extract</code></td></tr>
+<tr><th>Paired displacement</th><td>$K^{-1}\sum_k((z^{\mathrm{adv}}_{l,k}-z^{\mathrm{clean}}_{l,k})/\sigma_{l,k})^2$</td><td>$z$ is source or joint, K = 16; $\sigma_{l,k}$ is the spread on the paired clean cohort, using the empirical population standard deviation. The reference value 2 applies to independent population-standardised draws or draws with replacement from this empirical reference.</td><td><code>adv.py:21–56</code></td></tr>
 </tbody></table></div>
 <h3>Supporting figures</h3>
 <div class="x-figgrid">
@@ -29,9 +28,13 @@
 <ul>
 <li>Higher cosine on SVHN does not establish better support or greater information retention. Mean shifts, activation spread and decoder bias could all change this comparison; their contributions were not separated.</li>
 <li><strong>Audit correction:</strong> For the full report's nearest-centroid readout, the joint centroids were fitted on the probe, but the source centroids were fitted on the second half of H. Those readouts are not the same labelled reference fit.</li>
-<li>The Gaussian-noise set is not a perturbation-size-matched PGD control. PGD results describe one attack setup and include unsuccessful attempts; they do not establish robustness. Its settings also differ from the separate X3 experiment.</li>
-<li>Nearest-probe cosine and a calibrated decode-error-versus-coverage curve are not shown. The saved normalised row weights do not identify absolute nearest-probe cosine.</li>
-<li>One network, one checkpoint and one probe draw; no uncertainty over runs.</li>
+<li>{{fact:x.inv-ood.attack.wrong_clean}} of {{fact:x.inv-ood.attack.n}} were already wrong clean. Misclassified on attacked input: {{fact:x.inv-ood.attack.pgd2.misclassified}} at 2/255 and {{fact:x.inv-ood.attack.pgd8.misclassified}} at 8/255, including {{fact:x.inv-ood.attack.pgd2.wrong_unchanged}} and {{fact:x.inv-ood.attack.pgd8.wrong_unchanged}} already-wrong predictions that did not change. Predictions changed on {{fact:x.inv-ood.attack.pgd2.changed}} and {{fact:x.inv-ood.attack.pgd8.changed}}, respectively. Displacement includes every attempt, not just originally correct inputs.</li>
+</ul>
+<h3>Method concerns from the audit</h3>
+<ul class="x-caveats">
+<li><span class="x-tag">audit</span> <strong>Limit — dataset effects can raise reconstruction scores.</strong> Higher cosine and captured share need not be image-specific. Compare a dataset-mean decoder or shuffle coordinates within each dataset.</li>
+<li><span class="x-tag">audit</span> <strong>Possible flaw — concentration is not support.</strong> The frozen reverse term can exceed one before re-normalisation. A diffuse row may have no close neighbour. Compare absolute nearest-probe cosine and calibrate decode error by coverage.</li>
+<li><span class="x-tag">audit</span> <strong>Limit — pixel noise is not a size-matched control.</strong> This single attack setup does not establish robustness; compare matched perturbation sizes and settings on the same cohort.</li>
 </ul>
 <details><summary>Decisions made on the owner's behalf (4)</summary>
 <div class="x-tablewrap"><table class="x-decisions"><thead><tr><th>Decision</th><th>Chosen</th><th>Alternative</th><th>Why</th><th>Could bias</th><th>How to test</th></tr></thead><tbody>
@@ -41,7 +44,7 @@
 <tr><th>Display and support</th><td>P2 pr300 projection and row max</td><td>Show P8 and use a calibrated nearest-probe distance</td><td>Use the packaged full-depth picture and saved rows</td><td>Projection and concentration may hide weak absolute affinity</td><td>Compare in full coordinates and calibrate affinity against held-out decode error</td></tr>
 </tbody></table></div></details>
 <details><summary>More figures</summary>
-  <figure class="emb-fig" data-emb="assets/x/inv-ood.json#emb_attacks"><figcaption><strong>Plotted:</strong> Arrows connect the same sampled H images before and after attack, in a 2-D projection of the first 16 modes of P2 pr300. Compare the two attacks at a fixed site, or switch between source and joint coordinates. The display is an illustration of displacement, not its measurement.</figcaption></figure>
+  <figure class="emb-fig" data-emb="assets/x/inv-ood.json#emb_attacks"><figcaption><strong>Plotted:</strong> Clean-to-attacked arrows in P2 pr300 ({{fact:x.inv-ood.attack.arrows}} by default). At b9 the displayed axes retain {{fact:x.inv-ood.display.pgd2.source}} source / {{fact:x.inv-ood.display.pgd2.joint}} joint raw squared displacement for PGD 2/255; for 8/255, {{fact:x.inv-ood.display.pgd8.source}} / {{fact:x.inv-ood.display.pgd8.joint}}. These shares use all pairs before display clamping, not standardised distances.</figcaption></figure>
   <figure class="live" data-live="lines" data-src="assets/x/inv-ood.json#displacement"><div class="live-body"></div><figcaption><strong>Plotted:</strong> Mean squared paired displacement from clean in K = 16 source or joint coordinates (P8 pr400). Joint displacement can contain changes in later sites; source displacement cannot.</figcaption></figure>
 </details>
 <p class="x-links"><a href="reports/inversion.html#tab=ood">Full shifted-input report</a> · <a href="reports/inversion.html#tab=adversarial">Full adversarial report</a> · <a href="#method/new-images">Placing new images</a> · <a href="https://github.com/CharlesR-W/DepthEmbedding/blob/experiments-site/invert/adv.py">Displacement code</a></p>

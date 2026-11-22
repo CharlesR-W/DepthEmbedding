@@ -127,7 +127,25 @@ async page => {
       await scope.locator('details').evaluateAll((ds, saved) => ds.forEach((d, i) => { d.open = saved[i]; }), savedDetails);
     }
   };
-  let captured = false;
+  const captured = new Set();
+  // thumbnail capture: the plot area of the entry's lead embedding figure (labels, rings and notes hidden), else its
+  // first live chart, else its number tiles stacked in one column
+  const captureLead = async (id, entry) => {
+    const emb = entry.locator('figure.emb-fig').first();
+    if (await emb.count()) {
+      await emb.evaluate(async f => { await f.__emb.ready; f.__emb.setThumb(true); });
+      await page.waitForTimeout(150);
+      try { await shot(`capture-${id}`, {locator: emb.locator('.ef-panels')}); }
+      finally { await emb.evaluate(f => f.__emb.setThumb(false)); }
+      return;
+    }
+    const live = entry.locator('figure.live .live-body').first();
+    if (await live.count()) { await shot(`capture-${id}`, {locator: live}); return; }
+    const tiles = entry.locator('.x-numbers').first();
+    const old = await tiles.evaluate(t => { const o = t.getAttribute('style'); t.style.gridTemplateColumns = '1fr'; t.style.width = '440px'; return o; });
+    try { await shot(`capture-${id}`, {locator: tiles}); }
+    finally { await tiles.evaluate((t, o) => { if (o == null) t.removeAttribute('style'); else t.setAttribute('style', o); }, old); }
+  };
   for (const [size, width, height] of [['desktop', 1440, 900], ['mobile', 390, 844]]) {
     await page.setViewportSize({width, height});
     await page.goto(base, {waitUntil:'load'});
@@ -138,7 +156,12 @@ async page => {
       if (tab === 'embedding') {
         await page.waitForLoadState('networkidle');
       }
-      await inspect(panel, size === 'desktop' && tab === 'experiments');
+      // the Experiments tab opens on its overview (lede and cards); each entry is shown alone at #experiments/x-<id>
+      await inspect(tab === 'experiments' ? panel.locator('.xp > :not(section.experiment)') : panel, false);
+      if (tab === 'experiments') {
+        const shown = await panel.locator('section.experiment').evaluateAll(els => els.filter(e => e.getBoundingClientRect().height > 0).length);
+        if (shown) issues.add(`${size} experiments overview: ${shown} entries visible, expected none`);
+      }
       await page.evaluate(() => window.scrollTo(0, 0));
       await shot(`${tab === 'embedding' ? 'viewer' : tab}-${size}`);
       if (tab === 'experiments') {
@@ -147,11 +170,15 @@ async page => {
           await page.evaluate(id => { location.hash = `experiments/${id}`; }, id);
           const entry = page.locator(`#${id}`);
           await entry.waitFor({state:'visible'});
-          await shot(`${id}-${size}`, {locator:entry});
-          if (capture && id === `x-${capture}` && size === 'desktop') {
-            const lead = entry.locator('figure.emb-fig, figure.live, figure').first();
-            await shot(`capture-${capture}`, {locator: await lead.count() ? lead : entry});
-            captured = true;
+          const shown = await panel.locator('section.experiment').evaluateAll(els => els.filter(e => e.getBoundingClientRect().height > 0).map(e => e.id));
+          if (shown.length !== 1 || shown[0] !== id) issues.add(`${size} ${id}: visible entries ${JSON.stringify(shown)}`);
+          await inspect(entry, size === 'desktop');
+          await page.evaluate(() => window.scrollTo(0, 0));
+          await shot(`${id}-${size}`);
+          const xid = id.replace(/^x-/, '');
+          if (size === 'desktop' && (capture.includes(xid) || capture.includes('all'))) {
+            await captureLead(xid, entry);
+            captured.add(xid);
           }
         });
       }
@@ -185,8 +212,9 @@ async page => {
       await shot(`report-${name}-${size}`);
     });
   }
-  if (capture && !captured) issues.add(`cannot capture ${capture}: entry absent`);
-  return '@@JSON@@' + JSON.stringify({issues:[...issues], screenshots}) + '@@END@@';
+  for (const id of capture) if (id !== 'all' && !captured.has(id)) issues.add(`cannot capture ${id}: entry absent`);
+  if (capture.includes('all')) capture.splice(0, capture.length, ...captured);
+  return '@@JSON@@' + JSON.stringify({issues:[...issues], screenshots, captured:[...captured]}) + '@@END@@';
 }
 """
 
@@ -196,14 +224,16 @@ def main():
     ap.add_argument("base_url", help="e.g. http://127.0.0.1:8812/ (include any deploy path)")
     ap.add_argument("out_dir", type=Path, help="directory for screenshots")
     ap.add_argument("--session", help="unique playwright-cli session name (default includes PID)")
-    ap.add_argument("--capture", metavar="ID", help="also write site/assets/fig/x_ID_thumb.webp (requires Pillow)")
+    ap.add_argument("--capture", metavar="ID[,ID…]|all",
+                    help="also write site/assets/fig/x_ID_thumb.webp for these entries, or all (requires Pillow)")
     a = ap.parse_args()
     base = a.base_url.rstrip("/") + "/"
     url = urlsplit(base)
     if url.scheme not in ("http", "https") or not url.hostname or url.fragment or url.query:
         ap.error("base_url must be an HTTP(S) directory URL without fragment or query")
-    if a.capture and not re.fullmatch(r"[a-z][a-z0-9-]*", a.capture):
-        ap.error("--capture expects a lower-case experiment id")
+    capture = [c for c in (a.capture or "").split(",") if c]
+    if any(not re.fullmatch(r"[a-z][a-z0-9-]*", c) for c in capture):
+        ap.error("--capture expects lower-case experiment ids (comma-separated) or all")
     if a.capture:
         try:
             from PIL import Image
@@ -220,7 +250,7 @@ def main():
             raise RuntimeError(f"playwright-cli {args[0]} failed:\n{r.stdout}\n{r.stderr}")
         return r.stdout
 
-    js = CHECK_JS.replace("CONFIG", json.dumps(dict(base=base, dir=str(dest), capture=a.capture,
+    js = CHECK_JS.replace("CONFIG", json.dumps(dict(base=base, dir=str(dest), capture=capture,
                                                  reports=[("inversion", "sources"), ("xp", "x1")])), 1)
     # Use an argument rather than a temporary JS file when invoking the pre-built CLI.
     try:
@@ -238,14 +268,33 @@ def main():
     for issue in result["issues"]:
         print(f"error: {issue}")
     print(f"{len(result['screenshots'])} screenshots and {len(result['issues'])} browser errors: {dest}")
-    if a.capture and not result["issues"]:
-        thumb = Path(__file__).resolve().parent / "assets" / "fig" / f"x_{a.capture}_thumb.webp"
-        thumb.parent.mkdir(parents=True, exist_ok=True)
-        with Image.open(dest / f"capture-{a.capture}.png") as im:
-            im.thumbnail((720, 480))
-            im.convert("RGB").save(thumb, quality=82)
-        print(f"wrote {thumb}")
+    if capture and not result["issues"]:
+        for xid in result.get("captured", []):
+            thumb = Path(__file__).resolve().parent / "assets" / "fig" / f"x_{xid}_thumb.webp"
+            thumb.parent.mkdir(parents=True, exist_ok=True)
+            with Image.open(dest / f"capture-{xid}.png") as im:
+                make_thumb(im).save(thumb, quality=80, method=6)
+            print(f"wrote {thumb} ({thumb.stat().st_size // 1024} KB)")
     return int(bool(result["issues"]))
+
+
+THUMB = (800, 400)          # 2:1, twice the widest card image (CSS aspect-ratio 2 / 1)
+
+
+def make_thumb(im):
+    """Trim the white margin around the drawn content, then centre it on white at 2:1 and scale to THUMB."""
+    from PIL import Image, ImageOps
+    rgb = im.convert("RGB")
+    ink = ImageOps.invert(rgb.convert("L")).point(lambda v: 255 if v > 10 else 0)    # anything darker than ~245
+    box = ink.getbbox() or (0, 0, *rgb.size)
+    rgb = rgb.crop(box)
+    w, h = rgb.size
+    m = round(0.05 * max(w, h / 2))
+    W, H = w + 2 * m, h + 2 * m
+    W, H = max(W, 2 * H), max(H, -(-W // 2))
+    canvas = Image.new("RGB", (W, H), "white")
+    canvas.paste(rgb, ((W - w) // 2, (H - h) // 2))
+    return canvas.resize(THUMB, Image.LANCZOS)
 
 
 if __name__ == "__main__":

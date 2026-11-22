@@ -152,6 +152,30 @@ def main():
         for l in (0, 9):
             fact(f'pair.{a}_{b}.{chain[l]}', cell(a, b)[l],
                  f'{RAW}:knn15_trunk_cos replay, upper triangle in nets order, mean of {a}|{b} at {chain[l]}', digits=2)
+    stem, last = chain.index('stem'), chain.index('b9')
+    record = inputs.bundle(op_id(REF))
+    compare = record['checks']['compare']
+    with np.load(inputs.file(compare, pin=record['bundle'][compare]), allow_pickle=False) as z:
+        stem_metrics = {'nn': comp['nn'][:, :, stem, stem], 'cka': z['cka'][:, :, stem, stem]}
+    for g in ('c100', 'in32', 'svhn'):
+        for key, metric in stem_metrics.items():
+            fact(f'stem.{g}.{key}', cell('c10', g, metric),
+                 f'{RAW}:{key}, stem × stem; mean of saved summaries over CIFAR-10 × {g} run pairs', tier='S', digits=3)
+    cross = [raw[tuple(sorted((i, j)))][last] for i in indices['c100'] for j in indices['c100c']]
+    for bound, reduce in (('min', min), ('max', max)):
+        fact(f'coarse.b9.{bound}', reduce(cross), f'{RAW}: replayed b9 trunk cosine; {bound} over fine × coarse run pairs', digits=3)
+    reference = v[r]
+    scaled = (reference / np.linalg.norm(reference, axis=(1, 2))[:, None, None]).reshape(-1, v.shape[-1])
+    _, axes = np.linalg.eigh(scaled.T @ scaled)
+    axes = axes[:, -2:]
+    for net, l in (('c100-s0', last), ('svhn-s0', last), ('c10-s1', stem)):
+        j = nets.index(net)
+        key = f'projection.{net.replace("-", "_")}.{chain[l]}'
+        a, b = reference[l, test], v[j, l, test] @ rots[j]
+        src = f'pinned X1 trunk modes; {REF} × {net}, {chain[l]}, scored half, shared fitted Q'
+        fact(key + '.full', site_cos(a[None], b[None])[0], src, digits=3)
+        fact(key + '.display', site_cos((a @ axes)[None], (b @ axes)[None])[0],
+             src + '; project onto first two pooled reference PCs before quantisation', digits=3)
     i, j = (nets.index(n) for n in (REF, 'c10-s1'))
     for l in (0, 9):
         for k, m, suffix in [('raw', raw, ''), ('within', within, '_within')]:
@@ -167,6 +191,13 @@ def main():
     fact('null.perm.b9', null[-1], f'{RAW}:knn15_trunk_cos_perm replay, mean over off-diagonal ordered pairs at b9', digits=2)
 
     summary = json.loads(inputs.file(SUMMARY).read_text())
+    acc = json.loads(inputs.file('crw-depth-xp-results/x3/DONE').read_text())['clean_acc']['c10-s1']
+    fact('acc.c10_s1_x3', acc, 'xp/out/x3/DONE:clean_acc.c10-s1', tier='S', pct=True, digits=2)
+    # Batch size is a fixed recipe setting, not an observed result.
+    fact('schedule.batch', 128, 'xp/modal_train.py:train, bs (fixed recipe)', tier='S')
+    for key, net in (('usual', 'c100-s0'), ('in32', 'in32-s0')):
+        fact(f'schedule.{key}', summary['training'][net]['steps'],
+             f'xp/out/x1_summary.json:training.{net}.steps', tier='S')
     for net in nets:
         if net.startswith('init-'):
             continue

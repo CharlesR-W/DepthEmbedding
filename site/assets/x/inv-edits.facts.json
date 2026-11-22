@@ -1,15 +1,15 @@
 {
   "b4.residual": {
     "value": 0.41764914989471436,
-    "text": "42%",
+    "text": "0.418",
     "tier": "S",
-    "source": "data/invert/results.json:rt/P8__pr400__L12/b4__K64/E4|resid|p_b"
+    "source": "data/invert/rt/P8__pr400__L12/b4__K64.json:E4|resid|p_b (archived per-pair mean)"
   },
   "b4.match": {
     "value": 0.4300782382488251,
-    "text": "43%",
+    "text": "0.430",
     "tier": "S",
-    "source": "data/invert/results.json:rt/P8__pr400__L12/b4__K64/E4|resid+match|p_b"
+    "source": "data/invert/rt/P8__pr400__L12/b4__K64.json:E4|resid+match|p_b (archived per-pair mean)"
   },
   "b4.random": {
     "value": 0.011025904677808285,
@@ -25,15 +25,159 @@
   },
   "b4.miss_before": {
     "value": 0.15256813168525696,
-    "text": "0.15",
+    "text": "0.153",
     "tier": "S",
-    "source": "data/invert/results.json:rt/P8__pr400__L12/b4__K64/E4|resid|miss_S"
+    "source": "data/invert/rt/P8__pr400__L12/b4__K64.json:E4|resid|miss_S (archived per-pair mean)"
   },
   "b4.miss_after": {
     "value": 4.5870262965763686e-07,
-    "text": "0.0000005",
+    "text": "0.00000046",
     "tier": "S",
-    "source": "data/invert/results.json:rt/P8__pr400__L12/b4__K64/E4|resid+match|miss_S"
+    "source": "data/invert/rt/P8__pr400__L12/b4__K64.json:E4|resid+match|miss_S (archived per-pair mean)"
+  },
+  "b4.joint_before": {
+    "value": 0.8213903903961182,
+    "text": "0.821",
+    "tier": "S",
+    "source": "data/invert/rt/P8__pr400__L12/b4__K64.json:E4|resid|miss_D (archived per-pair mean)"
+  },
+  "b4.joint_after": {
+    "value": 0.8356779217720032,
+    "text": "0.836",
+    "tier": "S",
+    "source": "data/invert/rt/P8__pr400__L12/b4__K64.json:E4|resid+match|miss_D (archived per-pair mean)"
+  },
+  "b4.inferred_miss": {
+    "value": 0.05963723734021187,
+    "text": "0.05964",
+    "tier": "S",
+    "source": "data/invert/rt/P8__pr400__L12/b4__K64.json:E4|resid+match_req|miss_S (archived per-pair mean)"
+  },
+  "b4.inferred_prob": {
+    "value": 0.41479748487472534,
+    "text": "0.41480",
+    "tier": "S",
+    "source": "data/invert/rt/P8__pr400__L12/b4__K64.json:E4|resid+match_req|p_b (archived per-pair mean)"
+  },
+  "b4.size_before": {
+    "value": 0.5530987977981567,
+    "text": "0.553",
+    "tier": "S",
+    "source": "data/invert/rt/P8__pr400__L12/b4__K64.json:E4|resid|size (archived per-pair mean)"
+  },
+  "b4.size_after": {
+    "value": 0.5723391175270081,
+    "text": "0.572",
+    "tier": "S",
+    "source": "data/invert/rt/P8__pr400__L12/b4__K64.json:E4|resid+match|size (archived per-pair mean)"
+  },
+  "rank.pool_miss": {
+    "value": 1.2093329429626465,
+    "text": "1.209",
+    "tier": "S",
+    "source": "data/invert/results.json:rt/P8__pr400__L12/pool__K64/E4|match|miss_S"
+  },
+  "rank.pool": {
+    "value": 63,
+    "text": "63",
+    "tier": "S",
+    "source": "invert/modal_invert.py:SHAPES[pool] product minus radial degree"
+  },
+  "rank.logits_miss": {
+    "value": 0.2460353970527649,
+    "text": "0.246",
+    "tier": "S",
+    "source": "data/invert/results.json:rt/P8__pr400__L12/logits__K64/E4|match|miss_S"
+  },
+  "rank.logits": {
+    "value": 9,
+    "text": "9",
+    "tier": "S",
+    "source": "invert/modal_invert.py:SHAPES[logits] product minus radial degree"
+  },
+  "sample.cohort": {
+    "value": 256,
+    "text": "256",
+    "tier": "R",
+    "source": "Rerun m_full; splits.npz:H and clean logits; cyclic donor rule from invert/stage_rt.py"
+  },
+  "sample.pairs": {
+    "value": 256,
+    "text": "256",
+    "tier": "R",
+    "source": "Rerun m_full; splits.npz:H and clean logits; cyclic donor rule from invert/stage_rt.py"
+  },
+  "sample.donors": {
+    "value": 228,
+    "text": "228",
+    "tier": "R",
+    "source": "Rerun m_full; splits.npz:H and clean logits; cyclic donor rule from invert/stage_rt.py"
+  },
+  "sample.max_reuse": {
+    "value": 3,
+    "text": "3",
+    "tier": "R",
+    "source": "Rerun m_full; splits.npz:H and clean logits; cyclic donor rule from invert/stage_rt.py"
+  },
+  "sample.last_index": {
+    "value": 1262,
+    "text": "1,262",
+    "tier": "R",
+    "source": "Rerun m_full; splits.npz:H and clean logits; cyclic donor rule from invert/stage_rt.py"
+  },
+  "replay.bound_p_b": {
+    "value": 0.0006500000000000001,
+    "text": "0.00065",
+    "tier": "S",
+    "source": "data/stretch/rt_consistency.json:*:p_b.*.max_abs; strict upper bound rounded up, excluding rand~"
+  },
+  "replay.bound_size": {
+    "value": 3.1e-05,
+    "text": "0.000031",
+    "tier": "S",
+    "source": "data/stretch/rt_consistency.json:*:size.*.max_abs; strict upper bound rounded up, excluding rand~"
+  },
+  "display.arrows": {
+    "value": 60,
+    "text": "60",
+    "tier": "S",
+    "source": "gen_inv_a.py:ARROWS, initial display setting"
+  },
+  "display.b4.n": {
+    "value": 64,
+    "text": "64",
+    "tier": "R",
+    "source": "Packaged edit-b4-b.json:n"
+  },
+  "display.b4.donors": {
+    "value": 58,
+    "text": "58",
+    "tier": "R",
+    "source": "Packaged edit-b4-b.json: distinct images.ids"
+  },
+  "display.b6.n": {
+    "value": 64,
+    "text": "64",
+    "tier": "R",
+    "source": "Packaged edit-b6-b.json:n"
+  },
+  "display.b6.donors": {
+    "value": 58,
+    "text": "58",
+    "tier": "R",
+    "source": "Packaged edit-b6-b.json: distinct images.ids"
+  },
+  "display.b4.source": {
+    "value": 0.06222061245431658,
+    "text": "6.2%",
+    "tier": "R",
+    "source": "data/stretch/rt_points/P2__pr300__L12/b4__K16.npz: residual endpoint minus original, source; squared fraction retained by shipped joint PCA axes"
+  },
+  "display.b4.joint": {
+    "value": 0.17830910104383316,
+    "text": "17.8%",
+    "tier": "R",
+    "source": "data/stretch/rt_points/P2__pr300__L12/b4__K16.npz: residual endpoint minus original, joint; squared fraction retained by shipped joint PCA axes"
   },
   "replay.b4.residual": {
     "value": 0.16855971546776666,
@@ -58,6 +202,18 @@
     "text": "0.000000007",
     "tier": "R",
     "source": "data/stretch/rt_points/P2__pr300__L12/b4__K16.npz:s_edit[methods.index(resid+match),pair_ok] vs swap, scaled by sample std of first 256 H onestep rows; mean square"
+  },
+  "display.b6.source": {
+    "value": 0.22890509902563388,
+    "text": "22.9%",
+    "tier": "R",
+    "source": "data/stretch/rt_points/P2__pr300__L12/b6__K16.npz: residual endpoint minus original, source; squared fraction retained by shipped joint PCA axes"
+  },
+  "display.b6.joint": {
+    "value": 0.37001067862169756,
+    "text": "37.0%",
+    "tier": "R",
+    "source": "data/stretch/rt_points/P2__pr300__L12/b6__K16.npz: residual endpoint minus original, joint; squared fraction retained by shipped joint PCA axes"
   },
   "replay.b6.residual": {
     "value": 0.4174218305765269,

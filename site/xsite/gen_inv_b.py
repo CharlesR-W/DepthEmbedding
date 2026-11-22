@@ -6,11 +6,15 @@ Use --without-embedding to regenerate chart/fact assets before the operator is p
 from __future__ import annotations
 
 import argparse
+import ast
+import hashlib
 import json
 
 import numpy as np
 from PIL import Image
 
+from gen_inv_a import ARROWS, attack_display, packaged
+from opdata import read_array
 from ops_inv_edits import METHODS as ENDPOINT_METHODS
 from xlib import DATA, Out, lines
 
@@ -55,6 +59,13 @@ def decode_fact(out, results, name, site, key, tag=P8, **fmt):
                 f"{SUMMARY}:decode/{tag}/{site}/{key}[0]", **fmt)
 
 
+def study_shapes():
+    # Read the literal without importing the GPU/Modal stage.
+    path = DATA.parent / 'invert/modal_invert.py'
+    return next(ast.literal_eval(node.value) for node in ast.parse(path.read_text()).body
+                if isinstance(node, ast.Assign) and any(isinstance(t, ast.Name) and t.id == 'SHAPES' for t in node.targets))
+
+
 def coords(set_id):
     return RAW / "joint" / P2 / f"coords_{set_id}.npz"
 
@@ -78,11 +89,21 @@ def decode_embedding(out, ov_dir, near):
     positions = np.flatnonzero(near[np.asarray(held["sample"]["pos"], dtype=int)]).tolist()
     if not positions:
         raise ValueError("The H overlay sample has no high-row-max images to ring")
+    fact(out, 'near.shown', len(positions), 'R', 'Packaged H sample.pos intersected with rowmax flags')
+    fact(out, 'near.sample', held['n'], 'R', 'Packaged H.json:n')
+    op = packaged(OP)
+    axes = np.asarray(op['axes']['pooled'])[:, :2]
+    b4 = read_array(ov_dir, held['kinds']['joint'])[op['chain'].index('b4')]
+    radii = np.square(b4 @ axes).sum(axis=1)
+    fact(out, 'near.projected_top', len(set(positions) & set(np.argsort(radii)[-len(positions):])), 'R',
+         'Packaged H overlay b4; count of rings among the largest projected radii, with top count equal to ring count')
+    fact(out, 'near.projected_energy', radii.sum() / np.square(b4).sum(), 'R',
+         'Packaged H overlay b4; squared distance from origin retained by shipped joint PCA axes', pct=True, digits=1)
     spec = {"type": "emb", "schema": 1, "panels": [{"op": OP}], "site": "b4",
             "kinds": ["joint"], "kind": "joint", "K": 16, "dims": 2, "axes": "pooled:0",
             "norm": "site", "height": 480, "overlays": [{"set": "H", "draw": "points"}],
             "colour": {"by": "scalar", "set": "H", "scalar": choices[0]["scalar"], "options": choices,
-                       "title": "Decoder modes", "range": [-1, 1]},
+                       "title": "Decoder modes", "fit": [2, 98]},
             "highlight": {"overlay": {"set": "H", "positions": positions},
                           "label": "Ringed: row max > 0.5 at any site"}}
     out.chart("emb_lead", spec)
@@ -102,8 +123,27 @@ def decode(results, ov_dir):
          f"{raw_src}:y[b4,:,:64],rowmax; count with rowmax > 0.5 at any site among 20 largest b4 joint L2 norms")
     with np.load(RAW / "decode" / P2 / "b4__b4.npz", allow_pickle=False) as saved:
         v = saved["H|64|krr|cos_raw"]
-        p2cos = fact(out, "small.b4", v.mean(dtype=float), "P",
-                     f"data/fetch/crw-depth-invert-results/decode/{P2}/b4__b4.npz:H|64|krr|cos_raw; mean", digits=2)
+        decode_archive = f'data/fetch/crw-depth-invert-results/decode/{P2}/b4__b4.npz'
+        p2cos = fact(out, "small.b4", v.mean(dtype=float), "P", f'{decode_archive}:H|64|krr|cos_raw; mean', digits=2)
+        for group, mask in [('flagged', near), ('remainder', ~near)]:
+            fact(out, f'tail.{group}.n', int(mask.sum()), 'P', f'{raw_src}:rowmax; count in {group} stratum')
+            for key, metric in [('cos_raw', 'cosine'), ('cap_raw', 'captured')]:
+                fact(out, f'tail.{group}.{metric}', saved[f'H|64|krr|{key}'][mask].mean(dtype=float), 'P',
+                     f'{decode_archive}:H|64|krr|{key}; mean conditional on {group} stratum of rowmax from {raw_src}')
+    with np.load(RAW / 'splits.npz', allow_pickle=False) as split, \
+         np.load(RAW / 'acts/c10/meta.npz', allow_pickle=False) as metadata:
+        images = metadata['images']
+        digests = {hashlib.sha256(images[i].tobytes()).digest() for i in split['P2']}
+        identical = sum(hashlib.sha256(images[i].tobytes()).digest() in digests for i in split['H'])
+        fact(out, 'tail.identical', identical, 'R', 'CIFAR-10 meta.npz:images; compare P2/H SHA-256 pixel digests in splits order')
+    shapes = study_shapes()
+    for site in ('b4', 'pool', 'logits'):
+        fact(out, f'dimension.{site}', int(np.prod(shapes[site])), 'S', f'invert/modal_invert.py:SHAPES[{site}] product')
+    decode_fact(out, results, 'large.pool_pca', 'pool', 'H|64|pca|cos_raw', digits=3)
+    path = f'invert/decode/{P8}/summary.json'
+    selected = json.loads((DATA / path).read_text())['b4__b4']['_meta']['sel']['64']['krr']
+    fact(out, 'selected.width', selected['h'], 'S', f'data/{path}:b4__b4._meta.sel.64.krr.h')
+    fact(out, 'selected.ridge', selected['ridge'], 'S', f'data/{path}:b4__b4._meta.sel.64.krr.ridge', digits=4)
     b4cos = decode_fact(out, results, "large.b4", "b4", "H|64|krr|cos_raw", digits=2)
     poolcos = decode_fact(out, results, "large.pool", "pool", "H|64|krr|cos_raw", digits=2)
     b4top = decode_fact(out, results, "large.b4_agree", "b4", "H|64|krr|agree", pct=True)
@@ -142,7 +182,7 @@ def decode(results, ov_dir):
             im.save(out.fig_path(dest), format="WEBP", lossless=True, method=6)
     if ov_dir is not None:
         decode_embedding(out, ov_dir, near)
-    card(out, "Kernel ridge recovers direction much better at pool than at an intermediate block.",
+    card(out, "Given the clean trajectory, kernel ridge recovers activation direction better at pool than at b4, a much larger target.",
          f"{b4cos} b4 cosine (P8)", f"{poolcos} pool cosine (P8)",
          f"{b4top} b4 top-1 agreement (P8)", f"{p2cos} b4 cosine (P2)")
 
@@ -150,10 +190,32 @@ def decode(results, ov_dir):
 def shifted(results, ov_dir):
     out = Out("inv-ood")
     sites = results["sites"]
-    svhn = decode_fact(out, results, "svhn.b4", "b4", "svhn|64|krr|cos_raw", digits=2)
-    h = decode_fact(out, results, "h.b4", "b4", "H|64|krr|cos_raw", digits=2)
-    c100 = decode_fact(out, results, "c100.b9", "b9", "c100|64|krr|cos_raw", digits=2)
-    pgd8 = decode_fact(out, results, "pgd8.b9", "b9", "pgd8|64|krr|cos_raw", digits=2)
+    svhn = decode_fact(out, results, "svhn.b4", "b4", "svhn|64|krr|cos_raw", digits=3)
+    h = decode_fact(out, results, "h.b4", "b4", "H|64|krr|cos_raw", digits=3)
+    comparisons = {}
+    for key, prefix in [('svhn', 'svhn'), ('H', 'h')]:
+        comparisons[prefix] = (
+            decode_fact(out, results, f'{prefix}.b4_captured', 'b4', f'{key}|64|krr|cap_raw'),
+            decode_fact(out, results, f'{prefix}.b4_agree', 'b4', f'{key}|64|krr|agree', pct=True, digits=1),
+        )
+    with np.load(RAW / 'splits.npz', allow_pickle=False) as split, \
+         np.load(RAW / 'acts/c10/meta.npz', allow_pickle=False) as clean:
+        for budget in (2, 8):
+            path = f'acts/pgd{budget}/meta.npz'
+            with np.load(RAW / path, allow_pickle=False) as adv:
+                labels = adv['labels']
+                positions = split['H'][:len(labels)]
+                assert np.array_equal(clean['labels'][positions], labels)
+                base, pred = clean['logits'][positions].argmax(axis=1), adv['logits'].argmax(axis=1)
+            wrong, after, changed = base != labels, pred != labels, base != pred
+            counts = {'misclassified': after.sum(), 'wrong_unchanged': (wrong & ~changed).sum(), 'changed': changed.sum()}
+            if budget == 2:
+                for key, value in [('n', len(labels)), ('wrong_clean', wrong.sum())]:
+                    fact(out, f'attack.{key}', int(value), 'R', 'CIFAR-10 logits and labels on the first len(PGD2) H rows')
+            for key, value in counts.items():
+                fact(out, f'attack.pgd{budget}.{key}', int(value), 'R', f'{path}:logits,labels; compare with aligned clean logits')
+    decode_fact(out, results, "c100.b9", "b9", "c100|64|krr|cos_raw", digits=2)
+    decode_fact(out, results, "pgd8.b9", "b9", "pgd8|64|krr|cos_raw", digits=2)
     out.chart("dataset_cos", site_chart(sites, [trace(label,
         (mean_decode(results, P8, s, f"{set_id}|64|krr|cos_raw") for s in sites), dash=set_id.startswith("pgd"))
         for set_id, label in SETS.items()], "Mean centred cosine"))
@@ -167,6 +229,16 @@ def shifted(results, ov_dir):
         for key, label in {"pgd2": "2/255 joint", "pgd2_src": "2/255 source", "pgd8": "8/255 joint",
                            "pgd8_src": "8/255 source"}.items()], "Mean squared displacement", yrange=None))
     if ov_dir is not None:
+        op = packaged(OP)
+        svhn_overlay = packaged(OP, 'ov/svhn.json')
+        li = op['chain'].index('b9')
+        axes = np.asarray(op['axes']['pooled'])[:, :2]
+        probe = read_array(ov_dir.parent, op['kinds']['source'])[li]
+        shifted_rows = read_array(ov_dir, svhn_overlay['kinds']['source'])[li]
+        for name, p, s in [('full', probe, shifted_rows), ('plane', probe @ axes, shifted_rows @ axes)]:
+            fact(out, f'display.svhn.{name}', (s.var(axis=0) / p.var(axis=0)).mean(), 'R',
+                 f'Shipped b9 SVHN and P2 source arrays; average per-axis ratio of centred variances ({name})', digits=2)
+        attack_display(out, 'b9', (2, 8))
         out.chart("emb_lead", {"type": "emb", "schema": 1, "panels": [{"op": OP}], "site": "b9",
             "kinds": ["source", "joint"], "kind": "source", "K": 16, "dims": 2, "axes": "pooled:0",
             "norm": "site", "height": 480, "overlays": [{"set": "H", "draw": "points", "main": True}],
@@ -176,22 +248,28 @@ def shifted(results, ov_dir):
             "kinds": ["source", "joint"], "kind": "source", "K": 16, "dims": 2, "axes": "pooled:0",
             "norm": "site", "overlays": [{"set": "pgd2", "draw": "arrows", "from": "H-pgd"}],
             "overlayMenu": [{"set": key, "label": SETS[key]} for key in ("pgd2", "pgd8")],
-            "overlayMenuLabel": "Attack", "colour": {"by": "class"}})
-    card(out, "A shift need not make reconstruction worse: SVHN decodes better than held-out CIFAR-10 at b4.",
-         f"{svhn} SVHN at b4", f"{h} CIFAR-10 at b4", f"{c100} CIFAR-100 at b9", f"{pgd8} PGD 8/255 at b9")
+            "overlayMenuLabel": "Attack", "colour": {"by": "class"}, "arrows": ARROWS})
+    card(out, "At b4, SVHN has higher reconstruction cosine and captured share than CIFAR-10, but patched agreement is similar.",
+         f"{svhn} vs {h} cosine (SVHN vs CIFAR-10)",
+         f"{comparisons['svhn'][0]} vs {comparisons['h'][0]} captured share",
+         f"{comparisons['svhn'][1]} vs {comparisons['h'][1]} patched top-1 agreement")
 
 
 def edit_embedding(out, ov_dir):
+    axes = np.asarray(packaged(OP)['axes']['pooled'])[:, :2]
+    fact(out, 'display.arrows', ARROWS, 'S', 'gen_inv_a.py:ARROWS, initial display setting')
     for site in ("b4", "b6"):
         stem = f"edit-{site}-"
         a, b, residual = (stem + s for s in ("a", "b", "residual"))
         target = json.loads((ov_dir / f"{b}.json").read_text())
+        fact(out, f'display.{site}.n', target['n'], 'R', f'Packaged {b}.json:n')
+        fact(out, f'display.{site}.donors', len(set(target['images']['ids'])), 'R', f'Packaged {b}.json: distinct images.ids')
         out.chart(f"emb_{site}", {"type": "emb", "schema": 1, "panels": [{"op": OP, "label": f"Edit at {site}"}],
             "site": site, "kinds": ["source", "joint"], "kind": "source", "K": 16, "dims": 2, "axes": "pooled:0",
             "norm": "site", "height": 480, "overlays": [{"set": residual, "draw": "arrows", "from": a,
                         "verb": "edited"}, {"set": b, "draw": "points", "style": "control"}],
             "overlayMenu": [{"set": stem + slug, "label": label} for slug, label in ENDPOINT_METHODS.values()],
-            "overlayMenuLabel": "Edit method", "arrows": 60,
+            "overlayMenuLabel": "Edit method", "arrows": ARROWS,
             "highlight": {"overlay": {"set": b, "positions": list(range(target["n"]))}, "label": "Ringed: target b"}})
 
     # These facts describe the rerun slice; keep them separate from the P8 archive facts.
@@ -206,6 +284,12 @@ def edit_embedding(out, ov_dir):
             first, matched, swap = (method.index(m) for m in ("resid", "resid+match", "swap"))
             keep = raw["pair_ok"]
             key0 = f"replay.{site}"
+            for kind, start, end in [('source', raw['s_edit'][method.index('none')], raw['s_edit'][first]),
+                                     ('joint', raw['y_a'][li], raw['y_patched'][first, li])]:
+                delta = (end - start)[keep]
+                fact(out, f'display.{site}.{kind}', np.square(delta @ axes).sum() / np.square(delta).sum(), 'R',
+                     f'{label}: residual endpoint minus original, {kind}; squared fraction retained by shipped joint PCA axes',
+                     pct=True, digits=1)
             for key, i in [("residual", first), ("match", matched)]:
                 fact(out, f"{key0}.{key}", raw["p_b"][i, keep].mean(dtype=float), "P",
                      f"{label}:p_b[methods.index({method[i]}),pair_ok]; mean", pct=True, digits=1)
@@ -227,12 +311,59 @@ def edits(results, ov_dir):
     def edit_fact(name, site, k, key, **fmt):
         return fact(out, name, val(site, k, key), "S", f"{SUMMARY}:rt/{P8}/{site}__K{k}/{key}", **fmt)
 
-    resid = edit_fact("b4.residual", "b4", 64, "E4|resid|p_b", pct=True)
-    match = edit_fact("b4.match", "b4", 64, "E4|resid+match|p_b", pct=True)
-    rand = edit_fact("b4.random", "b4", 64, "E4|rand~resid|p_b", pct=True)
-    swap = edit_fact("b4.swap", "b4", 64, "E4|swap|p_b", pct=True)
-    edit_fact("b4.miss_before", "b4", 64, "E4|resid|miss_S", digits=2)
-    edit_fact("b4.miss_after", "b4", 64, "E4|resid+match|miss_S", digits=7)
+    # P8 per-pair rt arrays are not staged; use the per-site producer archive and verify the notebook summary.
+    archive = f'data/invert/rt/{P8}/b4__K64.json'
+    b4 = json.loads((DATA.parent / archive).read_text())
+
+    def headline(name, method, key, **fmt):
+        key = f'E4|{method}|{key}'
+        assert b4[key] == val('b4', 64, key)
+        return fact(out, name, b4[key], 'S', f'{archive}:{key} (archived per-pair mean)', **fmt)
+
+    resid = headline('b4.residual', 'resid', 'p_b', digits=3)
+    match = headline('b4.match', 'resid+match', 'p_b', digits=3)
+    edit_fact('b4.random', 'b4', 64, 'E4|rand~resid|p_b', pct=True)
+    edit_fact('b4.swap', 'b4', 64, 'E4|swap|p_b', pct=True)
+    source_before = headline('b4.miss_before', 'resid', 'miss_S', digits=3)
+    source_after = headline('b4.miss_after', 'resid+match', 'miss_S', digits=8)
+    joint_before = headline('b4.joint_before', 'resid', 'miss_D')
+    joint_after = headline('b4.joint_after', 'resid+match', 'miss_D')
+    headline('b4.inferred_miss', 'resid+match_req', 'miss_S', digits=5)
+    headline('b4.inferred_prob', 'resid+match_req', 'p_b', digits=5)
+    headline('b4.size_before', 'resid', 'size')
+    headline('b4.size_after', 'resid+match', 'size')
+    shapes = study_shapes()
+    for site in ('pool', 'logits'):
+        edit_fact(f'rank.{site}_miss', site, 64, 'E4|match|miss_S')
+        fact(out, f'rank.{site}', int(np.prod(shapes[site])) - 1, 'S', f'invert/modal_invert.py:SHAPES[{site}] product minus radial degree')
+
+    path = DATA / 'stretch' / 'rt_points' / P2 / 'b4__K16.npz'
+    with np.load(path, allow_pickle=False) as saved:
+        m = json.loads(str(saved['meta']))['m_full']
+        rerun_pair = saved['pair_pos']
+    with np.load(RAW / 'splits.npz', allow_pickle=False) as split, \
+         np.load(RAW / 'acts/c10/meta.npz', allow_pickle=False) as clean:
+        held = split['H'][:m]
+        pred = clean['logits'][held].argmax(axis=1)
+    order = np.arange(m)
+    donor = np.roll(order, 1)
+    for shift in range(2, 40):
+        same = pred[donor] == pred
+        if not same.any():
+            break
+        donor = np.where(same, np.roll(order, shift), donor)
+    np.testing.assert_array_equal(rerun_pair[:, 1], donor[rerun_pair[:, 0]])
+    valid = pred[donor] != pred
+    reuse = np.unique(donor[valid], return_counts=True)[1]
+    for name, count in [('cohort', len(held)), ('pairs', valid.sum()), ('donors', len(reuse)), ('max_reuse', reuse.max()), ('last_index', held[-1])]:
+        fact(out, f'sample.{name}', int(count), 'R', 'Rerun m_full; splits.npz:H and clean logits; cyclic donor rule from invert/stage_rt.py')
+
+    check = json.loads((DATA / 'stretch/rt_consistency.json').read_text())
+    for key, step in [('p_b', 0.00001), ('size', 0.000001)]:
+        worst = max(item['max_abs'] for site in check.values() for method, item in site[key].items() if not method.startswith('rand~'))
+        fact(out, f'replay.bound_{key}', (np.floor(worst / step) + 1) * step, 'S',
+             f'data/stretch/rt_consistency.json:*:{key}.*.max_abs; strict upper bound rounded up, excluding rand~',
+             digits=5 if key == 'p_b' else 6)
 
     def by_site(k, key):
         return (val(s, k, key) for s in sites)
@@ -260,8 +391,9 @@ def edits(results, ov_dir):
         "Mean squared source miss", yrange=[0, 3.25])) for k in (16, 64)], "shared": True})
     if ov_dir is not None:
         edit_embedding(out, ov_dir)
-    card(out, "The residual guess accounts for most of the steering; matching sources need not add much output change.",
-         f"{resid} residual guess", f"{match} with matching", f"{rand} same-size random", f"{swap} full swap")
+    card(out, "At b4, matching the donor’s source nearly exactly made the patched joint match slightly worse.",
+         f"{source_before} → {source_after} source miss", f"{joint_before} → {joint_after} joint miss",
+         f"{resid} → {match} donor probability (P8, K = 64)")
 
 
 def main():

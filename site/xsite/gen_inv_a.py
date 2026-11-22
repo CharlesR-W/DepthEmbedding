@@ -7,12 +7,35 @@ import numpy as np
 
 from ops_inv import EA, PR, VOL
 from validate import Inputs
-from xlib import Out, PALETTE, SITES, lines
+from xlib import DATA, Out, PALETTE, SITES, bars, lines
 
 KNN = 'r20s0-c10-knn15'
 P2 = f'{VOL}/joint/P2__pr300__L12'
 SUMMARY = 'local/data/invert/results.json'
 KERNELS = [('knn15', 'k-NN 15'), ('ea300', 'Shannon 300'), ('pr300', 'Participation ratio 300')]
+
+
+ARROWS = 60   # Set explicitly in the figure specs; the reader can change this.
+
+
+def packaged(op, file='op.json'):
+    return json.loads((DATA / 'sitex/ops' / op / file).read_text())
+
+
+def attack_display(out, site, budgets=(2,)):
+    op = packaged(PR)
+    axes = np.asarray(op['axes']['pooled'])[:, :2]
+    li = op['chain'].index(site)
+    with np.load(DATA / 'fetch' / P2 / 'coords_H.npz', allow_pickle=False) as clean:
+        for budget in budgets:
+            path = f'coords_pgd{budget}.npz'
+            with np.load(DATA / 'fetch' / P2 / path, allow_pickle=False) as attacked:
+                for key, kind in [('y', 'joint'), ('onestep', 'source')]:
+                    rows = attacked[key][li, :, :op['K']].astype(float)
+                    delta = rows - clean[key][li, :len(rows), :op['K']]
+                    out.fact(f'display.pgd{budget}.{kind}', np.square(delta @ axes).sum() / np.square(delta).sum(),
+                             pct=True, digits=1, tier='R', source=f'{P2}/{{coords_H.npz,{path}}}:{key}, {site}, all pairs; shipped joint PCA axes')
+    out.fact('attack.arrows', ARROWS, tier='S', source='gen_inv_a.py:ARROWS, initial display setting')
 
 
 def token(out, name):
@@ -38,7 +61,7 @@ def by_site(series, ylabel, **kw):
 def kernel(inputs, report):
     out = Out('inv-kernel')
     fact = lambda name: token(out, name)
-    panels, p2, p8 = [], [], []
+    panels, p2, p8, projection = [], [], [], []
     split = report['kernel']
     for (rule, label), op, alt in zip(KERNELS, (KNN, EA, PR), ('knn15', 'ea400', 'pr400'), strict=True):
         rec = inputs.bundle(op)
@@ -47,6 +70,10 @@ def kernel(inputs, report):
         top = np.argsort(mass, axis=0, kind='stable')[-2:]
         share = np.take_along_axis(mass, top, axis=0).sum(axis=0) / mass.sum(axis=0)
         m = int(share.argmax())
+        axes = np.asarray(packaged(op)['axes']['pooled'])[:, :2]
+        projection.append(float(np.square(axes[m]).sum()))
+        out.fact(f'display.{rule}', projection[-1], pct=True, digits=2, tier='R',
+                 source=f'data/sitex/ops/{op}/op.json:axes.pooled; squared projection of peak-mode unit axis')
         saved = report['modeloc'][f'P2__{rule}__L12']['top2'][:16]
         np.testing.assert_allclose(share, saved, atol=2e-6, rtol=0)
         panels.append(dict(op=op, label=f'{label} · mode {m+1}',
@@ -70,7 +97,14 @@ def kernel(inputs, report):
                  source=f'{SUMMARY}:kernel.*.{rule}.hub.max, max across sites')
     out.fact('row.pr300_final_max', max(split[s]['pr300']['maxw'] for s in SITES), pct=True, digits=1, tier='S',
              source=f'{SUMMARY}:kernel.*.pr300.maxw, max across sites after balancing')
-    out.fact('probe.p2', len(inputs.value(f'{VOL}/splits.npz:P2')), tier='R', source=f'{VOL}/splits.npz:P2, length')
+    p2_idx, p8_idx, held, labels = [inputs.value(f'{VOL}/splits.npz:{key}') for key in ('P2', 'P8', 'H', 'labels')]
+    class_counts = np.unique(labels[p2_idx], return_counts=True)[1]
+    assert np.all(class_counts == class_counts[0]) and np.all(held[:-1] < held[1:])
+    for name, value in [('p2', len(p2_idx)), ('per_class', class_counts[0]),
+                        ('p8_extra', len(np.setdiff1d(p8_idx, p2_idx))), ('held', len(held))]:
+        out.fact(f'probe.{name}', int(value), tier='R', source=f'{VOL}/splits.npz:P2,P8,H,labels; counts')
+    out.chart('peak_projection', bars([label for _, label in KERNELS], [dict(name='Peak-mode axis', values=projection)],
+                                      'Squared projection onto the plane', fmt='pct'))
     out.chart('emb_lead', emb(panels, ['joint'], 'b9', height=395))
     out.chart('top2', dict(panels=[dict(title=f'N = {n:,}', **lines(list(range(1, 17)), series,
                         'Joint mode', 'Two-image share', fmt='pct', xticks=[1, 4, 8, 12, 16]))
@@ -78,6 +112,21 @@ def kernel(inputs, report):
     stab = {rule: [split[s][rule]['stab']['16'] for s in SITES] for rule, _ in KERNELS}
     out.chart('stability', by_site([dict(name=label, y=stab[rule]) for rule, label in KERNELS], 'Reproducibility'))
     widths = {rule: np.array([split[s][rule]['perp'] for s in SITES]) for rule, _ in KERNELS}
+    for rule, width in widths.items():
+        for bound, value in [('min', width.min()), ('max', width.max())]:
+            out.fact(f'width.{rule}.{bound}', value, digits=0, tier='S', source=f'{SUMMARY}:kernel.*.{rule}.perp')
+    for name, lhs, rhs in [('global_over_pr', [split[s]['ds500']['stab']['16'] for s in SITES], stab['pr300']),
+                           ('pr_over_shannon', stab['pr300'], stab['ea300'])]:
+        out.fact(f'split.{name}', int(np.sum(np.asarray(lhs) > rhs)), tier='S', source=f'{SUMMARY}:kernel.*.*.stab.16')
+    out.fact('split.sites', len(SITES), tier='R', source='Study chain length, xlib.py:SITES')
+    refit = json.loads((DATA / 'invert/refit.json').read_text())
+    for k in (16, 64):
+        for rule in ('ea300', 'pr300'):
+            series = np.asarray(refit[f'{rule}|{k}']['held'])
+            for bound, value in [('min', series.min()), ('max', series.max())]:
+                out.fact(f'refit.k{k}.{rule}.{bound}', value, tier='S', source=f'data/invert/refit.json:{rule}|{k}.held')
+    out.fact('refit.k16.shannon_wins', int(np.sum(np.asarray(refit['ea300|16']['held']) > refit['pr300|16']['held'])),
+             tier='S', source='data/invert/refit.json: ea300|16 vs pr300|16 held')
     x = sorted({15, 1000, *(float(v) for w in widths.values() for v in w)})
     scatter = []
     for rule, label in KERNELS:
@@ -89,7 +138,7 @@ def kernel(inputs, report):
     out.chart('hubs', by_site([dict(name=label, y=[split[s][rule]['hub']['max'] for s in SITES])
                                for rule, label in KERNELS] + [dict(name='Raw cosine', dash=True,
                                y=[split[s]['raw_cos_hub']['max'] for s in SITES])], 'Peak top-15 occurrence', yrange=(0, 260)))
-    card(out, 'Participation ratio is the best candidate here, but the kernels were compared at different effective widths.',
+    card(out, 'We chose participation ratio for a smooth row without the extreme pair localisation seen with Shannon; it did not win every stability test.',
          [f"{fact('top2.p2.pr300')} vs {fact('top2.p2.ea300')} peak two-image share (PR vs Shannon, P2)",
           f"{fact('top2.p8.ea400')} peak two-image share (Shannon, P8)",
           f"{fact('hub.raw_max')} vs {fact('hub.pr300_max')} peak top-15 occurrence (raw vs PR)"])
@@ -100,12 +149,22 @@ def sources(inputs, report):
     out = Out('inv-sources')
     fact = lambda name: token(out, name)
     with np.load(inputs.file(f'{P2}/modes.npz'), allow_pickle=False) as op:
-        c, t, vals, sites = op['c'], op['t'], op['vals'][:64], op['sites'].tolist()
+        c, t, vals, sites = op['c'], op['t'], op['vals'][:256], op['sites'].tolist()
     assert sites == list(SITES)
     a = np.diag(np.ones(len(c) - 1), 1)
     a += a.T
-    filt = np.linalg.inv(np.stack([np.diag(1 / (2*c) + t*a.sum(1) - mu) - t*a for mu in vals])) / (2*c)
+    depth = np.stack([np.diag(1 / (2*c) + t*a.sum(1) - mu) - t*a for mu in vals])
+    filt = np.linalg.inv(depth) / (2*c)
     abs_weights = abs(filt)
+    condition, max_gain = np.linalg.cond(depth), abs_weights.sum(axis=2).max(axis=1)
+    for k in (16, 64, 256):
+        for name, values, digits in [('condition', condition, 0), ('gain', max_gain, 2)]:
+            out.fact(f'depth.k{k}.{name}', values[:k].max(), digits=digits, tier='R',
+                     source=f'{P2}/modes.npz:c,t,vals; maximum {name} through mode {k}')
+    modes = list(range(1, len(vals) + 1))
+    out.chart('sensitivity', dict(panels=[dict(title=label, **lines(modes, [dict(name=label, y=values)],
+        'Joint mode', label, yrange=None)) for label, values in [('Condition number of T', condition),
+                                                                ('Largest absolute row sum of F', max_gain)]]))
     share = abs_weights.diagonal(axis1=1, axis2=2) / abs_weights.sum(axis=2)
     with np.load(inputs.file(f'{P2}/coords_H.npz'), allow_pickle=False) as hc, \
          np.load(inputs.file(f'{P2}/coords_pgd2.npz'), allow_pickle=False) as pa:
@@ -141,11 +200,16 @@ def sources(inputs, report):
     out.fact('patch.b5.swap', rt(16, 'E4|swap|prog_D')[5], pct=True, tier='S',
              source=f'{SUMMARY}:rt.P8__pr400__L12.b5__K16.E4|swap|prog_D')
     out.fact('attack.n', len(y[0]), tier='R', source=f'{P2}/coords_pgd2.npz:y, image count')
-    out.fact('attack.shown', 300, tier='R', source='ops_inv.py:package; sample(1000) with size default 300')
+    out.fact('attack.shown', packaged(PR, 'ov/pgd2.json')['n'], tier='R', source=f'data/sitex/ops/{PR}/ov/pgd2.json:n')
+    path = DATA / 'stretch/rt_points/P2__pr300__L12/b4__K16.npz'
+    with np.load(path, allow_pickle=False) as rerun:
+        out.fact('patch.cohort', json.loads(str(rerun['meta']))['m_full'], tier='S',
+                 source='P2 rerun meta.m_full; same default m in invert/stage_rt.py for P8')
+    attack_display(out, 'b5')
 
     out.chart('emb_lead', emb([dict(op=PR, label='PGD 2/255')], ['joint', 'source'], 'b5', height=465,
                               overlays=[{'set': 'pgd2', 'draw': 'arrows', 'from': 'H-pgd'}],
-                              filmstrip=['b5', 'b8', 'b9']))
+                              filmstrip=['b5', 'b8', 'b9'], arrows=ARROWS))
     out.chart('share', by_site([dict(name=f'P2 PR 300 · K {k}', y=share[:k].mean(axis=0), dash=k == 64,
                                       color=PALETTE['sets'][0]) for k in (16, 64)] +
                                [dict(name=f'P8 PR 400 · K {k}', y=rt(k, 'E1|share_ll'), dash=k == 64,
@@ -158,10 +222,10 @@ def sources(inputs, report):
                                   [('swap', 'True activation swap'), ('match', 'Source match'), ('resid', 'Residual edit'),
                                    ('rand~resid', 'Random, residual-sized')]], 'Mean progress toward target',
                                   yrange=None, refline=dict(y=1, label='target projection')))
-    card(out, 'A joint coordinate mixes sources from the whole chain; a source coordinate uses only that site’s activation.',
-         [f"{fact('share.p8.conv_min')}–{fact('share.p8.conv_max')} own-source share (P8, conv sites)",
+    card(out, 'The joint formula needs other sites’ kernel rows; the source formula needs only this row.',
+         [f"{fact('share.p8.conv_min')}–{fact('share.p8.conv_max')} relative own-source weight (P8, conv sites)",
           f"{fact('attack.joint.b5')} → {fact('attack.truncated.b5')} b5 joint displacement, suppressing late source changes",
-          f"{fact('patch.b5.swap')} b5 progress after a true activation swap (P8)"])
+          f"{fact('depth.k16.gain')} max filter row gain (P2, K = 16)"])
     out.write()
 
 

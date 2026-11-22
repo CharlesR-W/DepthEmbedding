@@ -195,7 +195,19 @@
     "value": 24,
     "text": "24",
     "tier": "R",
-    "source": "site/xsite/ops_x4.py:sample_pairs; 2 * PER_KIND"
+    "source": "crw-depth-xp-results/x4/pairs.npz:kind, replay site/xsite/ops_x4.py:sample_pairs"
+  },
+  "pairs.unique_endpoints": {
+    "value": 579,
+    "text": "579",
+    "tier": "R",
+    "source": "crw-depth-xp-results/x4/pairs.npz:pair_idx; distinct test image IDs over all pairs"
+  },
+  "pairs.margin_min": {
+    "value": 0.001,
+    "text": "0.001",
+    "tier": "S",
+    "source": "xp/stage_x4.py:MARGIN_MIN, fixed eligibility criterion"
   },
   "probe.n": {
     "value": 2000,
@@ -203,11 +215,89 @@
     "tier": "R",
     "source": "crw-depth-xp-results/x4/paths_pixels.npz:probe_idx length"
   },
+  "starts.tested": {
+    "value": 6,
+    "text": "6",
+    "tier": "R",
+    "source": "xp/out/x4/paths_*.npz; number of measured starts"
+  },
+  "starts.shown": {
+    "value": 4,
+    "text": "4",
+    "tier": "R",
+    "source": "lead figure switch options from site/xsite/ops_x4.py:STARTS"
+  },
+  "threshold.share": {
+    "value": 0.25,
+    "text": "25%",
+    "tier": "S",
+    "source": "xp/analyze_x4.py: sharp-window summary threshold"
+  },
   "pre_logits.n": {
     "value": 1,
     "text": "1",
     "tier": "P",
-    "source": "paths_<start>.npz:share_unit, sites; count start–pair combinations exceeding 25% anywhere before logits"
+    "source": "paths_<start>.npz:share_unit, sites, ref_rows; each start–pair with >25% at any strictly downstream pre-logit site"
+  },
+  "pre_logits.shown_n": {
+    "value": 0,
+    "text": "0",
+    "tier": "P",
+    "source": "paths_<start>.npz:share_unit, sites, ref_rows; each start–pair with >25% at any strictly downstream pre-logit site; figure-selectable starts only"
+  },
+  "pre_logits.shown_total": {
+    "value": 1200,
+    "text": "1,200",
+    "tier": "P",
+    "source": "paths_<start>.npz:share_unit; figure-selectable starts only"
+  },
+  "pre_logits.exception.start": {
+    "value": "stem",
+    "text": "stem",
+    "tier": "P",
+    "source": "paths_<start>.npz:share_unit, sites, ref_rows; each start–pair with >25% at any strictly downstream pre-logit site"
+  },
+  "pre_logits.exception.row": {
+    "value": 296,
+    "text": "296",
+    "tier": "P",
+    "source": "paths_<start>.npz:share_unit, sites, ref_rows; each start–pair with >25% at any strictly downstream pre-logit site"
+  },
+  "pre_logits.exception.site": {
+    "value": "pool",
+    "text": "pool",
+    "tier": "P",
+    "source": "paths_<start>.npz:share_unit, sites, ref_rows; each start–pair with >25% at any strictly downstream pre-logit site"
+  },
+  "pre_logits.exception.refined": {
+    "value": "was not refined",
+    "text": "was not refined",
+    "tier": "P",
+    "source": "paths_<start>.npz:share_unit, sites, ref_rows; each start–pair with >25% at any strictly downstream pre-logit site"
+  },
+  "logits.n": {
+    "value": 14,
+    "text": "14",
+    "tier": "P",
+    "source": "paths_<start>.npz:share_unit, sites; total count above 25% at logits"
+  },
+  "logits.pixels": {
+    "value": 5,
+    "text": "5",
+    "tier": "P",
+    "source": "paths_pixels.npz:share_unit, sites; count above 25% at logits"
+  },
+  "logits.stem": {
+    "value": 7,
+    "text": "7",
+    "tier": "P",
+    "source": "paths_stem.npz:share_unit, sites; count above 25% at logits"
+  },
+  "logits.b3": {
+    "value": 2,
+    "text": "2",
+    "tier": "P",
+    "source": "paths_b3.npz:share_unit, sites; count above 25% at logits"
   },
   "pre_logits.total": {
     "value": 1800,
@@ -226,6 +316,18 @@
     "text": "0.0001",
     "tier": "P",
     "source": "paths_<start>.npz:share1024_unit - share_unit[ref_rows]; largest per-site median absolute difference"
+  },
+  "gain.affine.pool": {
+    "value": 1.7763568394002505e-15,
+    "text": "1.8e-15",
+    "tier": "S",
+    "source": "crw-depth-xp-results/x4/checks.json:pool_logits_exact_err; max absolute log-gain error versus affine formula"
+  },
+  "gain.affine.b9": {
+    "value": 1.2212453270876722e-15,
+    "text": "1.2e-15",
+    "tier": "S",
+    "source": "crw-depth-xp-results/x4/checks.json:b9_logits_exact_err; max absolute log-gain error versus affine formula"
   },
   "gain.pixels.raw": {
     "value": -0.17035132258783064,

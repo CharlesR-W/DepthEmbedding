@@ -1,11 +1,12 @@
 """Build the X4 entry from the saved paths, modes and per-image gains."""
+import json
 from pathlib import Path
 
 import numpy as np
 from scipy.stats import spearmanr
 
 from opdata import require
-from ops_x4 import STARTS, PER_KIND
+from ops_x4 import STARTS, sample_pairs
 from validate import Inputs, check_probe
 from xlib import Out, bars, heat, lines
 
@@ -13,8 +14,9 @@ ID = 'x4-paths'
 ROOT = Path(__file__).resolve().parents[2]
 BASE = 'crw-depth-xp-results/x4/'
 ALL_STARTS = ('pixels', 'stem', 'b3', 'b6', 'b8', 'b9')
-ANSWER = ('The sampled paths rarely concentrated motion in a short interval, but the probe readout could change '
-          'sharply even where the network was affine.')
+ANSWER = ('Before logits, the sampled paths rarely concentrated angular motion in a short window. '
+          'Probe class mass could change steeply even on the affine control.')
+SHARE_THRESHOLD = .25
 
 
 def f(key):
@@ -41,7 +43,8 @@ def main():
     runs, loc, leaves, switches = {}, {}, [], []
     n_pairs = n_probe = None
     all_sigma_min, refine_max = [], []
-    pre_logits_n = 0
+    pre_logits, logits_hits = [], {}
+    shown_total = 0
     with np.load(inputs.file(BASE + 'pairs.npz'), allow_pickle=False) as pair_file:
         pair_ids, pair_kind = pair_file['pair_idx'], pair_file['kind']
     for start in ALL_STARTS:
@@ -64,6 +67,7 @@ def main():
             pred, labels = z['pred'][same], z['labels'][same, 0]
             left = int(np.any(pred != labels[:, None], axis=1).sum())
             leaves.append(left / count)
+            require(pred.shape[1] == len(z['s256']), f'{path}: wrong prediction grid')
             out.fact(f'leaves.{start}.n', left, tier='P',
                      source=source + ':pred, labels, kind; same-class pairs with any argmax unequal to label')
             out.fact(f'leaves.{start}.share', leaves[-1], pct=True, tier='P',
@@ -71,7 +75,14 @@ def main():
             sigma = z['sigma_raw']
             all_sigma_min.append(np.nanmin(sigma))
             share = z['share_unit']
-            pre_logits_n += int(np.any(share[:, np.array(sites) != 'logits'] > .25, axis=1).sum())
+            where = (np.asarray(sites) != 'logits') & (np.asarray(sites) != start)
+            hits = (share > SHARE_THRESHOLD) & where[None, :]
+            ref = set(z['ref_rows'].tolist())
+            pre_logits.extend((start, int(i), ', '.join(np.asarray(sites)[hits[i]]), int(i) in ref)
+                              for i in np.flatnonzero(hits.any(axis=1)))
+            logits_hits[start] = int((share[:, sites.index('logits')] > SHARE_THRESHOLD).sum())
+            if start in STARTS:
+                shown_total += len(share)
             refine_max.append(np.nanmax(np.nanmedian(abs(z['share1024_unit'] - share[z['ref_rows']]), axis=0)))
             if start not in STARTS:
                 continue
@@ -108,16 +119,39 @@ def main():
                 # Show the label grid shared by all the line charts, not a hard-coded length.
                 plot_sites = chain
     out.fact('pairs.per_kind', n_pairs, tier='P', source=BASE + 'pairs.npz:kind; count per stratum')
-    out.fact('pairs.display', 2 * PER_KIND, tier='R', source='site/xsite/ops_x4.py:sample_pairs; 2 * PER_KIND')
+    out.fact('pairs.display', len(sample_pairs(pair_kind)), tier='R', source=BASE + 'pairs.npz:kind, replay site/xsite/ops_x4.py:sample_pairs')
+    out.fact('pairs.unique_endpoints', np.unique(pair_ids).size, tier='R', source=BASE + 'pairs.npz:pair_idx; distinct test image IDs over all pairs')
+    out.fact('pairs.margin_min', 1e-3, digits=3, tier='S', source='xp/stage_x4.py:MARGIN_MIN, fixed eligibility criterion')
     out.fact('probe.n', n_probe, tier='R', source=BASE + 'paths_pixels.npz:probe_idx length')
-    out.fact('pre_logits.n', pre_logits_n, tier='P',
-             source='paths_<start>.npz:share_unit, sites; count start–pair combinations exceeding 25% anywhere before logits')
+    hit_src = 'paths_<start>.npz:share_unit, sites, ref_rows; each start–pair with >25% at any strictly downstream pre-logit site'
+    out.fact('starts.tested', len(logits_hits), tier='R', source='xp/out/x4/paths_*.npz; number of measured starts')
+    out.fact('starts.shown', len(switches), tier='R', source='lead figure switch options from site/xsite/ops_x4.py:STARTS')
+    out.fact('threshold.share', SHARE_THRESHOLD, tier='S', source='xp/analyze_x4.py: sharp-window summary threshold', pct=True)
+    out.fact('pre_logits.n', len(pre_logits), tier='P', source=hit_src)
+    out.fact('pre_logits.shown_n', sum(h[0] in STARTS for h in pre_logits), tier='P', source=hit_src + '; figure-selectable starts only')
+    out.fact('pre_logits.shown_total', shown_total, tier='P', source='paths_<start>.npz:share_unit; figure-selectable starts only')
+    require(len(pre_logits) == 1, 'pre-logit exception description assumes a single hit')
+    for key, value in zip(('start', 'row', 'site', 'refined'), pre_logits[0]):
+        if key == 'refined':
+            value = 'was refined' if value else 'was not refined'
+        out.fact(f'pre_logits.exception.{key}', value, tier='P', source=hit_src)
+    out.fact('logits.n', sum(logits_hits.values()), tier='P', source='paths_<start>.npz:share_unit, sites; total count above 25% at logits')
+    for start in ('pixels', 'stem', 'b3'):
+        out.fact(f'logits.{start}', logits_hits[start], tier='P', source=f'paths_{start}.npz:share_unit, sites; count above 25% at logits')
     out.fact('pre_logits.total', 2 * n_pairs * len(ALL_STARTS), tier='P',
              source='paths_<start>.npz:kind; number of pairs across all starts, counting repeats')
     out.fact('sharp.min', min(all_sigma_min), digits=2, tier='P',
              source='paths_<start>.npz:sigma_raw; minimum across all six starts, sites and pairs')
     out.fact('refine.max_median', max(refine_max), digits=4, tier='P',
              source='paths_<start>.npz:share1024_unit - share_unit[ref_rows]; largest per-site median absolute difference')
+
+    check_src = BASE + 'checks.json'
+    checks = json.loads(inputs.file(check_src).read_text())
+    for start in ('pool', 'b9'):
+        key = f'{start}_logits_exact_err'
+        value = checks[key]
+        out.fact(f'gain.affine.{start}', value, tier='S', source=f'{check_src}:{key}; max absolute log-gain error versus affine formula')
+        out.facts[f'gain.affine.{start}']['text'] = f'{value:.2g}'
 
     gain_src = BASE + 'probe_gain.npz'
     viewer = inputs.manifest['ops']['r20s0-c10-knn15']['probe']['viewer']
@@ -146,7 +180,7 @@ def main():
     out.chart('emb_gain', dict(figure, panels=[dict(op='r20s0-c10-knn15')], kinds=['joint'], kind='joint',
                                site='logits', axes='viewer', height=290,
                                colour=dict(by='scalar', set='probe', label='Angular log gain (pixels to logits)',
-                                           values=angular_pixels)))
+                                           values=angular_pixels, fit=[2, 98])))
     out.chart('motion', dict(panels=[
         dict(title='Angular arc length in the fastest window', **chart_lines(plot_sites, runs, 'share', 'Arc length share',
              yrange=(0, .16), fmt='pct', refline={'y': 1/16, 'label': 'Uniform speed'})),
@@ -170,7 +204,7 @@ def main():
                                   slider={'label': 'Start site', 'values': list(STARTS)}))
     card = dict(answer=ANSWER, numbers=[f('grid.uniform') + ' uniform arc share',
                                        f('slope.b9.b9') + ' class-mass slope at the affine start',
-                                       f('leaves.b8.n') + ' of ' + f('pairs.per_kind') + ' same-class paths left at b8',
+                                       f('leaves.b8.n') + ' of ' + f('pairs.per_kind') + ' same-class b8 starts left the class on the sampled grid',
                                        f('gain.pixels.angular') + ' vs ' + f('gain.pixels.radius_removed') + ' gain–margin correlation'])
     if out.fig_path('thumb').exists():
         card['thumb'] = 'assets/fig/x_x4-paths_thumb.webp'

@@ -9,6 +9,7 @@ import argparse
 import ctypes
 import fcntl
 import importlib
+import json
 import os
 from pathlib import Path
 import shutil
@@ -31,6 +32,13 @@ FIXTURES = Path(__file__).with_name('fixtures')
 SEED = 20261122
 X3 = {'clean': 'Clean', 'u2': 'PGD ε 2/255, untargeted', 'u8': 'PGD ε 8/255, untargeted',
       't8': 'PGD ε 8/255, targeted', 'n8': 'Sign noise ε 8/255'}
+
+
+def cifar10_labels():
+    """Use the same class order as the viewer export."""
+    names = json.loads((ROOT/'data/r20s0b/meta.json').read_text())['classes']
+    require(len(names) == 10, 'Expected ten viewer CIFAR-10 class names')
+    return dict(space='cifar10', names=names)
 
 
 def sample(n, k=300):
@@ -63,7 +71,6 @@ def net_metadata(inputs, net):
         return dict(id=f'r20s{seed}', label=f'ResNet-20 seed {seed}', step=0 if net.startswith('init') else 64000,
                     train='CIFAR-10', acc=None if net.startswith('init') else (0.9156 if seed == 0 else 0.9151))
     key = f'crw-depth-xp-results/nets/{net}/info.json'
-    import json
     info = json.loads(inputs.file(key).read_text())
     data = {'c10x': 'CIFAR-10', 'c100': 'CIFAR-100', 'c100c': 'CIFAR-100 coarse', 'svhn': 'SVHN',
             'in32': 'ImageNet-32', 'anim': 'CIFAR-10 animals', 'veh': 'CIFAR-10 vehicles',
@@ -78,10 +85,10 @@ def package_operator(inputs, root, op_id, raw, *, probe_pos=None, K=None, source
     K = raw['joint'].shape[-1] if K is None else K
     idx = slice(None) if probe_pos is None else probe_pos
     joint, vals = raw['joint'][:, idx, :K], raw['vals'][:K]
-    labels = None if probe_pos is None else raw['labels'][idx]
     s = source_from_joint(joint, raw['c'], raw['t'], vals) if source else None
-    return write_operator(root, op_id, joint=joint, ids=raw['ids'][idx], chain=raw['chain'], c=raw['c'], t=raw['t'],
-                          vals=vals, tstar=raw['tstar'], legacy_basis=raw['legacy_basis'], fixture_labels=labels,
+    return write_operator(root, op_id, joint=joint, ids=raw['ids'][idx], probe_labels=raw['labels'][idx],
+                          chain=raw['chain'], c=raw['c'], t=raw['t'], vals=vals, tstar=raw['tstar'],
+                          legacy_basis=raw['legacy_basis'], viewer_order=probe_pos is None,
                           probe_id=rec['probe']['id'], net=net_metadata(inputs, rec['net']), kernel=rec['kernel'],
                           provenance=inputs.provenance(op_id), dtype=dtype, source=s,
                           site=raw['site'][:, idx, :K] if site else None, **kwargs)
@@ -101,6 +108,7 @@ def _viewer_axes(raw):
 
 
 def x3(inputs, root, *, fixture=False):
+    label_space = cifar10_labels()
     for kernel in (('ea100',) if fixture else ('ea100', 'knn15')):
         op_id = f'r20s0-c10-{kernel}'
         op = validate_operator(inputs, op_id)
@@ -137,7 +145,8 @@ def x3(inputs, root, *, fixture=False):
                     if set_id == 't8':
                         meta['target'] = target[pos].tolist()
                     write_overlay(root, out, set_id, coords=dict(joint=joint[:, pos], site=site[:, pos], source=src),
-                                  label=X3[set_id], dataset='cifar10-test', ids=ids[pos], pos=pos, sample_of=len(ids),
+                                  label=X3[set_id], labels=label_space, dataset='cifar10-test', ids=ids[pos],
+                                  pos=pos, sample_of=len(ids),
                                   meta=meta, provenance=inputs.provenance(op_id, key=row['file'], entry=f'inputs.json#overlays/{key}'),
                                   pair=row['pairs'], sprite=sprite, sprite_cols=20 if sprite else None)
                     print(f'{key}: logits replay max abs {err:.3g}')
@@ -160,6 +169,7 @@ def fixtures(inputs, root):
                                               {'set':'n8', 'draw':'arrows', 'from':'clean', 'style':'control'}],
                                     overlayMenu=['u8', 'n8']))
     switches = []
+    label_space = cifar10_labels()
     for l0 in ('b3', 'b9'):
         op_id, set_id = f'x4-{l0}-suffix', f'x4-{l0}-paths'
         raw = validate_operator(inputs, op_id)
@@ -173,8 +183,8 @@ def fixtures(inputs, root):
             coords = dict(joint=z['emb_y'][:, idx, :, :K], site=z['emb_site_y'][:, idx, :, :K])
             meta = dict(pair_pos=idx.tolist(), kind=['same', 'diff'], label_a=labels[:, 0].tolist(),
                         label_b=labels[:, 1].tolist(), s_switch=switch)
-            write_paths(root, op, set_id, coords=coords, l0=l0, sites=z['sites'], s=z['s64'], meta=meta,
-                        provenance=inputs.provenance(op_id, entry=f'inputs.json#paths/{op_id}/{set_id}'))
+            write_paths(root, op, set_id, coords=coords, l0=l0, sites=z['sites'], s=z['s64'], labels=label_space,
+                        meta=meta, provenance=inputs.provenance(op_id, entry=f'inputs.json#paths/{op_id}/{set_id}'))
         switches.append(dict(label=f'Start at {l0}', panels=[_panel(op_id)], paths=[set_id]))
     write_json(root/'F2.json', _spec(switches[0]['panels'], ['joint', 'site'], K=8, site='b9', switch=switches))
     net_ids = ('c10-s0', 'c100-s0', 'svhn-s0')

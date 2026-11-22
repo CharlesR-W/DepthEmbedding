@@ -143,6 +143,90 @@
     "tier": "R",
     "source": "data/fetch/crw-depth-xp-results/compare/c10.npz:knn15_trunk_cos replay, upper triangle in nets order, mean of in32|in32 at b9"
   },
+  "stem.c100.nn": {
+    "value": 0.7153277397155762,
+    "text": "0.715",
+    "tier": "S",
+    "source": "data/fetch/crw-depth-xp-results/compare/c10.npz:nn, stem × stem; mean of saved summaries over CIFAR-10 × c100 run pairs"
+  },
+  "stem.c100.cka": {
+    "value": 0.9607453445593516,
+    "text": "0.961",
+    "tier": "S",
+    "source": "data/fetch/crw-depth-xp-results/compare/c10.npz:cka, stem × stem; mean of saved summaries over CIFAR-10 × c100 run pairs"
+  },
+  "stem.in32.nn": {
+    "value": 0.6975722312927246,
+    "text": "0.698",
+    "tier": "S",
+    "source": "data/fetch/crw-depth-xp-results/compare/c10.npz:nn, stem × stem; mean of saved summaries over CIFAR-10 × in32 run pairs"
+  },
+  "stem.in32.cka": {
+    "value": 0.9546244144439697,
+    "text": "0.955",
+    "tier": "S",
+    "source": "data/fetch/crw-depth-xp-results/compare/c10.npz:cka, stem × stem; mean of saved summaries over CIFAR-10 × in32 run pairs"
+  },
+  "stem.svhn.nn": {
+    "value": 0.35464444756507874,
+    "text": "0.355",
+    "tier": "S",
+    "source": "data/fetch/crw-depth-xp-results/compare/c10.npz:nn, stem × stem; mean of saved summaries over CIFAR-10 × svhn run pairs"
+  },
+  "stem.svhn.cka": {
+    "value": 0.7069580256938934,
+    "text": "0.707",
+    "tier": "S",
+    "source": "data/fetch/crw-depth-xp-results/compare/c10.npz:cka, stem × stem; mean of saved summaries over CIFAR-10 × svhn run pairs"
+  },
+  "coarse.b9.min": {
+    "value": 0.9263647918243595,
+    "text": "0.926",
+    "tier": "R",
+    "source": "data/fetch/crw-depth-xp-results/compare/c10.npz: replayed b9 trunk cosine; min over fine × coarse run pairs"
+  },
+  "coarse.b9.max": {
+    "value": 0.9331557034320076,
+    "text": "0.933",
+    "tier": "R",
+    "source": "data/fetch/crw-depth-xp-results/compare/c10.npz: replayed b9 trunk cosine; max over fine × coarse run pairs"
+  },
+  "projection.c100_s0.b9.full": {
+    "value": 0.7621196320483888,
+    "text": "0.762",
+    "tier": "R",
+    "source": "pinned X1 trunk modes; c10-s0 × c100-s0, b9, scored half, shared fitted Q"
+  },
+  "projection.c100_s0.b9.display": {
+    "value": 0.8291122458812651,
+    "text": "0.829",
+    "tier": "R",
+    "source": "pinned X1 trunk modes; c10-s0 × c100-s0, b9, scored half, shared fitted Q; project onto first two pooled reference PCs before quantisation"
+  },
+  "projection.svhn_s0.b9.full": {
+    "value": 0.359531641739239,
+    "text": "0.360",
+    "tier": "R",
+    "source": "pinned X1 trunk modes; c10-s0 × svhn-s0, b9, scored half, shared fitted Q"
+  },
+  "projection.svhn_s0.b9.display": {
+    "value": 0.5258982547264403,
+    "text": "0.526",
+    "tier": "R",
+    "source": "pinned X1 trunk modes; c10-s0 × svhn-s0, b9, scored half, shared fitted Q; project onto first two pooled reference PCs before quantisation"
+  },
+  "projection.c10_s1.stem.full": {
+    "value": 0.927370376869277,
+    "text": "0.927",
+    "tier": "R",
+    "source": "pinned X1 trunk modes; c10-s0 × c10-s1, stem, scored half, shared fitted Q"
+  },
+  "projection.c10_s1.stem.display": {
+    "value": 0.8339739607695691,
+    "text": "0.834",
+    "tier": "R",
+    "source": "pinned X1 trunk modes; c10-s0 × c10-s1, stem, scored half, shared fitted Q; project onto first two pooled reference PCs before quantisation"
+  },
   "zoo.raw.stem": {
     "value": 0.9273703768692767,
     "text": "0.93",
@@ -208,6 +292,30 @@
     "text": "-0.01",
     "tier": "R",
     "source": "data/fetch/crw-depth-xp-results/compare/c10.npz:knn15_trunk_cos_perm replay, mean over off-diagonal ordered pairs at b9"
+  },
+  "acc.c10_s1_x3": {
+    "value": 0.9152,
+    "text": "91.52%",
+    "tier": "S",
+    "source": "xp/out/x3/DONE:clean_acc.c10-s1"
+  },
+  "schedule.batch": {
+    "value": 128,
+    "text": "128",
+    "tier": "S",
+    "source": "xp/modal_train.py:train, bs (fixed recipe)"
+  },
+  "schedule.usual": {
+    "value": 64000,
+    "text": "64,000",
+    "tier": "S",
+    "source": "xp/out/x1_summary.json:training.c100-s0.steps"
+  },
+  "schedule.in32": {
+    "value": 250000,
+    "text": "250,000",
+    "tier": "S",
+    "source": "xp/out/x1_summary.json:training.in32-s0.steps"
   },
   "acc.c10_s0": {
     "value": 0.9156,

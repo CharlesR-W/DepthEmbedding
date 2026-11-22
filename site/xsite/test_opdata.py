@@ -1,20 +1,22 @@
 from __future__ import annotations
 
+import hashlib
 import json
+import shutil
 
 import numpy as np
 import pytest
 
 if __package__:
     from .fetch import FETCH, sha256
-    from .opdata import read_array, read_operator, read_overlay, read_paths, source_from_joint
-    from .ops import FIXTURES, OUT
+    from .opdata import ids_bytes, read_array, read_operator, read_overlay, read_paths, source_from_joint
+    from .ops import FIXTURES, OUT, manifest_for
     from .validate import (Inputs, check_inversion_overlay, check_probe, check_x3_logits,
                            validate_operator, x1_align, x1_split)
 else:  # pytest also collects this file without package mode
     from fetch import FETCH, sha256
-    from opdata import read_array, read_operator, read_overlay, read_paths, source_from_joint
-    from ops import FIXTURES, OUT
+    from opdata import ids_bytes, read_array, read_operator, read_overlay, read_paths, source_from_joint
+    from ops import FIXTURES, OUT, manifest_for
     from validate import (Inputs, check_inversion_overlay, check_probe, check_x3_logits,
                           validate_operator, x1_align, x1_split)
 
@@ -86,6 +88,70 @@ def test_stale_packaged_overlay_rejected(tmp_path):
     path.write_text(json.dumps(stale))
     with pytest.raises(ValueError, match='fingerprint mismatch'):
         read_overlay(path, op)
+
+
+@pytest.mark.parametrize('op_id,rel,reader,field', [
+    ('r20s0-c10-ea100', 'ov/u8.json', read_overlay, 'label'),
+    ('x4-b3-suffix', 'paths/x4-b3-paths.json', read_paths, 'label_b'),
+])
+@pytest.mark.parametrize('bad_ids', [False, True], ids=['missing-labels', 'out-of-range'])
+def test_invalid_set_labels_rejected(tmp_path, monkeypatch, op_id, rel, reader, field, bad_ids):
+    monkeypatch.syspath_prepend(str(FIXTURES.parents[1]))
+    from build_x import BuildError, Catalog
+
+    op = fixture_op(op_id)
+    root = tmp_path/'x'
+    op_dir = root/'ops'/op_id
+    shutil.copytree(FIXTURES/'ops'/op_id, op_dir)
+    manifest = manifest_for(root)
+    path = op_dir/rel
+    value = json.loads(path.read_text())
+    if bad_ids:
+        value['meta'][field][0] = len(value['labels']['names'])
+    else:
+        del value['labels']
+    path.write_text(json.dumps(value))
+    match = 'outside labels.names' if bad_ids else 'labels namespace'
+    with pytest.raises(ValueError, match=match):
+        reader(path, op)
+
+    # An up-to-date inventory must not make invalid descriptor contents buildable.
+    manifest['files'][path.relative_to(root).as_posix()] = dict(bytes=path.stat().st_size, sha256=sha256(path))
+    (root/'MANIFEST.json').write_text(json.dumps(manifest))
+    with pytest.raises(BuildError, match=match):
+        Catalog(root, True)
+
+
+def test_build_rejects_permuted_viewer_export(tmp_path, monkeypatch):
+    monkeypatch.syspath_prepend(str(FIXTURES.parents[1]))
+    from build_x import BuildError, Catalog
+
+    # Treat the small fixture's probe as viewer-order for this build test.
+    root = tmp_path/'x'
+    sample = 'r20s0-c10-ea100'
+    op_dir = root/'ops'/sample
+    shutil.copytree(FIXTURES/'ops'/sample, op_dir)
+    op_path = op_dir/'op.json'
+    op = json.loads(op_path.read_text())
+    op['probe']['viewer_order'] = True
+    op_path.write_text(json.dumps(op))
+    (root/'MANIFEST.json').write_text(json.dumps(manifest_for(root)))
+    catalog = Catalog(root, True)
+    d = tmp_path/'d'
+    d.mkdir()
+    labels = (op_dir/'labels.bin').read_bytes()
+    (d/'labels.bin').write_bytes(labels)
+    meta = dict(n=len(labels), probe_ids_sha256=op['probe']['ids_sha256'],
+                probe_labels_sha256=op['probe']['labels_sha256'])
+    path = d/'meta.json'
+    path.write_text(json.dumps(meta))
+    catalog.check_viewer(d)
+
+    # Same N and labels; only the export's ordered IDs differ.
+    meta['probe_ids_sha256'] = hashlib.sha256(ids_bytes(np.roll(op['probe']['ids'], 1))).hexdigest()
+    path.write_text(json.dumps(meta))
+    with pytest.raises(BuildError, match='viewer probe ID order or count mismatch'):
+        catalog.check_viewer(d)
 
 
 def test_permuted_probe_rejected():

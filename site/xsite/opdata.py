@@ -94,6 +94,13 @@ def ids_bytes(ids):
     return ids.astype('<i8').tobytes()
 
 
+def probe_labels_bytes(labels):
+    labels = np.asarray(labels)
+    require(labels.ndim == 1 and labels.dtype.kind in 'iu' and ((labels >= 0) & (labels <= 127)).all(),
+            'Probe labels must be nonnegative int8 class IDs')
+    return labels.astype('i1').tobytes()
+
+
 def _canon(v):
     return json.dumps(v, sort_keys=True, ensure_ascii=False, separators=(',', ':'), allow_nan=False).encode('utf-8')
 
@@ -129,9 +136,9 @@ def _axes(x):
     return (vecs * sign).tolist()
 
 
-def write_operator(root, op_id, *, joint, ids, chain, c, t, vals, kernel, net, provenance, title=None,
+def write_operator(root, op_id, *, joint, ids, probe_labels, chain, c, t, vals, kernel, net, provenance, title=None,
                    probe_id='c10', units='relative site units', tstar=None, legacy_basis=None, source=None,
-                   site=None, dtype='i16', viewer_signs=None, axes_viewer=None, fixture_labels=None):
+                   site=None, dtype='i16', viewer_signs=None, axes_viewer=None, viewer_order=True):
     """Write under root/ops/id; accepts already-validated physical (unscaled) coordinates."""
     directory = Path(root) / 'ops' / name(op_id)
     directory.mkdir(parents=True, exist_ok=True)
@@ -139,12 +146,13 @@ def write_operator(root, op_id, *, joint, ids, chain, c, t, vals, kernel, net, p
     chain, c, vals = list(chain), np.asarray(c), np.asarray(vals)
     L, N, K = joint.shape
     require(L == len(chain) == c.size and K == vals.size and N == len(ids), f'{op_id}: operator shape mismatch')
+    labels = probe_labels_bytes(probe_labels)
+    require(len(labels) == N, f'{op_id}: probe labels do not match IDs')
     probe = dict(id=probe_id, n=N, ids_sha256=hashlib.sha256(ids_bytes(ids)).hexdigest(),
-                 viewer_order=fixture_labels is None, labels='../../../d/labels.bin',
-                 sprite='../../../d/sprite.webp', sprite_cols=50)
-    if fixture_labels is not None:
-        require(len(fixture_labels) == N, 'Fixture probe labels do not match IDs')
-        (directory/'labels.bin').write_bytes(np.asarray(fixture_labels, dtype=np.uint8).tobytes())
+                 labels_sha256=hashlib.sha256(labels).hexdigest(), viewer_order=viewer_order,
+                 labels='../../../d/labels.bin', sprite='../../../d/sprite.webp', sprite_cols=50)
+    if not viewer_order:
+        (directory/'labels.bin').write_bytes(labels)
         probe.update(ids=np.asarray(ids).tolist(), labels='labels.bin', sprite=None, sprite_cols=None)
     op = dict(schema=1, id=op_id, title=title or f"{net['label']} · {kernel['label']}", net=net,
               kernel=kernel, probe=probe, chain=chain, units=units, c=c.tolist(), t=float(t),
@@ -188,8 +196,16 @@ def read_operator(path, *, ids=None):
     require(len(op['chain']) == len(op['c']) and len(set(op['chain'])) == len(op['chain'])
             and op['K'] == len(op['vals']), f'{path}: invalid operator metadata shapes')
     require(re.fullmatch(r'[0-9a-f]{64}', op['fp']), f'{path}: invalid fingerprint')
-    L, N, K = len(op['chain']), op['probe']['n'], op['K']
+    probe = op['probe']
+    L, N, K = len(op['chain']), probe['n'], op['K']
     require(all(type(dim) is int and dim > 0 for dim in (L, N, K)), f'{path}: invalid operator dimensions')
+    require(type(probe.get('viewer_order')) is bool and
+            all(isinstance(probe.get(key), str) and re.fullmatch(r'[0-9a-f]{64}', probe[key])
+                for key in ('ids_sha256', 'labels_sha256')), f'{path}: invalid probe digests or viewer_order')
+    if not probe['viewer_order']:
+        labels = (path.parent/'labels.bin').read_bytes()
+        require(len(labels) == N and hashlib.sha256(labels).hexdigest() == probe['labels_sha256'],
+                f'{path}: fixture probe label digest or count mismatch')
     shape = [L, N, K]
     for axis in ('pooled', 'viewer'):
         if axis == 'pooled' or axis in op['axes']:
@@ -219,11 +235,29 @@ def _child_kinds(directory, op, set_id, coords, prefix):
     return kinds
 
 
-def write_overlay(root, op, set_id, *, coords, label, dataset, ids, pos, sample_of, meta, provenance,
+def check_labels(where, labels, meta, n, fields):
+    """Validate the true-label namespace; predictions are in the network's output space."""
+    require(isinstance(labels, dict) and isinstance(labels.get('space'), str)
+            and re.fullmatch(r'[a-z][a-z0-9_-]*', labels['space']) and 'names' in labels,
+            f'{where}: missing or invalid labels namespace (expected space and names)')
+    names = labels['names']
+    require(names is None or (isinstance(names, list) and names
+                             and all(isinstance(s, str) and s.strip() for s in names)),
+            f'{where}: labels.names must be a nonempty class-name list or null')
+    for key in fields:
+        ids = meta.get(key) if isinstance(meta, dict) else None
+        require(isinstance(ids, list) and len(ids) == n and all(type(i) is int and i >= 0 for i in ids),
+                f'{where}: invalid true-label IDs in meta.{key}')
+        require(names is None or all(i < len(names) for i in ids),
+                f'{where}: meta.{key} ID outside labels.names')
+
+
+def write_overlay(root, op, set_id, *, coords, label, labels, dataset, ids, pos, sample_of, meta, provenance,
                   pair=None, sprite=None, sprite_cols=None, sample_rule='sorted choice without replacement, seed 20261122'):
     directory = Path(root)/'ops'/name(op['id'])/'ov'
     n = len(ids)
-    value = dict(schema=1, id=name(set_id), label=label, op=op['id'], op_fp=op['fp'], n=n,
+    check_labels(set_id, labels, meta, n, ('label',))
+    value = dict(schema=1, id=name(set_id), label=label, labels=labels, op=op['id'], op_fp=op['fp'], n=n,
                  pairs=dict(set=name(pair), by='index') if pair else None,
                  images=dict(dataset=dataset, ids=np.asarray(ids).tolist()),
                  sample=dict(rule=sample_rule, of=int(sample_of), pos=np.asarray(pos).tolist()),
@@ -234,11 +268,12 @@ def write_overlay(root, op, set_id, *, coords, label, dataset, ids, pos, sample_
     return read_overlay(path, op)
 
 
-def write_paths(root, op, set_id, *, coords, l0, sites, s, meta, provenance, sprite=None):
+def write_paths(root, op, set_id, *, coords, l0, sites, s, labels, meta, provenance, sprite=None):
     directory = Path(root)/'ops'/name(op['id'])/'paths'
     P, S = len(meta['pair_pos']), len(s)
+    check_labels(set_id, labels, meta, P, ('label_a', 'label_b'))
     value = dict(schema=1, id=name(set_id), op=op['id'], op_fp=op['fp'], l0=l0, chain=op['chain'],
-                 sites=list(sites), s=np.asarray(s).tolist(), P=P, S=S, meta=meta, provenance=provenance,
+                 sites=list(sites), s=np.asarray(s).tolist(), P=P, S=S, labels=labels, meta=meta, provenance=provenance,
                  sprite=sprite, kinds=_child_kinds(directory, op, set_id, coords, (P, S)))
     path = directory/f'{set_id}.json'
     write_json(path, value, indent=None)
@@ -268,7 +303,8 @@ def read_overlay(path, op):
     require(len(value['images']['ids']) == n and pos.shape == (n,) and pos.dtype.kind in 'iu'
             and (pos >= 0).all() and (pos < value['sample']['of']).all() and (np.diff(pos) > 0).all(),
             f'{path}: invalid overlay sampling metadata')
-    for key in ('label', 'pred', 'success', 'rowmax'):
+    check_labels(path, value.get('labels'), value.get('meta'), n, ('label',))
+    for key in ('pred', 'success', 'rowmax'):
         data = value['meta'].get(key)
         require(data is None or len(data) == n, f'{path}: invalid {key} length')
     for scalar in value['meta'].get('scalars', {}).values():
@@ -284,7 +320,8 @@ def read_paths(path, op):
     P, S = value['P'], value['S']
     require(value['chain'] == op['chain'] and all(s in op['chain'] for s in value['sites'])
             and len(value['s']) == S and np.all(np.diff(value['s']) > 0), f'{path}: invalid path grids')
-    for key in ('pair_pos', 'kind', 'label_a', 'label_b', 's_switch'):
+    check_labels(path, value.get('labels'), value.get('meta'), P, ('label_a', 'label_b'))
+    for key in ('pair_pos', 'kind', 's_switch'):
         data = value['meta'][key]
         require((key == 's_switch' and data is None) or len(data) == P, f'{path}: invalid {key} length')
     _read_children(path, op, value, (P, S))

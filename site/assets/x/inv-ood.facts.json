@@ -1,15 +1,87 @@
 {
   "svhn.b4": {
     "value": 0.6866229772567749,
-    "text": "0.69",
+    "text": "0.687",
     "tier": "S",
     "source": "data/invert/results.json:decode/P8__pr400__L12/b4/svhn|64|krr|cos_raw[0]"
   },
   "h.b4": {
     "value": 0.5147985219955444,
-    "text": "0.51",
+    "text": "0.515",
     "tier": "S",
     "source": "data/invert/results.json:decode/P8__pr400__L12/b4/H|64|krr|cos_raw[0]"
+  },
+  "svhn.b4_captured": {
+    "value": 0.47749048471450806,
+    "text": "0.477",
+    "tier": "S",
+    "source": "data/invert/results.json:decode/P8__pr400__L12/b4/svhn|64|krr|cap_raw[0]"
+  },
+  "svhn.b4_agree": {
+    "value": 0.395,
+    "text": "39.5%",
+    "tier": "S",
+    "source": "data/invert/results.json:decode/P8__pr400__L12/b4/svhn|64|krr|agree[0]"
+  },
+  "h.b4_captured": {
+    "value": 0.14794841408729553,
+    "text": "0.148",
+    "tier": "S",
+    "source": "data/invert/results.json:decode/P8__pr400__L12/b4/H|64|krr|cap_raw[0]"
+  },
+  "h.b4_agree": {
+    "value": 0.387,
+    "text": "38.7%",
+    "tier": "S",
+    "source": "data/invert/results.json:decode/P8__pr400__L12/b4/H|64|krr|agree[0]"
+  },
+  "attack.n": {
+    "value": 1000,
+    "text": "1,000",
+    "tier": "R",
+    "source": "CIFAR-10 logits and labels on the first len(PGD2) H rows"
+  },
+  "attack.wrong_clean": {
+    "value": 74,
+    "text": "74",
+    "tier": "R",
+    "source": "CIFAR-10 logits and labels on the first len(PGD2) H rows"
+  },
+  "attack.pgd2.misclassified": {
+    "value": 994,
+    "text": "994",
+    "tier": "R",
+    "source": "acts/pgd2/meta.npz:logits,labels; compare with aligned clean logits"
+  },
+  "attack.pgd2.wrong_unchanged": {
+    "value": 69,
+    "text": "69",
+    "tier": "R",
+    "source": "acts/pgd2/meta.npz:logits,labels; compare with aligned clean logits"
+  },
+  "attack.pgd2.changed": {
+    "value": 925,
+    "text": "925",
+    "tier": "R",
+    "source": "acts/pgd2/meta.npz:logits,labels; compare with aligned clean logits"
+  },
+  "attack.pgd8.misclassified": {
+    "value": 1000,
+    "text": "1,000",
+    "tier": "R",
+    "source": "acts/pgd8/meta.npz:logits,labels; compare with aligned clean logits"
+  },
+  "attack.pgd8.wrong_unchanged": {
+    "value": 63,
+    "text": "63",
+    "tier": "R",
+    "source": "acts/pgd8/meta.npz:logits,labels; compare with aligned clean logits"
+  },
+  "attack.pgd8.changed": {
+    "value": 937,
+    "text": "937",
+    "tier": "R",
+    "source": "acts/pgd8/meta.npz:logits,labels; compare with aligned clean logits"
   },
   "c100.b9": {
     "value": 0.5670816898345947,
@@ -22,5 +94,47 @@
     "text": "0.77",
     "tier": "S",
     "source": "data/invert/results.json:decode/P8__pr400__L12/b9/pgd8|64|krr|cos_raw[0]"
+  },
+  "display.svhn.full": {
+    "value": 0.20626268900291875,
+    "text": "0.21",
+    "tier": "R",
+    "source": "Shipped b9 SVHN and P2 source arrays; average per-axis ratio of centred variances (full)"
+  },
+  "display.svhn.plane": {
+    "value": 0.1200246695431692,
+    "text": "0.12",
+    "tier": "R",
+    "source": "Shipped b9 SVHN and P2 source arrays; average per-axis ratio of centred variances (plane)"
+  },
+  "display.pgd2.joint": {
+    "value": 0.158625820971157,
+    "text": "15.9%",
+    "tier": "R",
+    "source": "crw-depth-invert-results/joint/P2__pr300__L12/{coords_H.npz,coords_pgd2.npz}:y, b9, all pairs; shipped joint PCA axes"
+  },
+  "display.pgd2.source": {
+    "value": 0.19668000077270995,
+    "text": "19.7%",
+    "tier": "R",
+    "source": "crw-depth-invert-results/joint/P2__pr300__L12/{coords_H.npz,coords_pgd2.npz}:onestep, b9, all pairs; shipped joint PCA axes"
+  },
+  "display.pgd8.joint": {
+    "value": 0.17534969542311943,
+    "text": "17.5%",
+    "tier": "R",
+    "source": "crw-depth-invert-results/joint/P2__pr300__L12/{coords_H.npz,coords_pgd8.npz}:y, b9, all pairs; shipped joint PCA axes"
+  },
+  "display.pgd8.source": {
+    "value": 0.22244765186000784,
+    "text": "22.2%",
+    "tier": "R",
+    "source": "crw-depth-invert-results/joint/P2__pr300__L12/{coords_H.npz,coords_pgd8.npz}:onestep, b9, all pairs; shipped joint PCA axes"
+  },
+  "attack.arrows": {
+    "value": 60,
+    "text": "60",
+    "tier": "S",
+    "source": "gen_inv_a.py:ARROWS, initial display setting"
   }
 }

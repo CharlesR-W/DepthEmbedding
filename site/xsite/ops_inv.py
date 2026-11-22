@@ -8,11 +8,11 @@ import numpy as np
 
 if __package__:
     from .opdata import require, write_overlay
-    from .ops import package_operator, sample, write_sprite
+    from .ops import cifar10_labels, package_operator, sample, write_sprite
     from .validate import check_inversion_overlay, validate_operator
 else:
     from opdata import require, write_overlay
-    from ops import package_operator, sample, write_sprite
+    from ops import cifar10_labels, package_operator, sample, write_sprite
     from validate import check_inversion_overlay, validate_operator
 
 VOL = 'crw-depth-invert-results'
@@ -58,6 +58,14 @@ def package(inputs, root):
     require(held.shape == (2000,) and len(np.unique(held)) == len(held)
             and not np.intersect1d(held, raw['ids']).size, 'H is not a distinct held-out set')
     pair_pos = sample(1000)
+    spaces = {
+        # The staged CIFAR-100 inputs contain fine IDs but no class-name table.
+        'c100': dict(space='cifar100', names=None),
+        'svhn': dict(space='svhn', names=[str(i) for i in range(10)]),
+    }
+    c10 = cifar10_labels()
+    with np.load(inputs.file(inputs.manifest['overlays'][f'{PR}/H']['images']['meta']), allow_pickle=False) as clean:
+        clean_pred = clean['logits'][held[pair_pos]].argmax(axis=1)
     for set_id, title in SETS.items():
         clean_pair = set_id == 'H-pgd'
         attack = set_id in ('pgd2', 'pgd8')
@@ -90,10 +98,12 @@ def package(inputs, root):
             pred = a['logits'][image_pos].argmax(axis=1)
             sprite = write_sprite(root, f'inv_{set_id}.webp', a['images'][image_pos])
         scalars = _decode(inputs, raw['chain'], len(held), pos) if set_id == 'H' else {}
-        success = (pred != display_labels).tolist() if attack else None
-        meta = dict(label=display_labels, pred=pred.tolist(), success=success, rowmax=rowmax, scalars=scalars)
-        write_overlay(root, op, set_id, coords=coords, label=title, dataset=row['images']['dataset'],
-                      ids=ids[pos], pos=pos, sample_of=n, meta=meta,
+        meta = dict(label=display_labels, pred=pred.tolist(), rowmax=rowmax, scalars=scalars)
+        if attack:
+            meta.update(clean_correct=(clean_pred == display_labels).tolist(), adv_pred=pred.tolist(),
+                        misclassified=(pred != display_labels).tolist(), changed=(pred != clean_pred).tolist())
+        write_overlay(root, op, set_id, coords=coords, label=title, labels=spaces.get(set_id, c10),
+                      dataset=row['images']['dataset'], ids=ids[pos], pos=pos, sample_of=n, meta=meta,
                       provenance=inputs.provenance(PR, key=row['file'], entry=f'inputs.json#overlays/{key}'),
                       pair='H-pgd' if attack else None, sprite=sprite, sprite_cols=20)
         print(f'{PR}/{set_id}: one-step source relative error {err:.3g}')

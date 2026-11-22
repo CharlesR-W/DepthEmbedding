@@ -160,7 +160,7 @@ T_k y_{\cdot,k}(x)&=\bigl(s_{l,k}(x)/(2c_l)\bigr)_{l=0}^{L-1}.
 \end{aligned}
 $$</div>
 <p>The source only uses the activation at site $l$. Although $T_k$ is tridiagonal, solving with it mixes sources
-across the chain. The exact identity, on and off the probe, is $s_{l,k}(x)=2c_l[T_k y_{\cdot,k}(x)]_l$. For
+across the chain. This defines a unique extension provided $T_k$ is nonsingular; sensitivity to right-hand-side error is governed by its smallest singular value. See the <a href="#experiments/x-x3-adversarial">X3 decisions and checks</a> for measured condition numbers and masked probe replay errors. The exact identity, on and off the probe, is $s_{l,k}(x)=2c_l[T_k y_{\cdot,k}(x)]_l$. For
 probe image $i$, the eigen-equation with $(I-M_l)/c_l=(I-P_l)/(2c_l)$ gives $y_{l,k}(i)=f_l^{(k)}(i)$ and
 $s_{l,k}(i)=(P_l f_l^{(k)})(i)$.</p>
 <p><b>Code.</b> <code>spacetime.py:apply_L, modes, balance_direct</code> defines the spectrum and coupling;
@@ -169,4 +169,11 @@ $s_{l,k}(i)=(P_l f_l^{(k)})(i)$.</p>
 uses batched Torch rows and solves, with $b=s/(2c)$ as its intermediate instead. The original X3/X4 runs used
 Shannon or k-NN; the current <code>xp</code> code also implements participation ratio. NumPy's
 <code>argpartition</code> and Torch's <code>topk</code> can resolve k-NN ties differently.</p>
+
+<h3 id="new-images-audit">Method concerns from the audit</h3>
+<ul class="x-caveats">
+<li><span class="x-tag">audit</span> <b>Interpretation limit:</b> Frozen-row extension is a convention, not a refit. The old $Z_j$ excludes the new point, so the reverse term is only a weight and can exceed one before normalisation. Masked replay tests the algebra on familiar points, not fidelity off support; check nearest-probe support or compare with a refit. Class mass is not a calibrated posterior.</li>
+<li><b>Interpretation limit:</b> Shannon calibrates forward-conditional entropy, not final-row width, maximum weight or mode localisation. Report realised widths, maximum weights and support by site and cohort, and compare kernels at matched realised widths.</li>
+<li><b>Possible numerical failure:</b> The bandwidth search does not verify target feasibility; ties, including from zero centred activations, can prevent the requested width. Near-zero walk eigenvalues and nearly singular depth solves can amplify errors; a small cutoff gap can make individual modes unstable. Record target residuals, minimum retained $|\lambda|$, $\sigma_{\min}(T_k)$ and the cutoff gap, and warn on failure. These checks are not all recorded systematically.</li>
+</ul>
 

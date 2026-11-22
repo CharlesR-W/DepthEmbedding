@@ -9,7 +9,7 @@
     "value": 2000,
     "text": "2,000",
     "tier": "R",
-    "source": "data/sitex/ops/r20s0-c10-ea100/op.json:probe.n (also the joint probe array's image dimension)"
+    "source": "data/sitex/ops/r20s0-c10-ea100: decoded joint probe image dimension"
   },
   "sample.n": {
     "value": 300,
@@ -58,6 +58,48 @@
     "text": "0.42",
     "tier": "P",
     "source": "xp/out/x3/c10-s0_{clean,n8}.npz:ea100_site_y; median of all attempts at b9, divided by median clean same-class pair distance"
+  },
+  "projection.b6.arrows": {
+    "value": 0.898949384689331,
+    "text": "0.90",
+    "tier": "P",
+    "source": "xp/out/x3/archived ea100_site_y at b6; paired packaged sample, default arrow indices, first two walk modes"
+  },
+  "projection.b6.full": {
+    "value": 1.0130244493484497,
+    "text": "1.01",
+    "tier": "P",
+    "source": "xp/out/x3/archived ea100_site_y at b6; ratio of full-cohort 16-mode median distances"
+  },
+  "projection.b7.arrows": {
+    "value": 1.258770227432251,
+    "text": "1.26",
+    "tier": "P",
+    "source": "xp/out/x3/archived ea100_site_y at b7; paired packaged sample, default arrow indices, first two walk modes"
+  },
+  "projection.b7.full": {
+    "value": 1.4659839868545532,
+    "text": "1.47",
+    "tier": "P",
+    "source": "xp/out/x3/archived ea100_site_y at b7; ratio of full-cohort 16-mode median distances"
+  },
+  "projection.b9.arrows": {
+    "value": 7.490044593811035,
+    "text": "7.49",
+    "tier": "P",
+    "source": "xp/out/x3/archived ea100_site_y at b9; paired packaged sample, default arrow indices, first two walk modes"
+  },
+  "projection.b9.full": {
+    "value": 6.261147499084473,
+    "text": "6.26",
+    "tier": "P",
+    "source": "xp/out/x3/archived ea100_site_y at b9; ratio of full-cohort 16-mode median distances"
+  },
+  "projection.arrows": {
+    "value": 60,
+    "text": "60",
+    "tier": "R",
+    "source": "packaged u8 overlay sample filtered by embfig.js:arrowKeep"
   },
   "disp.knn15.u8.b6": {
     "value": 0.6110754013061523,
@@ -149,11 +191,53 @@
     "tier": "R",
     "source": "matched re-run cohort: data/stretch/x3/op_c10-s0_ea100.npz:site_vec; maximum two-image fraction over the first 16 modes"
   },
-  "rerun.ratio.ea100.b7_masked": {
+  "rerun.mask.b6.dropped": {
+    "value": 3,
+    "text": "3",
+    "tier": "R",
+    "source": "matched re-run cohort: data/stretch/x3/op_c10-s0_ea100.npz:site_vec; count modes at b6 with two-image share > 0.1"
+  },
+  "rerun.mask.b6.ratio": {
+    "value": 0.9790549874305725,
+    "text": "0.979",
+    "tier": "P",
+    "source": "matched re-run cohort: data/stretch/x3/c10-s0_{clean,u8,n8}_pr100.npz:ea100_site_y, ratio of median lengths at b6 after applying the mode mask"
+  },
+  "rerun.mask.b7.dropped": {
+    "value": 0,
+    "text": "0",
+    "tier": "R",
+    "source": "matched re-run cohort: data/stretch/x3/op_c10-s0_ea100.npz:site_vec; count modes at b7 with two-image share > 0.1"
+  },
+  "rerun.mask.b7.ratio": {
     "value": 1.497168779373169,
     "text": "1.497",
     "tier": "P",
-    "source": "matched re-run cohort: data/stretch/x3/c10-s0_{clean,u8,n8}_pr100.npz:ea100_site_y at b7 after dropping modes with two-image share > 0.1 and renormalising"
+    "source": "matched re-run cohort: data/stretch/x3/c10-s0_{clean,u8,n8}_pr100.npz:ea100_site_y, ratio of median lengths at b7 after applying the mode mask"
+  },
+  "rerun.mask.b8.dropped": {
+    "value": 0,
+    "text": "0",
+    "tier": "R",
+    "source": "matched re-run cohort: data/stretch/x3/op_c10-s0_ea100.npz:site_vec; count modes at b8 with two-image share > 0.1"
+  },
+  "rerun.mask.b8.ratio": {
+    "value": 2.7822349071502686,
+    "text": "2.782",
+    "tier": "P",
+    "source": "matched re-run cohort: data/stretch/x3/c10-s0_{clean,u8,n8}_pr100.npz:ea100_site_y, ratio of median lengths at b8 after applying the mode mask"
+  },
+  "rerun.mask.b9.dropped": {
+    "value": 1,
+    "text": "1",
+    "tier": "R",
+    "source": "matched re-run cohort: data/stretch/x3/op_c10-s0_ea100.npz:site_vec; count modes at b9 with two-image share > 0.1"
+  },
+  "rerun.mask.b9.ratio": {
+    "value": 6.863495826721191,
+    "text": "6.863",
+    "tier": "P",
+    "source": "matched re-run cohort: data/stretch/x3/c10-s0_{clean,u8,n8}_pr100.npz:ea100_site_y, ratio of median lengths at b9 after applying the mode mask"
   },
   "rerun.archive_delta.u8": {
     "value": 0.022322893142700195,
@@ -275,6 +359,36 @@
     "tier": "P",
     "source": "matched re-run cohort: data/stretch/x3/c10-s0_u8_pr100.npz:pr100_mass and logits; successful untargeted 8/255 attempts; mean final-class mass at logits"
   },
+  "rerun.switch.common_median": {
+    "value": "b6",
+    "text": "b6",
+    "tier": "P",
+    "source": "matched re-run cohort: data/stretch/x3/c10-s0_u8_pr100.npz: one common median under all three kernels, destination beats true rule"
+  },
+  "rerun.switch.pr100.different": {
+    "value": 0.268,
+    "text": "26.8%",
+    "tier": "P",
+    "source": "matched re-run cohort: data/stretch/x3/c10-s0_u8_pr100.npz:ea100_mass,pr100_mass,logits; paired successful attacks with switch bins differing by at least 1, including Never at the end"
+  },
+  "rerun.switch.pr100.two_plus": {
+    "value": 0.085,
+    "text": "8.5%",
+    "tier": "P",
+    "source": "matched re-run cohort: data/stretch/x3/c10-s0_u8_pr100.npz:ea100_mass,pr100_mass,logits; paired successful attacks with switch bins differing by at least 2, including Never at the end"
+  },
+  "rerun.switch.knn15.different": {
+    "value": 0.494,
+    "text": "49.4%",
+    "tier": "P",
+    "source": "matched re-run cohort: data/stretch/x3/c10-s0_u8_pr100.npz:ea100_mass,knn15_mass,logits; paired successful attacks with switch bins differing by at least 1, including Never at the end"
+  },
+  "rerun.switch.knn15.two_plus": {
+    "value": 0.209,
+    "text": "20.9%",
+    "tier": "P",
+    "source": "matched re-run cohort: data/stretch/x3/c10-s0_u8_pr100.npz:ea100_mass,knn15_mass,logits; paired successful attacks with switch bins differing by at least 2, including Never at the end"
+  },
   "rerun.switch.pair_tv": {
     "value": 0.047,
     "text": "4.7%",
@@ -317,11 +431,17 @@
     "tier": "P",
     "source": "xp/out/x3/c10-s0_u8.npz:ea100_mass and logits; sets.npz labels/target; persistent class-mass rule"
   },
-  "switch.u8.stem": {
-    "value": 0.128,
-    "text": "13%",
+  "switch.u8.stem_n": {
+    "value": 128,
+    "text": "128",
     "tier": "P",
     "source": "xp/out/x3/c10-s0_u8.npz:ea100_mass and logits; sets.npz labels/target; persistent class-mass rule"
+  },
+  "switch.u8.stem_lead": {
+    "value": 0.11256223171949387,
+    "text": "0.113",
+    "tier": "P",
+    "source": "xp/out/x3/c10-s0_u8.npz:ea100_mass and logits; sets.npz labels/target; persistent class-mass rule; median final-minus-true class mass at stem, among stem leads"
   },
   "switch.u8.top_median": {
     "value": "b7",
@@ -377,6 +497,60 @@
     "tier": "P",
     "source": "xp/out/x3/c10-s0_natA.npz:ea100_mass and logits; sets.npz labels/target; persistent class-mass rule; mean logits mass on destination"
   },
+  "comparison.u8.n": {
+    "value": 1000,
+    "text": "1,000",
+    "tier": "P",
+    "source": "xp/out/x3/c10-s0_u8.npz:logits; successful attacks; cohort size"
+  },
+  "comparison.u8.margin": {
+    "value": 59.1185302734375,
+    "text": "59.12",
+    "tier": "P",
+    "source": "xp/out/x3/c10-s0_u8.npz:logits; successful attacks; median winning-minus-runner-up raw logit margin"
+  },
+  "comparison.natural.n": {
+    "value": 675,
+    "text": "675",
+    "tier": "P",
+    "source": "xp/out/x3/c10-s0_natA.npz:logits; natural errors; cohort size"
+  },
+  "comparison.natural.margin": {
+    "value": 1.9462647438049316,
+    "text": "1.95",
+    "tier": "P",
+    "source": "xp/out/x3/c10-s0_natA.npz:logits; natural errors; median winning-minus-runner-up raw logit margin"
+  },
+  "comparison.matched.pairs": {
+    "value": 47,
+    "text": "47",
+    "tier": "P",
+    "source": "xp/out/x3/c10-s0_{natA,u8}.npz:logits, ea100_mass; sets.npz:labels,natA_y; xp/analyze_x3.py: groups with ≥3 per cohort, weighted by natural-error counts"
+  },
+  "comparison.matched.natural": {
+    "value": 0.5755438536984249,
+    "text": "57.55%",
+    "tier": "P",
+    "source": "xp/out/x3/c10-s0_{natA,u8}.npz:logits, ea100_mass; sets.npz:labels,natA_y; xp/analyze_x3.py: groups with ≥3 per cohort, weighted by natural-error counts"
+  },
+  "comparison.matched.u8": {
+    "value": 0.9653991026785768,
+    "text": "96.54%",
+    "tier": "P",
+    "source": "xp/out/x3/c10-s0_{natA,u8}.npz:logits, ea100_mass; sets.npz:labels,natA_y; xp/analyze_x3.py: groups with ≥3 per cohort, weighted by natural-error counts"
+  },
+  "pixel.u8.l2": {
+    "value": 1.3135293959525298,
+    "text": "1.31",
+    "tier": "R",
+    "source": "xp/out/x3/sets.npz:img_clean,img_u8; rounded pixels scaled to [0,1], median L2"
+  },
+  "pixel.n8.l2_rms": {
+    "value": 1.7373301448704797,
+    "text": "1.74",
+    "tier": "R",
+    "source": "xp/out/x3/sets.npz:img_clean; median per-image RMS under clipped independent sign noise, not an archived-noise measurement"
+  },
   "activation.u8.b6.cosine": {
     "value": 0.6392610381504041,
     "text": "0.64",
@@ -388,6 +562,24 @@
     "text": "0.77",
     "tier": "P",
     "source": "xp/out/x3/c10-s0_n8.npz:actcos; median at b6 over all attempts"
+  },
+  "depth.ea_cond": {
+    "value": 35.899975236149636,
+    "text": "35.9",
+    "tier": "R",
+    "source": "xp/out/x3/op_c10-s0_ea100.npz:c,t,vals; maximum 2-norm condition number of T among first K modes"
+  },
+  "depth.knn_cond": {
+    "value": 22.297456458605474,
+    "text": "22.3",
+    "tier": "R",
+    "source": "xp/out/x3/op_c10-s0_knn15.npz:c,t,vals; maximum 2-norm condition number of T among first K modes"
+  },
+  "depth.replay": {
+    "value": 7.107591376565026e-09,
+    "text": "7.1e-09",
+    "tier": "S",
+    "source": "xp/out/x3/DONE: seed 0 Shannon and k-NN masked probe replay, maximum absolute joint-coordinate error over full fits"
   },
   "logits_only.stem": {
     "value": 0.04157418240397735,

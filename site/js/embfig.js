@@ -9,12 +9,27 @@ const SCHEMA = 1;
 const KIND_NAME = { joint: "joint", source: "source", site: "site-local" };
 const KIND_HINT = {
   joint: "joint coordinates: the operator's through-depth modes, one set of axes for every site",
-  source: "source coordinates s = 2c·T y: the part of the joint coordinates contributed by each site itself; same mode axes as joint",
+  source: "source coordinates: each site's local kernel average p_l·f_l of the joint modes, before depth filtering (divided by 2c_l, it is the right-hand side of the depth solve); drawn on the joint coordinates' axes",
   site: "site-local coordinates: each site's own walk modes; the axes differ from site to site",
 };
 const CIFAR = ["airplane", "automobile", "bird", "cat", "deer", "dog", "frog", "horse", "ship", "truck"];
 const SITE_MS = 650;            // play speed: one site per SITE_MS
 const NARROW = 560;             // below this figure width, multi-panel figures show one panel at a time
+// True-label spaces. A set's `labels: {space, names}` says what its meta.label (paths: label_a, label_b) means; the
+// probe's labels are CIFAR-10, as are predictions (the network's outputs). A set without `labels` has an unknown space:
+// its true labels are not named and the class filter does not apply to it.
+const PROBE_SPACE = "cifar10";
+const SPACE_NAME = { cifar10: "CIFAR-10", cifar100: "CIFAR-100", svhn: "SVHN", imagenet32: "ImageNet-32" };
+const spaceOf = set => set?.labels?.space ?? null;
+const sameSpace = set => spaceOf(set) === PROBE_SPACE;
+function trueName(set, id, classes) {
+  if (id == null || id < 0) return "–";
+  const sp = spaceOf(set), nm = set?.labels?.names?.[id];
+  if (sp === PROBE_SPACE) return nm ?? classes[id] ?? `class ${id}`;
+  if (sp === "svhn") return `SVHN digit ${nm ?? id}`;
+  if (sp) return nm != null ? `${nm} (${SPACE_NAME[sp] || sp})` : `${SPACE_NAME[sp] || sp} class ${id}`;
+  return `label ${id} (label space not recorded)`;
+}
 
 // ------------------------------------------------------------------ small helpers
 const cssv = (v, d) => getComputedStyle(document.documentElement).getPropertyValue(v).trim() || d;
@@ -24,6 +39,8 @@ const fmt = x => x == null || !isFinite(x) ? "–" : Math.abs(x) >= 100 ? x.toFi
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
 const num = n => Number(n).toLocaleString("en");
 const rfmt = (v, [a, b]) => { const s = Math.abs(b - a); return (+v).toFixed(s >= 20 ? 0 : s >= 2 ? 1 : s >= 0.2 ? 2 : 3); };
+const ord = n => `${n}${n % 10 === 1 && n % 100 !== 11 ? "st" : n % 10 === 2 && n % 100 !== 12 ? "nd" : n % 10 === 3 && n % 100 !== 13 ? "rd" : "th"}`;
+const predOf = m => m.adv_pred ?? m.pred ?? null;      // the network's prediction for the drawn input (CIFAR-10 output)
 const lower = t => /^[A-Z][a-z]/.test(t) ? t[0].toLowerCase() + t.slice(1) : t;
 function h(tag, attrs = {}, ...kids) {
   const e = document.createElement(tag);
@@ -123,6 +140,8 @@ export class EmbFigure {
     this.arrowCol = spec.arrowColour === "pred" ? "pred" : "one";
     this.iso = null; this.isoPreview = null;                                   // class isolated from the legend
     this.scalarOpt = 0;                                                        // chosen colour.options item
+    this.pathKind = "all";                                                     // paths shown: all | diff | same
+    this.thumb = false;                                                        // thumbnail capture: plot only
     this.panels = [];
     this.build();
     this.ready = this.start();
@@ -188,6 +207,12 @@ export class EmbFigure {
     new ResizeObserver(() => { const w = this.el.clientWidth; if (Math.abs(w - (this.lastW || 0)) > 4) { this.lastW = w; this.layout(); } }).observe(this.el);
     new IntersectionObserver(es => { if (!es.some(e => e.isIntersecting)) this.stop(); }).observe(this.el);
   }
+  // thumbnail capture (site/check_browser.py --capture): the plot area only, without labels, rings, hover or notes
+  setThumb(on) {
+    this.thumb = !!on; this.stop(); this.iso = this.isoPreview = null; this.panels.forEach(p => { p.hot = null; });
+    const i = this.chain().indexOf(this.cur().site); if (on && i >= 0) this.setSite(i);       // the figure's opening site
+    this.el.classList.toggle("ef-thumb", this.thumb); this.draw();
+  }
   setPlayIcon() {
     this.playBtn.innerHTML = this.playing ? '<svg viewBox="0 0 12 12" width="12" height="12"><rect x="2" y="1.5" width="3" height="9" rx=".6"/><rect x="7" y="1.5" width="3" height="9" rx=".6"/></svg>'
       : '<svg viewBox="0 0 12 12" width="12" height="12"><path d="M3 1.6v8.8a.5.5 0 0 0 .76.43l7-4.4a.5.5 0 0 0 0-.86l-7-4.4A.5.5 0 0 0 3 1.6z"/></svg>';
@@ -240,6 +265,10 @@ export class EmbFigure {
     if (opts.length) this.display.append(this.seg("Arrows per set", [...opts.map(d => [d, String(d)]), [Infinity, `all ${num(nArrows)}`]], opts.includes(this.density) ? this.density : Infinity, v => { this.density = v; this.buildControls(); this.describe(); this.redraw(); }, "ef-stack"));
     if (arrowSets.some(st => st.cfg.style !== "control" && st.s.meta?.pred))
       this.display.append(this.seg("Arrow colour", [["one", "one colour"], ["pred", "predicted class"]], this.arrowCol, v => { this.arrowCol = v; this.buildControls(); this.describe(); this.redraw(); }, "ef-stack"));
+    // paths: show both kinds, or one (different-class or same-class endpoints)
+    const ps = this.panels.find(p => p.paths?.length)?.paths[0]?.s, pk = ps?.meta?.kind || [];
+    const nd = pk.filter(k => k === "diff").length, ns = pk.filter(k => k !== "diff").length;
+    if (nd && ns) this.display.append(this.seg("Paths shown (endpoint classes)", [["all", `all ${nd + ns}`], ["diff", `${nd} different`], ["same", `${ns} same`]], this.pathKind, v => { this.pathKind = v; this.buildControls(); this.redraw(); }, "ef-stack"));
   }
 
   // ---------------------------------------------------- loading
@@ -271,26 +300,35 @@ export class EmbFigure {
       const main = this.overlaysNow().find(x => x.main), ctl = this.overlaysNow().find(x => x.isControl);
       items = [{ ...items[0], role: "main", title: main?.label || null }, { ...items[0], idx: 1, role: "control", title: ctl?.label || "control" }];
     }
+    const tok = this.loadTok = (this.loadTok || 0) + 1;      // a later switch, overlay or control change supersedes this one
     this.panels = items;
     this.layoutPanels();
     await Promise.all(this.panels.map(p => this.loadPanel(p)));
+    if (tok !== this.loadTok) return;
     if (this.sideBySide()) for (const p of this.panels) p.title = this.setTitle(p);
     this.afterLoad();
   }
   setTitle(p) { const st = (p.sets || [])[0]; return st ? (st.cfg.label || st.s.label) + (p.role === "control" ? " (control)" : "") : p.item.label; }
+  // A panel being (re)loaded draws nothing: its projected arrays are dropped first and its canvas is cleared, and the
+  // new operator and sets are assigned together once all of them have loaded (p.ready).
   async loadPanel(p) {
-    p.err = null; p.o = null; p.sets = []; p.paths = [];
+    const tok = p.loadTok = (p.loadTok || 0) + 1;
+    p.err = null; p.ready = false; p.probe = null; p.box = null; p.hot = null;
+    if (p.cv) { const r = this.fit(p.cv); if (r) { r.g.fillStyle = this.P.surface; r.g.fillRect(0, 0, r.w, r.h); } }
     try {
-      p.o = await loadOp(this.root, p.item.op);
-      if (!p.o.op.kinds[this.kind]) {
-        const k = (this.spec.kinds || []).find(k => p.o.op.kinds[k]) || "joint";
-        if (this.panels.every(q => q === p || !q.o || q.o.op.kinds[k])) this.kind = k;
+      const o = await loadOp(this.root, p.item.op);
+      const want = this.kindWanted ?? this.kind;
+      if (!o.op.kinds[want]) {
+        const k = (this.spec.kinds || []).find(k => o.op.kinds[k]) || "joint";
+        if (this.panels.every(q => q === p || !q.o || q.o.op.kinds[k])) this.kindWanted = k;
       }
-      await this.loadPanelSets(p);
-    } catch (e) { p.err = e; console.error(`emb-fig panel ${p.item.op}:`, e); }
+      const { sets, paths, sprite } = await this.loadPanelSets(p, o);
+      if (tok !== p.loadTok) return;
+      p.o = o; p.sets = sets; p.paths = paths; p.sprite = sprite; p.ready = true;
+    } catch (e) { if (tok !== p.loadTok) return; p.o = null; p.sets = []; p.paths = []; p.err = e; console.error(`emb-fig panel ${p.item.op}:`, e); }
   }
-  async loadPanelSets(p) {
-    const c = this.cur(), o = p.o, sets = [], paths = [];
+  async loadPanelSets(p, o) {
+    const c = this.cur(), sets = [], paths = [];
     for (const ov of this.panelOverlays(p)) {
       const { s, url } = await loadSet(o, "ov", ov.set);
       let from = null;
@@ -309,8 +347,7 @@ export class EmbFigure {
       if (JSON.stringify(s.chain) !== JSON.stringify(o.op.chain)) throw new DataError(`path set ${id}: chain [${s.chain}] differs from its operator's chain [${o.op.chain}]`);
       paths.push({ s, url });
     }
-    p.sets = sets; p.paths = paths;
-    if (o.op.probe.sprite) p.sprite = getImage(rel(o.op.probe.sprite, o.url)).catch(() => null);
+    return { sets, paths, sprite: o.op.probe.sprite ? getImage(rel(o.op.probe.sprite, o.url)).catch(() => null) : null };
   }
   afterLoad() {
     const L = this.chain().length;
@@ -328,17 +365,23 @@ export class EmbFigure {
   chain() { const p = this.panels.find(p => p.o); return p ? p.o.op.chain : []; }
 
   // ---------------------------------------------------- interactions
-  async setKind(k) { this.kind = k; this.stop(); await Promise.all(this.panels.map(p => p.o && !p.err ? null : this.loadPanel(p))); this.buildControls(); this.recompute(); }
+  // the kind is committed together with its projected coordinates (recompute); until then the old kind stays drawn
+  async setKind(k) {
+    this.stop(); this.kindWanted = k;
+    const req = this.kindReq = (this.kindReq || 0) + 1;
+    await Promise.all(this.panels.map(p => p.ready && !p.err ? null : this.loadPanel(p)));
+    if (req === this.kindReq) await this.recompute();
+  }
   async setSwitch(i) {
     this.stop(); this.siteWanted = this.chain()[Math.round(this.b)];
     this.sw = i; this.panels = [];
-    const k = this.spec.switch[i].kind; if (k) this.kind = k;
+    const k = this.spec.switch[i].kind; if (k) this.kindWanted = k;
     this.status.textContent = "Loading…";
     await this.loadPanels();
     this.status.textContent = "";
   }
   async reloadPanels() { this.stop(); this.siteWanted = this.chain()[Math.round(this.b)]; await this.loadPanels(); }
-  async swapPanel(p, item) { this.stop(); p.item = item; p.swapped = item !== p.base; await this.loadPanel(p); this.recompute(); }
+  async swapPanel(p, item) { this.stop(); p.item = item; p.swapped = item !== p.base; const tok = (p.loadTok || 0) + 1; await this.loadPanel(p); if (tok === p.loadTok) this.recompute(); }
   arrowKeep(n) { const k = Math.min(n, this.density); return k >= n ? () => true : j => (j * 7919) % n < k; }
   isoNow() { return this.isoPreview ?? this.iso; }
   togglePlay() { if (this.playing) this.stop(); else this.play(); }
@@ -368,15 +411,18 @@ export class EmbFigure {
   // ---------------------------------------------------- geometry
   // Per panel and kind: one K x 2 display map per site, M_l = R V_l / |probe_l|_F (norm "site"), and the probe,
   // overlay and path coordinates projected by it. Axis limits are fixed over all sites and shared by all panels.
-  async recompute() {
+  // Every panel is projected for the requested kind first; the kind, the arrays, the limits and the legend are then
+  // committed together, and only by the latest request (a superseded one is dropped).
+  async recompute(kind = this.kindWanted ?? this.kind) {
     const token = (this.token = (this.token || 0) + 1);
-    try {
-      for (const p of this.panels) if (p.o && !p.err) {
-        try { await this.project(p); } catch (e) { p.err = e; console.error(e); }
-      }
-    } finally {
-      if (token === this.token) { this.fitBox(); this.renderPanels(); this.buildControls(); this.describe(); this.drawFilm(); this.draw(); }
+    const commits = [];
+    for (const p of this.panels) if (p.o && p.ready && !p.err) {
+      try { commits.push(await this.project(p, kind)); } catch (e) { commits.push(() => { p.err = e; p.probe = null; console.error(e); }); }
     }
+    if (token !== this.token) return;
+    this.kind = kind; this.kindWanted = null;
+    for (const c of commits) { try { c(); } catch (e) { console.error(e); } }
+    this.fitBox(); this.renderPanels(); this.buildControls(); this.describe(); this.drawFilm(); this.draw();
   }
   axesFor(p, G) {
     const spec = this.cur(), o = p.o, K = o.K, a = spec.axes || "pooled";
@@ -392,8 +438,8 @@ export class EmbFigure {
     const { V } = eigSym(C, K);
     return [...Array(K).keys()].map(k => [V[k * K], V[k * K + 1]]);
   }
-  async project(p) {
-    const o = p.o, kind = this.kind, K = o.K, L = o.L, N = o.N, spec = this.cur();
+  async project(p, kind) {
+    const o = p.o, K = o.K, L = o.L, N = o.N, spec = this.cur();
     if (spec.K != null && spec.K !== K) throw new DataError(`the figure asks for K = ${spec.K}; operator ${o.id} has K = ${K}`);
     const raw = await kindData(o, kind);
     const norms = (spec.norm || "site") === "site" ? (o.op.site_norm?.[kind] || null) : null;
@@ -433,6 +479,15 @@ export class EmbFigure {
     };
     // everything is projected first and assigned together, so a draw never mixes two kinds or two states
     const probe = proj(raw, N), setXY = [], pathXY = [];
+    // share of each site's probe norm (as scaled) that lies in the plotted plane: printed under filmstrip frames
+    const plane = [];
+    for (let l = 0; l < L; l++) {
+      const g = slice(raw, l), f = kind === "site" ? nrm(l) : 1; let a = 0, t = 0;
+      for (let j = 0; j < g.length; j++) t += g[j] * g[j];
+      for (let j = l * N * 2; j < (l + 1) * N * 2; j++) a += probe[j] * probe[j];
+      const den = kind === "site" ? t / (f * f) : t / (nrm(l) ** 2);
+      plane.push(den > 0 ? a / den : NaN);
+    }
     for (const st of p.sets) {
       const xy = {};
       for (const which of ["s", "from"]) {
@@ -450,11 +505,15 @@ export class EmbFigure {
       const sh = s.kinds[kind].shape; if (sh[0] !== L || sh[1] !== s.P || sh[2] !== s.S || sh[3] !== K) throw new DataError(`path set ${s.id}: shape [${sh}] does not match chain ${L}, P ${s.P}, S ${s.S}, K ${K}`);
       pathXY.push(proj(await loadArray(s.kinds[kind], pt.url), s.P * s.S));
     }
-    p.M = M; p.probe = probe;
-    p.sets.forEach((st, i) => { st.xy = setXY[i].s; st.fromXY = setXY[i].from || null; });
-    p.paths.forEach((pt, i) => { pt.xy = pathXY[i]; });
-    p.box = this.extent(p);
-    this.colourFor(p);
+    const sets = p.sets, paths = p.paths;
+    return () => {
+      if (p.sets !== sets || p.paths !== paths) return;          // the panel was reloaded meanwhile
+      p.M = M; p.probe = probe; p.plane = plane; p.err = null;
+      sets.forEach((st, i) => { st.xy = setXY[i].s; st.fromXY = setXY[i].from || null; });
+      paths.forEach((pt, i) => { pt.xy = pathXY[i]; });
+      p.box = this.extent(p);
+      this.colourFor(p);
+    };
   }
   // the panel's data extent over all sites: 0.3% and 99.7% quantiles of x and y over the probe and every overlay and path
   extent(p) {
@@ -482,19 +541,29 @@ export class EmbFigure {
     const target = col.set && col.set !== "probe" ? col.set : "probe";
     const st = target === "probe" ? null : p.sets.find(s => s.s.id === target);
     if (target !== "probe" && !st) return;                 // that set is not drawn in this panel
+    // the legend names the quantity (the packaged scalar's own label, else colour.label); an option's label only
+    // names the choice in the selector
     const resolve = opt => {
-      if (opt.values) return { values: opt.values, label: opt.label, range: opt.range };
+      if (opt.values) return { values: opt.values, label: col.label ?? opt.label, choice: opt.label, range: opt.range };
       const sc = target === "probe" ? p.o.op.scalars?.[opt.scalar] : st.s.meta?.scalars?.[opt.scalar];
       if (!sc) throw new DataError(`${target === "probe" ? `operator ${p.o.id}` : `overlay ${target}`} has no scalar ${opt.scalar}`);
       const n = target === "probe" ? p.o.N : st.s.n, L = p.o.L, v = sc.values;
       if (!(Array.isArray(v[0]) ? v.length === L && v[0].length === n : v.length === n)) throw new DataError(`scalar ${opt.scalar}: expected [${n}] or [${L} x ${n}] values`);
-      return { values: v, label: opt.label ?? sc.label, range: opt.range ?? sc.range };
+      return { values: v, label: sc.label ?? col.label ?? opt.label, choice: opt.label, range: opt.range ?? sc.range };
     };
     const opts = (col.options && col.options.length ? col.options : [col]).map(resolve);
     const one = opts[Math.min(this.scalarOpt, opts.length - 1)];
-    let range = col.range;
+    // colour range, fixed over sites and options: colour.range; else colour.fit = [lo, hi] percentiles of every option's
+    // values at every site (values beyond are drawn at the end colours); else the packaged ranges or the full extent
+    let range = col.range, fit = null;
+    if (!range && Array.isArray(col.fit)) {
+      const flat = Float64Array.from(opts.flatMap(o => o.values.flat(2)).filter(Number.isFinite)).sort();
+      const q = t => flat[Math.max(0, Math.min(flat.length - 1, Math.round(t / 100 * (flat.length - 1))))];
+      if (flat.length) { range = [q(col.fit[0]), q(col.fit[1])]; fit = col.fit; }
+    }
     if (!range) { const flat = (opts.length > 1 ? opts : [one]).flatMap(o => o.range || o.values.flat(2)).filter(Number.isFinite); range = [Math.min(...flat), Math.max(...flat)]; }
-    p.scalar = { target, vals: one.values, perSite: Array.isArray(one.values[0]), label: one.label || col.scalar, range, nOpts: opts.length, optLabels: opts.map(o => o.label) };
+    if (!(range[1] > range[0])) range = [range[0] - 0.5, range[0] + 0.5];
+    p.scalar = { target, vals: one.values, perSite: Array.isArray(one.values[0]), label: one.label || col.scalar, choice: opts.length > 1 ? one.choice : null, range, fit, nOpts: opts.length, optLabels: opts.map(o => o.choice), title: col.title };
   }
 
   // ---------------------------------------------------- panels and layout
@@ -558,12 +627,12 @@ export class EmbFigure {
     this.filmWrap.hidden = !sites.length || !p || !this.box;
     if (this.filmWrap.hidden) return;
     const axesTxt = this.kind === "site" ? "each site on its own axes (site-local), same limits" : "same axes and limits";
-    this.filmTitle.textContent = `${this.panels.length > 1 ? `${p.title || p.item.label}, at` : "At"} ${sites.length} sites, ${axesTxt} (click one to show it above)`;
+    this.filmTitle.textContent = `${this.panels.length > 1 ? `${p.title || p.item.label}, at` : "At"} ${sites.length} sites, ${axesTxt}; under each, the share of that site's squared probe norm${this.kind === "site" ? "" : " (as scaled)"} lying in the plotted plane. Click one to show it above.`;
     const f = this.cur().filmstrip, stat = !Array.isArray(f) && f.stat, ch = this.chain();
     if (this.filmKey !== sites.join() + "|" + ch.join()) {
       this.filmKey = sites.join() + "|" + ch.join();
       this.film.replaceChildren(...sites.map(l => {
-        const cv = h("canvas"), b = h("button", { type: "button", class: "ef-frame", "aria-label": `Show ${ch[l]}` }, h("span", { class: "ef-frame-site", text: ch[l] }), cv, stat ? h("span", { class: "ef-frame-stat" }) : null);
+        const cv = h("canvas"), b = h("button", { type: "button", class: "ef-frame", "aria-label": `Show ${ch[l]}` }, h("span", { class: "ef-frame-site", text: ch[l] }), cv, h("span", { class: "ef-frame-plane" }), stat ? h("span", { class: "ef-frame-stat" }) : null);
         b.addEventListener("click", () => { this.stop(); this.setSite(l); });
         b.dataset.l = l; return b;
       }));
@@ -574,6 +643,7 @@ export class EmbFigure {
       const l = +b.dataset.l, cv = b.querySelector("canvas"), r = this.fit(cv);
       if (r) this.paint(p, r.g, r.w, r.h, l, l, true);
       const s = b.querySelector(".ef-frame-stat"); if (s) { s.hidden = !statOn; s.textContent = sv && Number.isFinite(sv[l]) ? `${stat.label ? stat.label + " " : ""}${fmt(sv[l])}` : "–"; }
+      const pl = b.querySelector(".ef-frame-plane"), f = p.plane?.[l]; if (pl) pl.textContent = Number.isFinite(f) ? `${f >= 0.095 ? Math.round(100 * f) : (100 * f).toFixed(1)}% of norm in view` : "";
     });
     this.markFilm();
   }
@@ -636,22 +706,36 @@ export class EmbFigure {
       g.lineWidth = 1.5; g.strokeStyle = rgba(P.fg, 1); g.beginPath(); g.arc(x, y, 6, 0, 7); g.stroke();
     }
   }
+  // class isolation of paired overlays: the pairs whose main-overlay image is in the isolated class (null: no pairing)
+  pairFilter(p, iso) {
+    if (iso == null) return null;
+    const main = p.sets.find(st => st.cfg.main && sameSpace(st.s) && st.s.meta?.pair && st.s.meta?.label);
+    if (!main) return null;
+    const keep = new Set(); main.s.meta.label.forEach((l, j) => { if (l === iso) keep.add(main.s.meta.pair[j]); });
+    keep.main = main; return keep;
+  }
   // draw one panel's picture at fractional site b into a 2-D context; small = filmstrip frame (no labels, no hover data)
   paint(p, g, w, hh, b, lc, small) {
-    const P = this.P, o = p.o, N = o.N, L = o.L, box = this.box, iso = this.isoNow();
+    const P = this.P, o = p.o, N = o.N, L = o.L, box = this.box, iso = this.isoNow(), thumb = this.thumb;
     g.fillStyle = P.surface; g.fillRect(0, 0, w, hh);
     if (!box) return {};
     const pad = small ? 3 : 8, S = Math.min((w - 2 * pad) / (box.x1 - box.x0), (hh - 2 * pad) / (box.y1 - box.y0));
     const cx = w / 2 - S * (box.x0 + box.x1) / 2, cy = hh / 2 + S * (box.y0 + box.y1) / 2;
     const X = x => cx + S * x, Y = y => cy - S * y;
-    const clampX = x => Math.max(2, Math.min(w - 2, x)), clampY = y => Math.max(2, Math.min(hh - 2, y));
+    // Nothing is moved to stay in view: arrows and paths that leave the panel are cut at its edge (clip region), an
+    // arrowhead or endpoint marker outside it is not drawn, and the panel notes how many were cut.
+    const inside = (x, y) => x >= 0 && x <= w && y >= 0 && y <= hh;
+    const off = { arrows: 0, paths: 0, points: 0 };
+    g.save(); g.beginPath(); g.rect(0, 0, w, hh); g.clip();
     // axes: faint lines through the origin, labelled
-    g.strokeStyle = P.line; g.lineWidth = 1; g.beginPath(); g.moveTo(0, Y(0)); g.lineTo(w, Y(0)); g.moveTo(X(0), 0); g.lineTo(X(0), hh); g.stroke();
-    if (!small) {
+    if (!thumb) {
+      g.strokeStyle = P.line; g.lineWidth = 1; g.beginPath(); g.moveTo(0, Y(0)); g.lineTo(w, Y(0)); g.moveTo(X(0), 0); g.lineTo(X(0), hh); g.stroke();
+    }
+    if (!small && !thumb) {
       g.fillStyle = rgba(P.mute, 0.9); g.font = "10.5px Inter, system-ui, sans-serif"; g.textAlign = "right";
       g.fillText(this.kind === "site" ? "mode 1" : "PC 1", w - 4, Y(0) - 5); g.textAlign = "left"; g.fillText(this.kind === "site" ? "mode 2" : "PC 2", X(0) + 5, 11);
     }
-    const busy = p.sets.length > 0 || p.paths.length > 0, scal = p.scalar;
+    const busy = p.sets.length > 0 || p.paths.length > 0, scal = p.scalar, withPaths = p.paths.length > 0;
     const r = small ? Math.max(0.8, Math.min(1.3, w / 160)) : Math.max(1.2, Math.min(2.6, w / 330)) * (busy ? 0.85 : 1);
     const pts = this.frameXY(p.probe, N, L, b, (small ? (p.fbufP ||= new Float32Array(N * 2)) : (p.buf ||= new Float32Array(N * 2))));
     const screen = new Float32Array(N * 2);
@@ -666,74 +750,102 @@ export class EmbFigure {
       if (iso != null && !probeScalar && !scal && key !== iso) key = -2;
       (groups.get(key) || groups.set(key, []).get(key)).push(i);
     }
-    const alpha = busy ? 0.34 : 0.8;
+    const alpha = withPaths ? 0.24 : busy ? 0.34 : 0.8;          // under paths the cloud is a quiet backdrop
     for (const [key, idx] of [...groups].sort((a, b) => (a[0] === -2 ? -1 : 0) - (b[0] === -2 ? -1 : 0))) {
       const c = key === -2 ? P.grey : probeScalar ? (key < 0 ? P.grey : seqColour(P, key / (LEVELS - 1))) : key < 0 || key >= P.classes.length ? P.grey : P.classes[key];
-      g.fillStyle = rgba(c, key === -2 ? 0.35 : scal && !probeScalar ? 0.55 : probeScalar ? 0.9 : iso != null ? 0.95 : alpha); g.beginPath();
+      g.fillStyle = rgba(c, key === -2 ? 0.35 : scal && !probeScalar ? 0.5 : probeScalar ? 0.9 : iso != null ? 0.95 : alpha); g.beginPath();
       for (const i of idx) { const x = screen[i * 2], y = screen[i * 2 + 1]; g.moveTo(x + r, y); g.arc(x, y, r, 0, 6.2832); }
       g.fill();
     }
     // rings around chosen probe images
     const hl = p.item.highlight || this.cur().highlight;           // a panel's own highlight replaces the figure's
-    if (hl && hl.probe && !small) {
-      for (const i of hl.probe) { if (i < 0 || i >= N) continue; const x = screen[i * 2], y = screen[i * 2 + 1];
-        g.lineWidth = 3.5; g.strokeStyle = "rgba(255,255,255,.95)"; g.beginPath(); g.arc(x, y, r + 5, 0, 7); g.stroke();
-        g.lineWidth = 1.6; g.strokeStyle = rgba(P.fg, 1); g.beginPath(); g.arc(x, y, r + 5, 0, 7); g.stroke(); }
-    }
     const ring = (x, y, rr) => { g.lineWidth = 3.5; g.strokeStyle = "rgba(255,255,255,.95)"; g.beginPath(); g.arc(x, y, rr, 0, 7); g.stroke(); g.lineWidth = 1.6; g.strokeStyle = rgba(P.fg, 1); g.beginPath(); g.arc(x, y, rr, 0, 7); g.stroke(); };
-    // paths: the polyline over s at the current site, coloured by s; a = open circle, b = filled square
-    const pathScreen = [];
+    if (hl && hl.probe && !small && !thumb) for (const i of hl.probe) if (i >= 0 && i < N) ring(screen[i * 2], screen[i * 2 + 1], r + 5);
+    // paths: the polyline over s at the current site, coloured by s (light at a, dark at b), with an arrowhead at s = 1/2;
+    // a = open circle, b = filled square; different-class solid and wider, same-class dashed and thinner. Hovering a
+    // path draws it on top and fades the others.
+    const pathScreen = [], hotPath = !small && p.hot?.path ? p.hot.path : null;
+    const pathCol = t => seqColour(P, 0.12 + 0.88 * t);
     for (const pt of p.paths) {
       if (!pt.xy) continue;
-      const s = pt.s, n = s.P * s.S, xy = this.frameXY(pt.xy, n, L, b, new Float32Array(n * 2)), sv = s.s, s0 = sv[0], s1 = sv[sv.length - 1];
-      const sc = new Float32Array(n * 2); for (let j = 0; j < n; j++) { sc[j * 2] = clampX(X(xy[j * 2])); sc[j * 2 + 1] = clampY(Y(xy[j * 2 + 1])); }
-      pathScreen.push({ pt, sc });
-      for (let q = 0; q < s.P; q++) {
-        if (iso != null && s.meta?.label_a?.[q] !== iso && s.meta?.label_b?.[q] !== iso) continue;
-        const diff = s.meta?.kind?.[q] === "diff";
-        g.lineWidth = small ? 2 : 3.2; g.strokeStyle = "rgba(255,255,255,.75)"; g.setLineDash([]); g.beginPath();
-        for (let j = 0; j < s.S; j++) { const k = (q * s.S + j) * 2; j ? g.lineTo(sc[k], sc[k + 1]) : g.moveTo(sc[k], sc[k + 1]); } g.stroke();
-        g.lineWidth = small ? 1 : 1.7; g.setLineDash(diff ? [] : [3, 2.5]);
+      const s = pt.s, n = s.P * s.S, xy = this.frameXY(pt.xy, n, L, b, new Float32Array(n * 2)), sv = s.s, s0 = sv[0], s1 = sv[sv.length - 1], m = s.meta || {};
+      const sc = new Float32Array(n * 2); for (let j = 0; j < n; j++) { sc[j * 2] = X(xy[j * 2]); sc[j * 2 + 1] = Y(xy[j * 2 + 1]); }
+      const isoOK = q => iso == null || !sameSpace(s) || m.label_a?.[q] === iso || m.label_b?.[q] === iso;
+      const kindOK = q => this.pathKind === "all" || (this.pathKind === "diff") === (m.kind?.[q] === "diff");
+      const order = [...Array(s.P).keys()].filter(q => isoOK(q) && kindOK(q));
+      pathScreen.push({ pt, sc, shown: new Set(order) });
+      if (hotPath && hotPath.pt === pt) order.sort((a, c) => (a === hotPath.q) - (c === hotPath.q));
+      for (const q of order) {
+        const diff = m.kind?.[q] === "diff", base = q * s.S;
+        const faded = hotPath && !(hotPath.pt === pt && hotPath.q === q), hot = hotPath && !faded;
+        const lw = small ? (diff ? 1.3 : 1) : (diff ? 2.5 : 1.8) + (hot ? 0.8 : 0);
+        let out = false; for (let j = 0; j < s.S; j++) if (!inside(sc[(base + j) * 2], sc[(base + j) * 2 + 1])) { out = true; break; }
+        if (out) off.paths++;
+        g.globalAlpha = faded ? 0.16 : 1;
+        g.setLineDash([]); g.lineWidth = lw + (small ? 1.4 : 2.6); g.strokeStyle = "rgba(255,255,255,.85)"; g.lineJoin = "round"; g.beginPath();
+        for (let j = 0; j < s.S; j++) { const k = (base + j) * 2; j ? g.lineTo(sc[k], sc[k + 1]) : g.moveTo(sc[k], sc[k + 1]); } g.stroke();
+        // segments coloured by s; the dash pattern runs on along the whole path (offset = length so far)
+        g.lineWidth = lw; g.setLineDash(diff ? [] : small ? [2, 2] : [5, 3.5]); let run = 0;
         for (let j = 1; j < s.S; j++) {
-          const k0 = (q * s.S + j - 1) * 2, k1 = (q * s.S + j) * 2;
-          g.strokeStyle = rgba(seqColour(P, (sv[j] - s0) / (s1 - s0 || 1)), 1); g.beginPath(); g.moveTo(sc[k0], sc[k0 + 1]); g.lineTo(sc[k1], sc[k1 + 1]); g.stroke();
+          const k0 = (base + j - 1) * 2, k1 = (base + j) * 2;
+          g.lineDashOffset = run; run += Math.hypot(sc[k1] - sc[k0], sc[k1 + 1] - sc[k0 + 1]);
+          g.strokeStyle = rgba(pathCol((sv[j] - s0) / (s1 - s0 || 1)), 1); g.beginPath(); g.moveTo(sc[k0], sc[k0 + 1]); g.lineTo(sc[k1], sc[k1 + 1]); g.stroke();
         }
-        g.setLineDash([]);
-        if (!small) for (const [j, shape] of [[0, 0], [s.S - 1, 1]]) {
-          const k = (q * s.S + j) * 2;
-          mark(g, shape, sc[k], sc[k + 1], 3.4); g.lineWidth = 3; g.strokeStyle = "rgba(255,255,255,.9)"; g.stroke();
-          g.fillStyle = j ? rgba(P.fg, 1) : "#fff"; g.fill(); g.lineWidth = 1.4; g.strokeStyle = rgba(P.fg, 1); g.stroke();
+        g.setLineDash([]); g.lineDashOffset = 0;
+        if (!small && !thumb) {
+          // direction: an arrowhead where s = 1/2, along the path's local direction
+          let jm = 0; for (let j = 0; j < s.S; j++) if (Math.abs((sv[j] - s0) / (s1 - s0 || 1) - 0.5) < Math.abs((sv[jm] - s0) / (s1 - s0 || 1) - 0.5)) jm = j;
+          const ja = Math.max(0, jm - 2), jb = Math.min(s.S - 1, jm + 2), ka = (base + ja) * 2, kb = (base + jb) * 2, km = (base + jm) * 2;
+          const dx = sc[kb] - sc[ka], dy = sc[kb + 1] - sc[ka + 1], len = Math.hypot(dx, dy);
+          if (len > 0.5 && inside(sc[km], sc[km + 1])) {
+            const ux = dx / len, uy = dy / len, hd = diff ? 7 : 6, x = sc[km] + ux * hd / 2, y = sc[km + 1] + uy * hd / 2;
+            g.beginPath(); g.moveTo(x, y); g.lineTo(x - hd * ux + hd * 0.55 * uy, y - hd * uy - hd * 0.55 * ux); g.lineTo(x - hd * ux - hd * 0.55 * uy, y - hd * uy + hd * 0.55 * ux); g.closePath();
+            g.lineWidth = 2; g.strokeStyle = "rgba(255,255,255,.9)"; g.stroke(); g.fillStyle = rgba(pathCol(0.5), 1); g.fill();
+          }
+          for (const [j, shape] of [[0, 0], [s.S - 1, 1]]) {
+            const k = (base + j) * 2; if (!inside(sc[k], sc[k + 1])) continue;
+            mark(g, shape, sc[k], sc[k + 1], hot ? 4.2 : 3.4); g.lineWidth = 3; g.strokeStyle = "rgba(255,255,255,.9)"; g.stroke();
+            g.fillStyle = j ? rgba(P.fg, 1) : "#fff"; g.fill(); g.lineWidth = 1.4; g.strokeStyle = rgba(P.fg, 1); g.stroke();
+          }
         }
+        g.globalAlpha = 1;
       }
     }
     // overlays: points, or arrows from the paired set (control sets grey and dashed)
-    const ovScreen = [];
+    const ovScreen = [], keepPairs = this.pairFilter(p, iso);
     for (const st of p.sets) {
       if (!st.xy || (st.cfg.draw === "arrows" && st.from && !st.fromXY)) continue;
       const n = st.s.n, xy = this.frameXY(st.xy, n, L, b, new Float32Array(n * 2)), m = st.s.meta || {};
-      const sc = new Float32Array(n * 2); for (let j = 0; j < n; j++) { sc[j * 2] = clampX(X(xy[j * 2])); sc[j * 2 + 1] = clampY(Y(xy[j * 2 + 1])); }
+      const sc = new Float32Array(n * 2); for (let j = 0; j < n; j++) { sc[j * 2] = X(xy[j * 2]); sc[j * 2 + 1] = Y(xy[j * 2 + 1]); }
       const rec = { st, sc }; ovScreen.push(rec);
       const control = st.cfg.style === "control", main = control ? P.mute : P.accent;
-      const isoOK = j => iso == null || m.label?.[j] === iso;
+      // the class filter applies to a set only when its true labels are in the probe's label space; a set sharing pair
+      // ids with the main overlay (meta.pair) follows the main overlay's surviving pairs instead of its own labels
+      const byPair = keepPairs && st !== keepPairs.main && m.pair;
+      const filt = !!byPair || (iso != null && sameSpace(st.s));
+      const isoOK = j => !filt || (byPair ? keepPairs.has(m.pair[j]) : m.label?.[j] === iso);
       const own = scal && scal.target === st.s.id;
       const colOf = j => { if (!own) return main; const v = scal.perSite ? scal.vals[lc][j] : scal.vals[j]; return Number.isFinite(v) ? seqColour(P, (v - scal.range[0]) / (scal.range[1] - scal.range[0])) : P.grey; };
       if (st.cfg.draw === "arrows" && st.fromXY) {
         const fx = this.frameXY(st.fromXY, n, L, b, new Float32Array(n * 2));
         // with one class isolated, all of that class's arrows are drawn (the density subset applies to the whole set)
-        const sub = this.arrowKeep(n), keep = rec.keep = iso != null ? isoOK : sub, fsc = rec.fsc = new Float32Array(n * 2);
-        const shown = iso != null ? 30 : Math.min(n, this.density);
+        const sub = this.arrowKeep(n), keep = rec.keep = filt ? isoOK : sub, fsc = rec.fsc = new Float32Array(n * 2);
+        const shown = filt ? 30 : Math.min(n, this.density);
         const al = Math.max(0.4, Math.min(0.9, 0.9 * Math.sqrt(60 / shown)));            // fewer arrows, stronger ink
-        const byPred = !control && this.arrowCol === "pred" && m.pred;
+        const pr = predOf(m), byPred = !control && this.arrowCol === "pred" && pr;
         g.lineWidth = small ? 0.8 : control ? 0.9 : 1; g.setLineDash(control ? [3, 2.5] : []);
         const head = small ? 2.5 : 4.5;
         for (let j = 0; j < n; j++) {
-          const x0 = fsc[j * 2] = clampX(X(fx[j * 2])), y0 = fsc[j * 2 + 1] = clampY(Y(fx[j * 2 + 1])), x1 = sc[j * 2], y1 = sc[j * 2 + 1];
+          const x0 = fsc[j * 2] = X(fx[j * 2]), y0 = fsc[j * 2 + 1] = Y(fx[j * 2 + 1]), x1 = sc[j * 2], y1 = sc[j * 2 + 1];
           if (!keep(j)) continue;
-          const col = byPred ? (P.classes[m.pred[j]] || P.grey) : main, a = control ? al * 0.85 : al;
+          const in1 = inside(x1, y1);
+          if (!in1 || !inside(x0, y0)) off.arrows++;
+          const col = byPred ? (P.classes[pr[j]] || P.grey) : main, a = control ? al * 0.85 : al;
           g.strokeStyle = rgba(col, a); g.fillStyle = rgba(col, Math.min(1, a + 0.1));
           const dx = x1 - x0, dy = y1 - y0, len = Math.hypot(dx, dy);
-          if (len < 1.5) { g.beginPath(); g.arc(x1, y1, 1.2, 0, 7); g.fill(); continue; }
+          if (len < 1.5) { if (in1) { g.beginPath(); g.arc(x1, y1, 1.2, 0, 7); g.fill(); } continue; }
           g.beginPath(); g.moveTo(x0, y0); g.lineTo(x1, y1); g.stroke();
+          if (!in1) continue;
           const hl2 = Math.min(head, 0.45 * len), ux = dx / len, uy = dy / len;
           g.save(); g.setLineDash([]); g.beginPath(); g.moveTo(x1, y1); g.lineTo(x1 - hl2 * ux + hl2 * 0.5 * uy, y1 - hl2 * uy - hl2 * 0.5 * ux); g.lineTo(x1 - hl2 * ux - hl2 * 0.5 * uy, y1 - hl2 * uy + hl2 * 0.5 * ux); g.closePath(); g.fill(); g.restore();
         }
@@ -742,13 +854,25 @@ export class EmbFigure {
         rec.keep = isoOK;
         for (let j = 0; j < n; j++) {
           if (!isoOK(j)) continue;
-          g.fillStyle = rgba(colOf(j), own ? 1 : control ? 0.75 : 0.9); g.strokeStyle = "rgba(255,255,255,.9)"; g.lineWidth = 0.8;
-          g.beginPath(); g.arc(sc[j * 2], sc[j * 2 + 1], small ? r + 0.6 : own ? r + 1.4 : r + 0.9, 0, 7); g.fill(); if (!small) g.stroke();
+          if (!inside(sc[j * 2], sc[j * 2 + 1])) { off.points++; continue; }
+          g.fillStyle = rgba(colOf(j), own ? 1 : control ? 0.75 : 0.9);
+          g.strokeStyle = own ? rgba(P.fg, 0.4) : "rgba(255,255,255,.9)"; g.lineWidth = own ? 0.7 : 0.8;
+          g.beginPath(); g.arc(sc[j * 2], sc[j * 2 + 1], small ? r + 0.6 : own ? r + 1.6 : r + 0.9, 0, 7); g.fill(); if (!small) g.stroke();
         }
       }
       // rings around chosen overlay points (highlight.overlay: {set, positions})
       const ho = hl && hl.overlay;
-      if (ho && ho.set === st.s.id && !small) for (const j of ho.positions || []) if (j >= 0 && j < n && isoOK(j)) ring(sc[j * 2], sc[j * 2 + 1], r + 5);
+      if (ho && ho.set === st.s.id && !small && !thumb) for (const j of ho.positions || []) if (j >= 0 && j < n && isoOK(j)) ring(sc[j * 2], sc[j * 2 + 1], r + 5);
+    }
+    g.restore();
+    // what was cut at the panel's edge (the limits are the pooled 0.3–99.7% extent, so a few can lie outside)
+    const cut = [[off.arrows, "arrow", "arrows"], [off.paths, "path", "paths"], [off.points, "point", "points"]].filter(([k]) => k > 0);
+    if (!small && !thumb && cut.length) {
+      const t = `${cut.map(([k, one, many]) => `${num(k)} ${k === 1 ? one : many}`).join(", ")} beyond the panel edge (cut, not moved)`;
+      g.font = "10.5px Inter, system-ui, sans-serif"; g.textAlign = "left";
+      const tw = g.measureText(t).width;
+      g.fillStyle = "rgba(255,255,255,.88)"; g.fillRect(2, hh - 17, tw + 8, 15);
+      g.fillStyle = rgba(P.mute, 1); g.fillText(t, 6, hh - 6);
     }
     return small ? {} : { screen, ovScreen, pathScreen };
   }
@@ -759,7 +883,7 @@ export class EmbFigure {
     const move = e => {
       const r = cv.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
       const hit = this.nearest(p, x, y);
-      p.hot = hit ? { x: hit.x, y: hit.y, from: hit.from } : null;
+      p.hot = hit ? { x: hit.x, y: hit.y, from: hit.from, path: hit.type === "path" ? { pt: hit.pt, q: hit.q } : null } : null;
       this.drawPanelOnly(p);
       if (hit) this.showTip(e.clientX, e.clientY, p, hit); else hideTip();
     };
@@ -774,7 +898,7 @@ export class EmbFigure {
     let best = null, bd = 12 * 12;
     const test = (sx, sy, what) => { const d = (sx - x) ** 2 + (sy - y) ** 2; if (d < bd) { bd = d; best = { ...what, x: sx, y: sy }; } };
     for (const { st, sc, fsc, keep } of p.ovScreen || []) for (let j = 0; j < st.s.n; j++) if (!keep || keep(j)) test(sc[j * 2], sc[j * 2 + 1], { type: "ov", st, j, from: fsc ? [fsc[j * 2], fsc[j * 2 + 1]] : null });
-    for (const { pt, sc } of p.pathScreen || []) for (let q = 0; q < pt.s.P; q++) for (let j = 0; j < pt.s.S; j++) { const k = (q * pt.s.S + j) * 2; test(sc[k], sc[k + 1], { type: "path", pt, q, j }); }
+    for (const { pt, sc, shown } of p.pathScreen || []) for (const q of shown) for (let j = 0; j < pt.s.S; j++) { const k = (q * pt.s.S + j) * 2; test(sc[k], sc[k + 1], { type: "path", pt, q, j }); }
     if (best) return best;
     bd = 10 * 10;
     const sc = p.screen, iso = this.isoNow(), lab = p.o.labels;
@@ -796,18 +920,22 @@ export class EmbFigure {
     } else if (hit.type === "ov") {
       const { st, j } = hit, s = st.s, m = s.meta || {};
       head = st.cfg.label || s.label;
-      if (m.label?.[j] != null) rows.push(["true class", cls(m.label[j])]);
-      const ok = m.success && m.success[j] != null ? !!m.success[j] : null, ctl = st.cfg.style === "control";
-      if (m.pred?.[j] != null) rows.push(["predicted", cls(m.pred[j]) + (ok == null ? "" : ctl ? (ok ? " (prediction changed)" : " (prediction unchanged)") : ok ? " (attack succeeded)" : " (attack failed)")]);
+      if (m.label?.[j] != null) rows.push(["true class", trueName(s, m.label[j], this.classes)]);
+      const yn = v => v == null ? null : v ? "yes" : "no", pr = predOf(m);
+      if (pr?.[j] != null) rows.push(["predicted (network output)", cls(pr[j])]);
+      for (const [k, t] of [["clean_correct", "correct on the clean image"], ["misclassified", "misclassified on this input"], ["changed", "prediction changed from clean"]])
+        if (m[k]?.[j] != null) rows.push([t, yn(m[k][j])]);
+      // meta.success (X3 sets): correct on the clean image (both seeds) and wrong on this perturbed input
+      if (m.success?.[j] != null) rows.push([st.cfg.style === "control" ? "clean-correct, wrong after noise" : "attack succeeded (clean-correct, now wrong)", yn(m.success[j])]);
       if (s.images?.ids) rows.push(["image", `${s.images.dataset || ""} #${s.images.ids[j]}`]);
       if (st.from) rows.push(["arrow", `from its ${lower(st.from.s.label || st.from.s.id)} version`]);
       if (scal && scal.target === s.id) rows.push([`${scal.label} at ${site}`, fmt(scal.perSite ? scal.vals[lc][j] : scal.vals[j])]);
-      if (m.rowmax) rows.push(["largest kernel-row entry", fmt(Array.isArray(m.rowmax[0]) ? m.rowmax[lc][j] : m.rowmax[j])]);
+      if (m.rowmax) rows.push(Array.isArray(m.rowmax[0]) ? [`largest kernel-row entry at ${site}`, fmt(m.rowmax[lc][j])] : ["largest kernel-row entry (max over sites)", fmt(m.rowmax[j])]);
       draw(st.sprite, j, s.sprite_cols);
     } else {
       const { pt, q, j } = hit, s = pt.s, m = s.meta || {};
       head = `Path ${q + 1} of ${s.P} (${m.kind?.[q] === "diff" ? "different classes" : "same class"})`;
-      rows.push(["endpoints", `${cls(m.label_a?.[q])} → ${cls(m.label_b?.[q])}`], ["s", fmt(s.s[j])]);
+      rows.push(["endpoints (true class)", `${trueName(s, m.label_a?.[q], this.classes)} → ${trueName(s, m.label_b?.[q], this.classes)}`], ["s", fmt(s.s[j])]);
       if (m.s_switch && m.s_switch[q] != null) rows.push(["prediction switches at s", fmt(m.s_switch[q])]);
       thumb.remove();
     }
@@ -834,34 +962,53 @@ export class EmbFigure {
           cl.append(b);
         });
         const filt = this.iso != null ? h("span", { class: "ef-filter" }, `Showing ${this.classes[this.iso]} only · `, h("button", { type: "button", class: "ef-linkbtn", text: "show all", onclick: () => { this.iso = null; this.describe(); this.redraw(); } })) : h("span", { class: "ef-filter mute", text: "Point at a class to show it alone; click to keep it." });
-        items.push(h("div", { class: "ef-kgroup" }, h("span", { class: "ef-ktitle", text: `Probe images (${num(live[0]?.o.N || 0)}), coloured by class` }), cl, filt));
+        const other = new Map();             // sets the class filter leaves alone: true labels not in the probe's space
+        for (const p of live) {
+          for (const st of p.sets) if (!sameSpace(st.s) && st.s.meta?.label) other.set(st.cfg.label || st.s.label || st.s.id, spaceOf(st.s));
+          for (const pt of p.paths) if (!sameSpace(pt.s) && pt.s.meta?.label_a) other.set("paths", spaceOf(pt.s));
+        }
+        const note = other.size ? h("span", { class: "ef-filter mute", text: `Not filtered by class: ${[...other].map(([n, sp]) => `${n} (${sp ? `${SPACE_NAME[sp] || sp} labels` : "label space not recorded"})`).join("; ")}.` }) : null;
+        items.push(h("div", { class: "ef-kgroup" }, h("span", { class: "ef-ktitle", text: `Probe images (${num(live[0]?.o.N || 0)}), coloured by class` }), cl, filt, note));
       }
     }
     const grad = `linear-gradient(90deg, ${[0, .25, .5, .75, 1].map(t => rgba(seqColour(P, t), 1)).join(",")})`;
     if (scal) items.push(h("div", { class: "ef-kgroup" }, h("span", { class: "ef-ktitle", text: `${scal.target === "probe" ? "Probe images" : this.setName(scal.target)}, coloured by ${scal.label}` }),
       h("span", { class: "ef-ramp" }, h("span", { text: rfmt(scal.range[0], scal.range) }), h("i", { style: `background:${grad}` }), h("span", { text: rfmt(scal.range[1], scal.range) })),
-      h("span", { class: "ef-k mute", text: `colour range fixed over all sites${scal.nOpts > 1 ? " and all colour choices" : ""}` })));
-    const shownTxt = n => { const k = Math.min(n, this.density); return k < n ? `${num(k)} of ${num(n)} images shown` : `${num(n)} images`; };
+      h("span", { class: "ef-k mute", text: scal.fit
+        ? `range fixed: ${ord(scal.fit[0])} to ${ord(scal.fit[1])} percentile of the values at all sites${scal.nOpts > 1 ? ` and every choice of ${lower(scal.title || "colour")}` : ""}; values beyond take the end colours`
+        : `colour range fixed over all sites${scal.nOpts > 1 ? " and all colour choices" : ""}` })));
+    // counts: what is drawn of what exists (density subset, class isolation)
+    const shownTxt = (p, st, arrows) => {
+      const n = st.s.n, m = st.s.meta || {}, kp = this.pairFilter(p, this.iso);
+      const byPair = kp && st !== kp.main && m.pair, filt = byPair || (this.iso != null && sameSpace(st.s));
+      if (filt) { let k = 0; for (let j = 0; j < n; j++) if (byPair ? kp.has(m.pair[j]) : m.label?.[j] === this.iso) k++; return `${num(k)} of ${num(n)} shown: ${this.classes[this.iso]}${byPair ? " pairs" : ""}`; }
+      const k = arrows ? Math.min(n, this.density) : n; return k < n ? `${num(k)} of ${num(n)} shown` : `${num(n)} images`;
+    };
     const seen = new Set();
     for (const p of live) for (const st of p.sets) {
       if (seen.has(st.s.id + st.cfg.style)) continue; seen.add(st.s.id + st.cfg.style);
       const control = st.cfg.style === "control", col = rgba(control ? P.mute : P.accent, 1), lab = st.cfg.label || st.s.label;
-      const byPred = !control && this.arrowCol === "pred" && st.s.meta?.pred;
+      const byPred = !control && this.arrowCol === "pred" && predOf(st.s.meta || {});
       if (st.cfg.draw === "arrows" && st.fromXY) items.push(h("span", { class: "ef-k" }, h("i", { class: `ef-arrow${control ? " ctl" : ""}${byPred ? " pred" : ""}`, style: `--c:${col}` }),
-        h("span", { html: `<b>${esc(lab)}</b>${control ? " (control)" : ""}: arrow from each ${esc(lower(st.from.s.label || st.from.s.id))} image to its ${st.cfg.verb || (control ? "noised" : "attacked")} version${byPred ? ", coloured by the class the network predicts for it" : ""} (${shownTxt(st.s.n)})` })));
-      else if (!(scal && scal.target === st.s.id)) items.push(sw(`background:${col};border-radius:50%`, `${lab} (${num(st.s.n)} images)`));
-      else items.push(h("span", { class: "ef-k mute", text: `${lab}: ${num(st.s.n)} images` }));
+        h("span", { html: `<b>${esc(lab)}</b>${control ? " (control)" : ""}: arrow from each ${esc(lower(st.from.s.label || st.from.s.id))} image to its ${st.cfg.verb || (control ? "noised" : "attacked")} version${byPred ? ", coloured by the class the network predicts for it" : ""} (${shownTxt(p, st, true)})` })));
+      else if (!(scal && scal.target === st.s.id)) items.push(sw(`background:${col};border-radius:50%`, `${lab} (${shownTxt(p, st, false)})`));
+      else items.push(h("span", { class: "ef-k mute", text: `${lab}: ${shownTxt(p, st, false)}` }));
     }
     const p0 = live[0];
     if (p0 && p0.paths.length) {
       const s = p0.paths[0].s;
+      const pgrad = `linear-gradient(90deg, ${[0, .25, .5, .75, 1].map(t => rgba(seqColour(P, 0.12 + 0.88 * t), 1)).join(",")})`;
       items.push(h("div", { class: "ef-kgroup" }, h("span", { class: "ef-ktitle", text: `Paths x(s) = (1−s)a + sb at ${s.l0} (${num(s.P)}), coloured by s` }),
-        h("span", { class: "ef-ramp" }, h("span", { html: "<b class=ef-shape>○</b> a, s = 0" }), h("i", { style: `background:${grad}` }), h("span", { html: "s = 1, b <b class=ef-shape>■</b>" })),
-        h("span", { class: "ef-k mute", text: "solid: different classes · dashed: same class" })));
+        h("span", { class: "ef-ramp" }, h("span", { html: "<b class=ef-shape>○</b> a, s = 0" }), h("i", { style: `background:${pgrad}` }), h("span", { html: "s = 1, b <b class=ef-shape>■</b>" })),
+        h("span", { class: "ef-k" }, h("i", { class: "ef-line" }), "endpoints of different classes"),
+        h("span", { class: "ef-k" }, h("i", { class: "ef-line dash" }), "endpoints of the same class"),
+        h("span", { class: "ef-k mute", text: "The arrowhead at s = ½ points from a to b. Point at a path to pick it out." })));
     }
     const hl = c.highlight || live.find(p => p.item.highlight)?.item.highlight, perPanel = live.some(p => p.item.highlight);
     const nRing = (hl?.probe?.length || 0) + (hl?.overlay?.positions?.length || 0);
-    if (nRing) items.push(h("span", { class: "ef-k" }, h("i", { class: "ef-ring" }), (perPanel && !c.highlight ? (live.find(p => p.item.highlight?.label)?.item.highlight.label || "ringed: chosen probe images, different in each panel") : null) || hl.label || [hl.probe?.length && `ringed: ${hl.probe.length} probe images`, hl.overlay?.positions?.length && `ringed: ${hl.overlay.positions.length} images of ${this.setName(hl.overlay.set)}`].filter(Boolean).join("; ")));
+    const ringTxt = (perPanel && !c.highlight ? (live.find(p => p.item.highlight?.label)?.item.highlight.label || "ringed: chosen probe images, different in each panel") : null) || hl?.label || [hl?.probe?.length && `ringed: ${hl.probe.length} probe images`, hl?.overlay?.positions?.length && `ringed: ${hl.overlay.positions.length} images of ${this.setName(hl.overlay.set)}`].filter(Boolean).join("; ");
+    // highlight.total: how many images meet the ringed criterion in all (the drawn sample may hold fewer)
+    if (nRing) items.push(h("span", { class: "ef-k" }, h("i", { class: "ef-ring" }), ringTxt + (Number.isFinite(hl?.total) ? ` (${num(nRing)} shown of ${num(hl.total)} flagged)` : "")));
     items.push(h("span", { class: "ef-k mute ef-hint", text: matchMedia("(hover: none)").matches ? "Tap a point to see its image." : "Hover a point to see its image." }));
     this.legend.replaceChildren(...(live.length ? items : []));
     this.el.classList.toggle("ef-nolegend", !live.length);
@@ -876,7 +1023,7 @@ export class EmbFigure {
     const kerTxt = o => { const k = o.op.kernel || {}; return `<b>${esc(k.label || `${k.rule} ${k.param}`)}</b> kernel`; };
     const chainTxt = o => { const ch = o.op.chain; return `${ch.length} sites (${esc(ch[0])} … ${esc(ch[ch.length - 1])})`; };
     const probe = pr.label || (pr.viewer_order ? `the viewer's ${num(pr.n)} probe images` : `probe ${esc(pr.id)} (${num(pr.n)} images)`);
-    const kindTxt = { joint: `<b>joint</b> (one set of ${K} through-depth modes for every site)`, source: `<b>source</b> (s = 2c·T y: each site's own share of the joint coordinates, ${K} modes)`, site: `<b>site-local</b> (each site's own ${K} walk modes; axes differ between sites)` }[this.kind] || esc(this.kind);
+    const kindTxt = { joint: `<b>joint</b> (one set of ${K} through-depth modes for every site)`, source: `<b>source</b> (each site's local kernel average p<sub>l</sub>·f<sub>l</sub> of the ${K} joint modes, before depth filtering; divided by 2c<sub>l</sub>, it is the right-hand side of the depth solve)`, site: `<b>site-local</b> (each site's own ${K} walk modes; axes differ between sites)` }[this.kind] || esc(this.kind);
     const ops = [...new Map(live.map(p => [p.o.id, p.o])).values()];
     const same = f => new Set(ops.map(f)).size === 1;
     let who;
@@ -889,15 +1036,17 @@ export class EmbFigure {
     const multi = live.length > 1, ax = c.axes || "pooled";
     const axes = this.kind === "site" ? "each site's own walk modes 1 and 2 (signs chosen to agree with the previous site)"
       : ax === "viewer" ? "the viewer's pooled principal axes (same signs and scaling as the viewer)"
-      : `the probe's pooled principal axes${multi && ops.length > 1 ? (ax.startsWith("pooled:") ? " of the first panel's operator" : " of each panel's operator") : ""}`;
-    const scaled = (c.norm || "site") === "site" ? ", each site scaled to unit probe norm" : "";
+      : `${live.every(p => (ax.startsWith("pooled:") ? this.panels[+ax.split(":")[1]]?.o : p.o)?.op.axes?.pooled) ? "the two principal axes of the site-normalised joint probe coordinates, pooled over sites" : `the pooled principal axes of the probe's ${KIND_NAME[this.kind] || this.kind} coordinates`}${multi && ops.length > 1 ? (ax.startsWith("pooled:") ? " of the first panel's operator" : " of each panel's operator") : ""}`;
+    const scaled = (c.norm || "site") === "site" ? `; each site divided by the probe's Frobenius norm in ${KIND_NAME[this.kind] || this.kind} coordinates` : "";
     // panels share axes only when they draw one operator, or are turned onto the first panel's axes by a fitted R
     const sameAxes = ops.length === 1 || (this.kind !== "site" && ax.startsWith("pooled:") && live.slice(1).every(p => p.item.R));
     const shared = multi ? (sameAxes ? "; all panels share axes and limits" : "; the panels share axis limits, not axes") : "";
     const rot = live.some(p => p.item.R) && this.kind !== "site" ? ` The other panels are turned onto the first by a fitted ${K} × ${K} orthogonal map (a post-hoc fit).` : "";
-    const extra = this.panels.some(p => p.sets?.some(s => s.cfg.draw === "arrows")) ? ` Arrows are 2-D projections; distances quoted in the text use all ${K} dimensions.`
-      : this.panels.some(p => p.paths?.length) ? ` Paths are 2-D projections of ${K}-dimensional coordinates.` : "";
-    return [h("span", { class: "ef-op-tag", text: "Operator" }), h("span", { html: `Coordinates: ${kindTxt} ${who}. Shown: 2-D projection on ${axes}${scaled}${shared}.${rot}${extra}` })];
+    // spec.note (the entry's own statement of which metric its numbers use), else only that the picture is 2-D
+    const moves = this.panels.some(p => p.sets?.some(s => s.cfg.draw === "arrows") || p.paths?.length);
+    const extra = c.note ? ` ${esc(c.note)}` : moves ? " Lengths in the picture are 2-D; see the text for the metric." : "";
+    const display = ` Limits: the pooled 0.3–99.7% extent over all sites, padded; anything beyond is cut at the edge and counted.${this.kind !== "site" ? " While playing, frames between sites are interpolated for display, not measured." : ""}`;
+    return [h("span", { class: "ef-op-tag", text: "Operator" }), h("span", { html: `Coordinates: ${kindTxt} ${who}. Shown: 2-D projection on ${axes}${scaled}${shared}.${rot}${extra}` }), h("span", { class: "ef-op-display", text: display })];
   }
 }
 

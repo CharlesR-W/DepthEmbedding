@@ -19,6 +19,7 @@ RAW = ROOT / "xp/out/x3"
 SITEOPS = DATA / "sitex/ops"
 A, B = "c10-s0", "c10-s1"
 EA, KNN = "ea100", "knn15"
+ARROWS = 60
 PREFIX = "xp/out/x3/"
 ATTACK, CONTROL = PALETTE["accent"], PALETTE["mute"]
 BLUE, TEAL = PALETTE["classes"][0:2]
@@ -96,6 +97,8 @@ def matched_rerun(out, sites, k, archive, archived_med, si, sj):
     ids = get("sets", "S", "labels", "img_u8")
     if any(not np.array_equal(ids[key], archive[key]) for key in ("S", "labels")):
         raise ValueError("matched re-run cohort must use the archived clean image IDs and labels in the same order")
+    if not np.array_equal(get("sets", "target")["target"], archive["target"]):
+        raise ValueError("matched re-run cohort must reuse the archived targets")
     y = ids["labels"]
     srck = STRETCH + "c10-s0_{clean,u8,n8}_pr100.npz"
     for s in ("u8", "n8"):
@@ -108,7 +111,7 @@ def matched_rerun(out, sites, k, archive, archived_med, si, sj):
 
     pred = get(f"{A}_u8_pr100", "logits")["logits"].argmax(1)
     ok = pred != y
-    ratios, fractions = {}, {}
+    ratios, fractions, pair_sites = {}, {}, {}
     ordered = [*sites, "Never"]
     for kernel in (EA, "pr100", KNN):
         coords = f"{kernel}_site_y"
@@ -123,8 +126,10 @@ def matched_rerun(out, sites, k, archive, archived_med, si, sj):
 
         a, n = displacement(True)
         ratios[kernel] = a / n
+        m = get(f"{A}_u8_pr100", f"{kernel}_mass")[f"{kernel}_mass"][:, ok]
+        pair_sites[kernel] = switches(m, y[ok], pred[ok])
         if kernel == KNN:
-            continue  # k-NN contributes its matched displacement curve; the table compares Shannon and PR.
+            continue  # k-NN contributes matched displacement and paired switch checks.
         for site in ("b6", "b7", "b8", "b9"):
             fact(f"ratio.{kernel}.{site}", ratios[kernel][sites.index(site)],
                  f"{srck}:{coords}; median u8 displacement divided by median n8 displacement at {site}", digits=3)
@@ -132,13 +137,17 @@ def matched_rerun(out, sites, k, archive, archived_med, si, sj):
             fact(f"concentration.{kernel}.{name}", val.max(),
                  f"{STRETCH}op_{A}_{kernel}.npz:{arr}; maximum two-image fraction over the first 16 modes", tier="R", digits=2, pct=True)
         if kernel == EA:
-            ma, mn = displacement((walk_share <= 0.1)[:, None, :])
-            b7 = sites.index("b7")
-            fact("ratio.ea100.b7_masked", (ma / mn)[b7], f"{srck}:ea100_site_y at b7 after dropping modes with two-image share > 0.1 and renormalising", digits=3)
+            keep = walk_share <= 0.1
+            ma, mn = displacement(keep[:, None, :])
+            for site in ("b6", "b7", "b8", "b9"):
+                l = sites.index(site)
+                fact(f"mask.{site}.dropped", int((~keep[l]).sum()),
+                     f"{STRETCH}op_{A}_ea100.npz:site_vec; count modes at {site} with two-image share > 0.1", tier="R")
+                fact(f"mask.{site}.ratio", (ma / mn)[l],
+                     f"{srck}:ea100_site_y, ratio of median lengths at {site} after applying the mode mask", digits=3)
             for s, new in (("u8", a), ("n8", n)):
                 fact(f"archive_delta.{s}", np.abs(new - archived_med[s]).max(),
                      f"{srck} vs {PREFIX}c10-s0 set files; maximum sitewise difference in median ea100_site_y displacement", digits=3)
-        m = get(f"{A}_u8_pr100", f"{kernel}_mass")[f"{kernel}_mass"][:, ok]
         src = f"{STRETCH}c10-s0_u8_pr100.npz:{kernel}_mass and logits; successful untargeted 8/255 attempts"
         for name, top in (("pair", False), ("top", True)):
             v = switches(m, y[ok], pred[ok], top=top)
@@ -149,6 +158,14 @@ def matched_rerun(out, sites, k, archive, archived_med, si, sj):
         dst = m[:, np.arange(ok.sum()), pred[ok]].mean(1)
         for site in ("pool", "logits"):
             fact(f"mass.{kernel}.{site}", dst[sites.index(site)], src + f"; mean final-class mass at {site}", digits=1, pct=True)
+    medians = {ordered[np.searchsorted(np.bincount(v).cumsum(), len(v) / 2)] for v in pair_sites.values()}
+    assert len(medians) == 1, f"matched rerun kernels disagree on the median site: {medians}"
+    fact("switch.common_median", medians.pop(), STRETCH + "c10-s0_u8_pr100.npz: one common median under all three kernels, destination beats true rule")
+    for kernel in ("pr100", KNN):
+        diff = np.abs(pair_sites[EA] - pair_sites[kernel])
+        for label, minimum in (("different", 1), ("two_plus", 2)):
+            fact(f"switch.{kernel}.{label}", (diff >= minimum).mean(),
+                 f"{STRETCH}c10-s0_u8_pr100.npz:ea100_mass,{kernel}_mass,logits; paired successful attacks with switch bins differing by at least {minimum}, including Never at the end", digits=1, pct=True)
     for name in ("pair", "top"):
         fact(f"switch.{name}_tv", np.abs(fractions[EA, name] - fractions["pr100", name]).sum() / 2,
              f"{STRETCH}c10-s0_u8_pr100.npz:ea100_mass,pr100_mass; {name} switch-rule histogram total variation, shown in percentage points",
@@ -191,7 +208,7 @@ def main():
         out.fact(key, value, digits=digits, pct=pct, tier=tier, source=source)
 
     fact("cohort.n", n, PREFIX + "sets.npz:S length", tier="R")
-    fact("probe.n", ea["probe"]["n"], "data/sitex/ops/r20s0-c10-ea100/op.json:probe.n (also the joint probe array's image dimension)", tier="R")
+    fact("probe.n", read_array(ea_root, ea["kinds"]["joint"]).shape[1], "data/sitex/ops/r20s0-c10-ea100: decoded joint probe image dimension", tier="R")
     fact("sample.n", len(first), "data/sitex/ops/r20s0-c10-ea100/ov/u8.json:sample.pos length", tier="R")
     fact("metric.k", K, PREFIX + "c10-s0_clean.npz:ea100_site_y last dimension", tier="R")
 
@@ -210,6 +227,18 @@ def main():
         for site in ("b6", "b7", "b9"):
             fact(f"disp.{s}.{site}", med[s][sites.index(site)],
                  f"{PREFIX}c10-s0_{{clean,{s}}}.npz:ea100_site_y; median of all attempts at {site}, divided by median clean same-class pair distance", digits=2)
+    # Match embfig.js:arrowKeep on the packaged sample order. Compare underlying
+    # projected lengths before display quantisation, axis scaling or clipping.
+    shown = np.asarray(first)[(np.arange(len(first)) * 7919) % len(first) < ARROWS]
+    for site in ("b6", "b7", "b9"):
+        l = sites.index(site)
+        a, nz = [np.median(norm(d[f"{EA}_site_y"][l, shown, :2] - z[l, shown, :2]))
+                 for d in (attack["u8"], noise)]
+        fact(f"projection.{site}.arrows", a / nz,
+             f"{PREFIX}archived ea100_site_y at {site}; paired packaged sample, default arrow indices, first two walk modes", digits=2)
+        fact(f"projection.{site}.full", med["u8"][l] / med["n8"][l],
+             f"{PREFIX}archived ea100_site_y at {site}; ratio of full-cohort 16-mode median distances", digits=2)
+    fact("projection.arrows", len(shown), "packaged u8 overlay sample filtered by embfig.js:arrowKeep", tier="R")
     def displacement(curves):
         return lines(x, [line("Untargeted PGD", curves["u8"], ATTACK), line("Sign noise", curves["n8"], CONTROL, True)],
                      "Site", "Median distance (same-class units)", yrange=[0, max(float(v.max()) for v in curves.values()) * 1.08],
@@ -255,7 +284,13 @@ def main():
         fact(f"switch.{s}.median", med_site(sw[s]), switch_source(s))
     fact("switch.u8.mode", modal_site(sw["u8"]), switch_source())
     fact("switch.u8.by_b6", (sw["u8"] <= sites.index("b6")).mean(), switch_source(), pct=True)
-    fact("switch.u8.stem", shares(sw["u8"])[0], switch_source(), pct=True)
+    stem = sw["u8"] == 0
+    fact("switch.u8.stem_n", int(stem.sum()), switch_source())
+    m, src, dst = cohorts["u8"]
+    stem_rows = m[0, stem]
+    ii = np.arange(len(stem_rows))
+    fact("switch.u8.stem_lead", np.median(stem_rows[ii, dst[stem]] - stem_rows[ii, src[stem]]),
+         switch_source() + "; median final-minus-true class mass at stem, among stem leads", digits=3)
     fact("switch.u8.top_median", med_site(sw_top), switch_source() + "; destination at row maximum within 1e-12")
     fact("switch.natural.never", shares(sw["natA"])[-1], switch_source("natA") + "; natA_y and holdout natural errors", pct=True)
     fact("switch.knn15.mode", modal_site(sw[KNN]), switch_source(kernel=KNN))
@@ -293,6 +328,34 @@ def main():
                                       line("True class, correct clean images", clean_own, CONTROL, True)], "Site", "Mean class mass", title=title, xticklabels=sites))
     out.chart("class_mass", {"panels": mass_panels})
 
+    uk = success["u8"]
+    for label, logits, subset in (("u8", attack["u8"]["logits"], uk), ("natural", natural["logits"], err)):
+        source_key = "u8" if label == "u8" else "natA"
+        src = f"{PREFIX}c10-s0_{source_key}.npz:logits; {'successful attacks' if label == 'u8' else 'natural errors'}"
+        top = np.sort(logits[subset], axis=1)[:, -2:]
+        fact(f"comparison.{label}.n", int(subset.sum()), src + "; cohort size")
+        fact(f"comparison.{label}.margin", np.median(top[:, 1] - top[:, 0]), src + "; median winning-minus-runner-up raw logit margin", digits=2)
+    arms = [cohorts[s] for s in ("natA", "u8")]
+    pairs = sorted(set(zip(*arms[0][1:])))
+    matched, weights = [], []
+    for src, dst in pairs:
+        mask = [(true == src) & (predicted == dst) for _, true, predicted in arms]
+        if min(t.sum() for t in mask) >= 3:
+            matched.append([m[-1, t, dst].mean() for (m, _, _), t in zip(arms, mask)])
+            weights.append(int(mask[0].sum()))
+    match_src = PREFIX + "c10-s0_{natA,u8}.npz:logits, ea100_mass; sets.npz:labels,natA_y; xp/analyze_x3.py: groups with ≥3 per cohort, weighted by natural-error counts"
+    fact("comparison.matched.pairs", len(weights), match_src)
+    for arm, value in zip(("natural", "u8"), np.average(matched, axis=0, weights=weights)):
+        fact(f"comparison.matched.{arm}", value, match_src, pct=True, digits=2)
+
+    pixels = load("sets", "img_clean", "img_u8")
+    x0, xu = (pixels[key].astype(float).reshape(n, -1) / 255 for key in ("img_clean", "img_u8"))
+    fact("pixel.u8.l2", np.median(norm(xu - x0)), PREFIX + "sets.npz:img_clean,img_u8; rounded pixels scaled to [0,1], median L2", tier="R", digits=2)
+    eps = 8 / 255  # archived n8 budget, xp/stage_x3.py:run
+    squared = (np.minimum(eps, x0)**2 + np.minimum(eps, 1 - x0)**2) / 2
+    fact("pixel.n8.l2_rms", np.median(np.sqrt(squared.sum(1))),
+         PREFIX + "sets.npz:img_clean; median per-image RMS under clipped independent sign noise, not an archived-noise measurement", tier="R", digits=2)
+
     geometry = {s: load(f"{A}_{s}", "relpert", "actcos") for s in ("u8", "n8")}
     geom = {s: {k: np.median(v, 1) for k, v in d.items()} for s, d in geometry.items()}
     for s in geom:
@@ -313,6 +376,17 @@ def main():
     adj = np.eye(nsite, k=1) + np.eye(nsite, k=-1)
     diagonal = 0.5 / c[None, :] + t * adj.sum(1)[None, :] - vals[:, None]
     T = np.eye(nsite) * diagonal[:, :, None] - t * adj
+    for key, kernel in (("ea", EA), ("knn", KNN)):
+        source = f"{PREFIX}op_{A}_{kernel}.npz"
+        v = load(f"op_{A}_{kernel}", "vals", "c", "t", "cond")
+        d = 0.5 / v["c"][None, :] + v["t"] * adj.sum(1)[None, :] - v["vals"][:K, None]
+        cond = np.linalg.cond(np.eye(nsite) * d[:, :, None] - v["t"] * adj)
+        assert np.allclose(cond, v["cond"][:K])
+        fact(f"depth.{key}_cond", cond.max(), source + ":c,t,vals; maximum 2-norm condition number of T among first K modes", tier="R", digits=1)
+    done = json.loads((RAW / "DONE").read_text())
+    replay = max(done[f"{A}_{kernel}_replay"] for kernel in (EA, KNN))
+    fact("depth.replay", replay, PREFIX + "DONE: seed 0 Shannon and k-NN masked probe replay, maximum absolute joint-coordinate error over full fits", tier="S")
+    out.facts["depth.replay"]["text"] = f"{replay:.2g}"
     full = load(f"{A}_u8", f"{EA}_y")[f"{EA}_y"] - clean[f"{EA}_y"]
     delta = full.transpose(2, 0, 1)
     rhs = np.zeros_like(delta, dtype=float)
@@ -370,10 +444,10 @@ def main():
         "overlays": [{"set": "u8", "draw": "arrows", "from": "clean"}], "overlayMenuLabel": "Perturbation",
         "overlayMenu": ["u2", "u8", "t8"],
         "control": {"set": "n8", "label": "Sign noise ε 8/255", "mode": "side"},
-        "arrows": 60, "filmstrip": filmstrip(med), "height": 330,
+        "arrows": ARROWS, "filmstrip": filmstrip(med), "height": 330,
     })
     card = {
-        "answer": "With untargeted PGD at 8/255, class switches span depth and displacement pulls away from sign noise after b6.",
+        "answer": "With untargeted PGD at 8/255, persistent class-mass leads span depth, and median Shannon displacement exceeds sign noise from b7 onward.",
         "numbers": [f"{token('switch.u8.median')} median persistent switch", f"{token('disp.u8.b9')} vs {token('disp.n8.b9')} same-class units at b9",
                     f"{token('transfer.u8.flip')} flip seed 1"],
     }

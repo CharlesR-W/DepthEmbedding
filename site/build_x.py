@@ -10,6 +10,8 @@ import shutil
 from html.parser import HTMLParser
 from pathlib import Path, PurePosixPath
 
+from xsite.opdata import check_labels
+
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent
 XDIR = HERE / "content" / "experiments"
@@ -44,6 +46,19 @@ def read_json(path):
         return json.loads(path.read_text(encoding="utf-8"))
     except (OSError, ValueError) as e:
         raise BuildError(f"{path}: {e}") from e
+
+
+def viewer_probe(directory):
+    path = directory / "meta.json"
+    meta = read_json(path)
+    require(isinstance(meta, dict) and all(isinstance(meta.get(key), str) and re.fullmatch(r"[0-9a-f]{64}", meta[key])
+            for key in ("probe_ids_sha256", "probe_labels_sha256")), path,
+            "missing or invalid viewer probe digests; re-export without --viewer-from")
+    labels = (directory / "labels.bin").read_bytes()
+    require(type(meta.get("n")) is int and 0 < meta["n"] == len(labels), path, "viewer probe label count mismatch")
+    require(hashlib.sha256(labels).hexdigest() == meta["probe_labels_sha256"], path,
+            "viewer probe label digest does not match labels.bin")
+    return meta
 
 
 def manifest():
@@ -281,8 +296,29 @@ class Catalog:
                     require(isinstance(obj, dict) and obj.get("schema") == 1 and obj.get("id") == set_id
                             and obj.get("op") == op_id and obj.get("op_fp") == op["fp"], path,
                             f"op_fp or identity mismatch for {rel}")
+                    try:
+                        if folder == "ov":
+                            check_labels(rel, obj.get("labels"), obj.get("meta"), obj.get("n"), ("label",))
+                        else:
+                            check_labels(rel, obj.get("labels"), obj.get("meta"), obj.get("P"), ("label_a", "label_b"))
+                    except ValueError as e:
+                        raise BuildError(str(e)) from e
         shipped_meta = {p for p in actual if p.startswith("ops/") and p.endswith(".json")}
         require(expected_meta == shipped_meta, path, f"stale operator or set inventory: {sorted(shipped_meta ^ expected_meta)}")
+
+    def check_viewer(self, directory):
+        meta = viewer_probe(directory)
+        path = directory / "meta.json"
+        for op_id, op in self.ops.items():
+            probe = op.get("probe")
+            require(isinstance(probe, dict) and type(probe.get("viewer_order")) is bool,
+                    path, f"{op_id}: missing or invalid operator probe viewer_order")
+            if not probe["viewer_order"]:
+                continue
+            require(probe.get("n") == meta["n"] and probe.get("ids_sha256") == meta["probe_ids_sha256"],
+                    path, f"{op_id}: viewer probe ID order or count mismatch; use the viewer export for this probe")
+            require(probe.get("labels_sha256") == meta["probe_labels_sha256"],
+                    path, f"{op_id}: viewer probe label digest mismatch; use the viewer export for this probe")
 
     def check(self, spec, where):
         def seq(obj, key):
@@ -480,6 +516,7 @@ def build_experiments(builder):
         if (SITEX / folder).is_dir():
             shutil.copytree(SITEX / folder, xout / folder)
     catalog = Catalog(xout, builder.strict or bool(entries), SITEX / "MANIFEST.json")
+    catalog.check_viewer(builder.d)
     for e, _, specs, _ in entries:
         for key, spec in specs:
             catalog.check(spec, f"assets/x/{e['id']}.json#{key}")

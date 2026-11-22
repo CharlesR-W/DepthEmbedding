@@ -9,7 +9,7 @@ Reads (all under data/, which is not in git; see README.md):
   data/stnets/<net>/st_<step>_0.npz, info.json   the other networks' units (spacetime_nets_modal.py, spacetime_vgg_modal.py)
   data/stbase/<net>/{pca,umap}_<step>.npz        per-site PCA / UMAP baselines (baseline_embed_modal.py)
 and site/ sources. Writes build/site/ (deploy root, .nojekyll):
-  d/meta.json     steps, sites, classes, palette, and the descriptions of d/st, d/stn, d/stb (js/embedding.js netList)
+  d/meta.json     steps, sites, classes, palette, probe digests, and descriptions of d/st, d/stn, d/stb (js/embedding.js netList)
   d/labels.bin    i8 (N) CIFAR labels; d/sprite.webp: the 2,000 probe images, 50 per row
   d/st, d/stn/<net>, d/stb/<net>   see Builder.spacetime and Builder.stnets
 The export code is the Depth embedding part of CoherentModes' explore/cifar_coherent/site/build_site.py, unchanged in
@@ -20,6 +20,7 @@ from __future__ import annotations
 import argparse
 import datetime as dt
 import gzip
+import hashlib
 import io
 import json
 import re
@@ -32,6 +33,7 @@ import numpy as np
 from PIL import Image
 
 import build_x
+from xsite.opdata import ids_bytes, probe_labels_bytes
 
 HERE = Path(__file__).resolve().parent          # site/
 ROOT = HERE.parent
@@ -149,6 +151,7 @@ class Builder:
             for name in ("meta.json", "labels.bin", "sprite.webp"):
                 if not (self.viewer_from / name).is_file():
                     sys.exit(f"--viewer-from: missing {self.viewer_from / name}")
+            build_x.viewer_probe(self.viewer_from)
         self.tag, self.src = tag, DATA / tag
         if self.viewer_from is None:
             if not (self.src / "meta.json").exists():
@@ -173,9 +176,16 @@ class Builder:
         write(self.out / "css" / "tokens.css", ("\n".join(lines) + "\n}\n").encode())
 
     def probe(self):
-        p = np.load(self.src / "probe.npz")
-        write(self.d / "labels.bin", p["labels"].astype(np.int8).tobytes())
-        imgs, cols = p["images"], 50
+        with np.load(self.src / "probe.npz") as p:
+            ids = ids_bytes(p["idx"])
+            labels = probe_labels_bytes(p["labels"])
+            imgs = p["images"]
+        if len(ids) != 8 * self.n or len(labels) != self.n or len(imgs) != self.n:
+            sys.exit(f"{self.src / 'probe.npz'}: probe IDs, labels and images must match meta.json's n={self.n}")
+        self.probe_ids_sha256 = hashlib.sha256(ids).hexdigest()
+        self.probe_labels_sha256 = hashlib.sha256(labels).hexdigest()
+        write(self.d / "labels.bin", labels)
+        cols = 50
         sheet = np.zeros((int(np.ceil(self.n / cols)) * 32, cols * 32, 3), np.uint8)
         for i in range(self.n):
             r, c = divmod(i, cols)
@@ -375,7 +385,8 @@ class Builder:
             acc = [by.get(s, {}).get("val_acc") for s in self.steps]
         meta = {"tag": self.tag, "steps": self.steps, "sites": self.sites, "n": self.n, "classes": self.meta["classes"],
                 "spacetime": self.st_meta, **({"stnets": self.stn_meta} if self.stn_meta else {}),
-                "val_acc": acc, "sprite_cols": self.sprite_cols, "palette": self.palette}
+                "val_acc": acc, "sprite_cols": self.sprite_cols, "palette": self.palette,
+                "probe_ids_sha256": self.probe_ids_sha256, "probe_labels_sha256": self.probe_labels_sha256}
         write(self.d / "meta.json", json.dumps(meta, separators=(",", ":"), allow_nan=False).encode())
 
     def assemble_html(self):

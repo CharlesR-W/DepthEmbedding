@@ -13,10 +13,10 @@ import numpy as np
 
 if __package__:
     from .opdata import read_array, read_operator, require, source_from_joint, write_overlay
-    from .ops import write_sprite
+    from .ops import cifar10_labels, write_sprite
 else:
     from opdata import read_array, read_operator, require, source_from_joint, write_overlay
-    from ops import write_sprite
+    from ops import cifar10_labels, write_sprite
 
 ROOT = Path(__file__).resolve().parents[2]
 VOL = "crw-depth-invert-results"
@@ -36,6 +36,7 @@ def package(inputs, root):
     op = read_operator(op_path)
     stencil = lambda y: source_from_joint(y, op["c"], op["t"], op["vals"])
     held = inputs.value(f"{VOL}/splits.npz:H")
+    label_space = cifar10_labels()
     clean_file = inputs.file(inputs.manifest["overlays"][f"{op_id}/H"]["file"])
     with np.load(clean_file, allow_pickle=False) as z:
         clean_y = z["y"][:, :256, :op["K"]]
@@ -89,11 +90,11 @@ def package(inputs, root):
                                                           ("size", "Edit size (full swap = 1)", "size", [0, 1]))}
             set_id = f"edit-{site}-{suffix}"
             directory = op_path.parent / "ov"
-            desc = write_overlay(root, op, set_id, coords=dict(joint=y, source=s), label=title,
+            desc = write_overlay(root, op, set_id, coords=dict(joint=y, source=s), label=title, labels=label_space,
                                  dataset="cifar10-test", ids=held[pos], pos=a, sample_of=256,
                                  sample_rule="first 64 valid E4 pairs in the held-out batch's original order",
                                  meta=dict(label=labels[pos].tolist(), pred=pred[pos].tolist() if pair is None else None,
-                                           scalars=scalar), provenance=provenance, pair=pair,
+                                           pair=a.tolist(), scalars=scalar), provenance=provenance, pair=pair,
                                  sprite=sprite_path, sprite_cols=8)
             for kind, exact in [("joint", y), ("source", s)]:
                 spec = desc["kinds"][kind]

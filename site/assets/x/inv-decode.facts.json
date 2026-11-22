@@ -17,6 +17,84 @@
     "tier": "P",
     "source": "data/fetch/crw-depth-invert-results/decode/P2__pr300__L12/b4__b4.npz:H|64|krr|cos_raw; mean"
   },
+  "tail.flagged.n": {
+    "value": 10,
+    "text": "10",
+    "tier": "P",
+    "source": "data/fetch/crw-depth-invert-results/joint/P2__pr300__L12/coords_H.npz:rowmax; count in flagged stratum"
+  },
+  "tail.flagged.cosine": {
+    "value": 0.4439095020294189,
+    "text": "0.444",
+    "tier": "P",
+    "source": "data/fetch/crw-depth-invert-results/decode/P2__pr300__L12/b4__b4.npz:H|64|krr|cos_raw; mean conditional on flagged stratum of rowmax from data/fetch/crw-depth-invert-results/joint/P2__pr300__L12/coords_H.npz"
+  },
+  "tail.flagged.captured": {
+    "value": -1.630689686536789,
+    "text": "-1.631",
+    "tier": "P",
+    "source": "data/fetch/crw-depth-invert-results/decode/P2__pr300__L12/b4__b4.npz:H|64|krr|cap_raw; mean conditional on flagged stratum of rowmax from data/fetch/crw-depth-invert-results/joint/P2__pr300__L12/coords_H.npz"
+  },
+  "tail.remainder.n": {
+    "value": 1990,
+    "text": "1,990",
+    "tier": "P",
+    "source": "data/fetch/crw-depth-invert-results/joint/P2__pr300__L12/coords_H.npz:rowmax; count in remainder stratum"
+  },
+  "tail.remainder.cosine": {
+    "value": 0.4994464941510004,
+    "text": "0.499",
+    "tier": "P",
+    "source": "data/fetch/crw-depth-invert-results/decode/P2__pr300__L12/b4__b4.npz:H|64|krr|cos_raw; mean conditional on remainder stratum of rowmax from data/fetch/crw-depth-invert-results/joint/P2__pr300__L12/coords_H.npz"
+  },
+  "tail.remainder.captured": {
+    "value": 0.24908825389516712,
+    "text": "0.249",
+    "tier": "P",
+    "source": "data/fetch/crw-depth-invert-results/decode/P2__pr300__L12/b4__b4.npz:H|64|krr|cap_raw; mean conditional on remainder stratum of rowmax from data/fetch/crw-depth-invert-results/joint/P2__pr300__L12/coords_H.npz"
+  },
+  "tail.identical": {
+    "value": 0,
+    "text": "0",
+    "tier": "R",
+    "source": "CIFAR-10 meta.npz:images; compare P2/H SHA-256 pixel digests in splits order"
+  },
+  "dimension.b4": {
+    "value": 8192,
+    "text": "8,192",
+    "tier": "S",
+    "source": "invert/modal_invert.py:SHAPES[b4] product"
+  },
+  "dimension.pool": {
+    "value": 64,
+    "text": "64",
+    "tier": "S",
+    "source": "invert/modal_invert.py:SHAPES[pool] product"
+  },
+  "dimension.logits": {
+    "value": 10,
+    "text": "10",
+    "tier": "S",
+    "source": "invert/modal_invert.py:SHAPES[logits] product"
+  },
+  "large.pool_pca": {
+    "value": 1.0,
+    "text": "1.000",
+    "tier": "S",
+    "source": "data/invert/results.json:decode/P8__pr400__L12/pool/H|64|pca|cos_raw[0]"
+  },
+  "selected.width": {
+    "value": 16,
+    "text": "16",
+    "tier": "S",
+    "source": "data/invert/decode/P8__pr400__L12/summary.json:b4__b4._meta.sel.64.krr.h"
+  },
+  "selected.ridge": {
+    "value": 0.0001,
+    "text": "0.0001",
+    "tier": "S",
+    "source": "data/invert/decode/P8__pr400__L12/summary.json:b4__b4._meta.sel.64.krr.ridge"
+  },
   "large.b4": {
     "value": 0.5147985219955444,
     "text": "0.51",
@@ -58,5 +136,29 @@
     "text": "0.25",
     "tier": "S",
     "source": "data/invert/results.json:decode/P8__pr400__L12/b4/H|64|krr|cap_raw_med[0]"
+  },
+  "near.shown": {
+    "value": 2,
+    "text": "2",
+    "tier": "R",
+    "source": "Packaged H sample.pos intersected with rowmax flags"
+  },
+  "near.sample": {
+    "value": 300,
+    "text": "300",
+    "tier": "R",
+    "source": "Packaged H.json:n"
+  },
+  "near.projected_top": {
+    "value": 2,
+    "text": "2",
+    "tier": "R",
+    "source": "Packaged H overlay b4; count of rings among the largest projected radii, with top count equal to ring count"
+  },
+  "near.projected_energy": {
+    "value": 0.054728061471763435,
+    "text": "5.5%",
+    "tier": "R",
+    "source": "Packaged H overlay b4; squared distance from origin retained by shipped joint PCA axes"
   }
 }

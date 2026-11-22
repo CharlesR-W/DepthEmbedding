@@ -1,16 +1,4 @@
 {
-  "storage.dense": {
-    "value": 384,
-    "text": "384",
-    "tier": "S",
-    "source": "opt/REPORT.md:Headline table, Walk storage, 12 sites"
-  },
-  "storage.sparse": {
-    "value": 7.5,
-    "text": "7.5",
-    "tier": "S",
-    "source": "opt/REPORT.md:Headline table, Walk storage, 12 sites"
-  },
   "storage.entry_error": {
     "value": 2.3e-13,
     "text": "2.3e-13",
@@ -136,6 +124,18 @@
     "text": "4.2e-11",
     "tier": "S",
     "source": "opt/REPORT.md:Headline table, 256-mode solve"
+  },
+  "storage.dense": {
+    "value": 384.0,
+    "text": "384",
+    "tier": "R",
+    "source": "data/grams/r20s0b/gram_64000_*.npy; opt/sparse_core.py:knn,adjacency,make_walk; float64 dense site walks in decimal MB"
+  },
+  "storage.sparse": {
+    "value": 7.542408,
+    "text": "7.54",
+    "tier": "R",
+    "source": "data/grams/r20s0b/gram_64000_*.npy; opt/sparse_core.py:knn,adjacency,make_walk; CSR plus rank-one vector per site in decimal MB"
   },
   "projection.n10000.k16.dense_time_lo": {
     "value": 30,
@@ -328,6 +328,42 @@
     "text": "4.8",
     "tier": "S",
     "source": "opt/REPORT.md:Projections (one coupling), N=50000, K=256, sparse ram"
+  },
+  "scale.n": {
+    "value": 50000,
+    "text": "50,000",
+    "tier": "S",
+    "source": "opt/REPORT.md: largest N in Projections table"
+  },
+  "scale.gram": {
+    "value": 10.0,
+    "text": "10",
+    "tier": "R",
+    "source": "float32 itemsize × N²; decimal GB per Gram at projected N"
+  },
+  "scale.grams": {
+    "value": 120.0,
+    "text": "120",
+    "tier": "R",
+    "source": "site count from Gram inventory × projected float32 Gram bytes; decimal GB"
+  },
+  "scale.ncv_default": {
+    "value": 1024,
+    "text": "1,024",
+    "tier": "R",
+    "source": "opt/sparse_core.py:power_modes; max(4*K, 40) for 256 modes"
+  },
+  "scale.basis_measured": {
+    "value": 1.8432,
+    "text": "1.84",
+    "tier": "R",
+    "source": "float64 itemsize × chain size × projected N × ncv (measured); decimal GB, basis alone"
+  },
+  "scale.basis_default": {
+    "value": 4.9152,
+    "text": "4.92",
+    "tier": "R",
+    "source": "float64 itemsize × chain size × projected N × ncv (default); decimal GB, basis alone"
   },
   "floor_drift": {
     "value": 0.25,
