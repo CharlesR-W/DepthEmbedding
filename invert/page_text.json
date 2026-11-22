@@ -1,0 +1,558 @@
+{
+ "_readme": "All prose of invert/pages/invert.html. Edit freely; rebuild with: uv run --with pillow --with numpy python invert/build_page.py. Numbers are placeholders filled at build time: {name} for the named numbers listed (with current values) in invert/pages/text_keys.json, or {=dec:...}, {=rt:...} etc. for any value (grammar in the docstring of invert/build_page.py). TeX goes in $...$; equations under overview.equations are never placeholder-filled. Describe what is computed (sites, walks, modes, coordinates, decodes, patches), never what the network 'does', 'knows', 'thinks' or 'represents'.",
+ "config": {
+  "stab_sites": [
+   "b3",
+   "b6",
+   "b9"
+  ],
+  "vsk_sites": [
+   "b3",
+   "b6",
+   "b9"
+  ],
+  "default_tags": [
+   "P8__pr400__L12",
+   "P8__pr100__L12",
+   "P2__pr300__L12"
+  ],
+  "modeloc_thresholds": [
+   0.1,
+   0.5
+  ],
+  "_default_tags_note": "Default tag rule (owner): the first entry when it is complete for all sites in both decode and rt; else the first later entry that has any data; else the most complete tag (participation-ratio family, then the larger probe, preferred).",
+  "decode_K_default": 64,
+  "rt_K_default": 16,
+  "_K_note": "Default K on the Decoding, Function and Out-of-distribution tabs (decode_K_default) and on the Sources and Edits tabs (rt_K_default); caption numbers state their own K."
+ },
+ "page": {
+  "kicker": "DepthEmbedding · experiment notebook",
+  "title": "Inverting the through-depth embedding",
+  "subtitle": "From a point of the joint through-depth embedding of ResNet-20 back to an activation at one site: kernels (the participation-ratio rule is the headline), decoders, source matching, edits with a reference image, and behaviour off the CIFAR-10 test distribution.",
+  "status": "EXPLORATORY | one network · one checkpoint · one probe draw",
+  "footer": "Built {today} from data/invert/results.json (written {built}) and the grids in data/invert/figs. Data are embedded in this file; figures draw in the browser (Plotly), math by MathJax (both loaded from a CDN). Source: invert/build_page.py, prose: invert/page_text.json."
+ },
+ "banner": {
+  "label": "Network and sites",
+  "facts": "<b>{run}</b> · CIFAR-10 · step {step} · test accuracy {acc} (computed from the stored logits). Twelve sites, marked in red: <b>stem</b> = ReLU(BN(conv1)); <b>b1–b9</b> = outputs of the nine residual blocks (16, 32, 64 channels in threes at 32×32, 16×16, 8×8); <b>pool</b>; <b>logits</b>. Each site's activation is flattened, centred over the probe and normalised per image, so cosine is the only geometry.",
+  "caption": "Boxes give channels × spatial size (² = square); green arcs are the residual shortcuts; red ticks mark where each site is read. Fill colour marks the three widths.",
+  "acc_fallback": "91.56%"
+ },
+ "tabs": {
+  "overview": "Overview",
+  "kernel": "Kernel",
+  "decoding": "Decoding",
+  "function": "Function",
+  "sources": "Sources and matching",
+  "edits": "Edits",
+  "ood": "Out of distribution",
+  "adversarial": "Adversarial",
+  "pixels": "Pixels",
+  "method": "Method and caveats"
+ },
+ "controls": {
+  "probe": "Probe · kernel",
+  "hubstat": "Statistic",
+  "metric": "Metric",
+  "scale": "Decoded norm",
+  "rand": "Random controls",
+  "hm_left": "Left",
+  "hm_right": "Right",
+  "adv": "Embedding",
+  "figtag": "Grids from",
+  "attack": "Attack",
+  "path_site": "Site",
+  "coords": "Coordinates",
+  "dataset": "Dataset",
+  "kmode": "Show",
+  "refitq": "Lines",
+  "stat": "Statistic"
+ },
+ "labels": {
+  "cos_raw": "held-out cosine (true, decoded), mean",
+  "cap_raw": "captured share 1 − |x − x̂|²/|x|² (mean)",
+  "refit_held": "held-out, frozen-probe extension",
+  "refit_onestep": "held-out, one kernel step",
+  "refit_probe": "probe images themselves",
+  "share_ll": "own-source share",
+  "share_ll_axis": "weight of the site's own source in y_l",
+  "corr": "corr(source, joint)",
+  "corr_axis": "correlation of source and joint coordinate",
+  "srel_krr": "target inferred with kernel-ridge weights",
+  "srel_linear": "target inferred with linear weights",
+  "srel_axis": "source error (per-mode spread units, log)",
+  "ref_mean_unit": "= error of the held-out mean",
+  "e2_krr": "decode alone, kernel ridge (no matching)",
+  "e2_linear": "decode alone, linear (no matching)",
+  "miss_axis": "source residual (per-mode spread units, log)",
+  "move_axis": "|x* − x̂| / |x − x̄|",
+  "tang_axis": "share of the move along the constraint surface",
+  "req05": "midpoint request τ = 0.5",
+  "req15": "extrapolation request τ = 1.5",
+  "req10": "reachable request τ = 1 (b's sources)",
+  "p_b": "mean softmax probability of b's class",
+  "p_a": "mean softmax probability of a's class",
+  "size": "|x′ − x_a| / |x_b − x_a|",
+  "prog_S": "source progress a → b (0 = a, 1 = b)",
+  "miss_S": "source error against b (log)",
+  "ref_unrelated": "= expected for two independent images",
+  "ref_chance": "chance (10 classes)",
+  "disp": "attacked − clean displacement (per-mode spread units, log)",
+  "adv_sub": "embedding {k} · first K modes",
+  "nc_clean_true": "clean · centroid = true label",
+  "nc_clean_pred": "clean · centroid = clean prediction",
+  "nc_adv_true": "attacked · centroid = true label",
+  "nc_adv_follow": "attacked · centroid = attacked network's prediction",
+  "nc_axis": "share of attacked held-out images",
+  "ml_table_title": "Modes carried by two images · counts per tag",
+  "ml_tag": "Probe · kernel",
+  "ml_count": "first {m} modes: top-2 share > {h}",
+  "ml_max": "largest top-2 share",
+  "kmode_diff": "difference from k-NN",
+  "adv_joint": "joint coordinates",
+  "adv_src": "source coordinates",
+  "refit_only_held": "frozen-probe extension",
+  "refit_all": "all three",
+  "cap_raw_med": "captured share 1 − |x − x̂|²/|x|² (median)",
+  "stat_median": "median",
+  "stat_mean": "mean",
+  "joint_err_axis": "joint error at the site (log)"
+ },
+ "overview": {
+  "h_question": "The question",
+  "question": [
+   "The joint through-depth embedding gives every image a trajectory of coordinates across the twelve sites of ResNet-20: one $K$-vector per site, from a single operator that couples one random walk per site along depth. This notebook asks the reverse question: given a point of that embedding at one site, which activation at that site does it stand for? The aim is an inverse with few fitted parameters (each called a fit) that is accurate on held-out CIFAR-10 images and sane off the test distribution, and whose decode keeps the output close to the clean run when patched into the forward pass.",
+   "A joint coordinate at site $l$ mixes all sites' sources: it is a fixed linear filter along depth of per-site <b>source coordinates</b>, each of which depends on one site only. At K = 16 a site's own source has {=rt:main:16:E1|share_ll:min@stem-b9;pct}–{=rt:main:16:E1|share_ll:max@stem-b9;pct} of the filter weight at the conv sites ({=rt:main:16:E1|share_ll:pool;pct} at pool, {=rt:main:16:E1|share_ll:logits;pct} at logits). So the single-site inverse is posed in source coordinates (SPEC §7): source matching meets a requested set of source coordinates, but the patched run's joint coordinate at the site still differs from the request before b9 (Sources and matching tab).",
+   "A second amendment changed the kernel (SPEC §8): with the Shannon-perplexity rule, some leading joint modes are carried by two images; calibrating each row by its participation ratio removes those two-image modes (tags <i>pr</i>k). The Shannon, global-width and k-NN kernels are kept alongside it; because they run at different effective widths, the comparisons of the rules on this page are not like-for-like."
+  ],
+  "h_objects": "The objects",
+  "objects_intro": "<p>Every quantity on this page is built from the six objects below, all at one site $l$ unless stated. $N$ is the probe size, $K$ the number of modes kept, $L = 12$ the number of sites.</p>",
+  "equations": [
+   {
+    "name": "1 · Participation-ratio kernel (per site, on the probe)",
+    "tex": "q(j\\mid i)=\\frac{e^{-\\beta_i d_{ij}}}{\\sum_{k\\ne i}e^{-\\beta_i d_{ik}}},\\qquad \\Big(\\sum_{j}q(j\\mid i)^2\\Big)^{-1}=k,\\qquad P_l=\\operatorname{diag}(v)\\,\\tfrac12\\big[q(j\\mid i)+q(i\\mid j)\\big]_{ij}\\,\\operatorname{diag}(v)",
+    "where": "where $d_{ij}=1-\\cos(x_i,x_j)$ on centred, normalised activations at site $l$; $\\beta_i$ is image $i$'s own width, chosen so that its conditional has participation ratio (effective number of neighbours) $k$, which caps every conditional weight $q(j\\mid i)$ at $1/\\sqrt{k}$ (a bound on the conditional, before symmetrisation and Sinkhorn); the diagonal is zero; $v$ are symmetric Sinkhorn scalings that make $P_l$ doubly stochastic. One parameter, $k$. It replaces the Shannon-perplexity rule $\\exp H(q(\\cdot\\mid i))=\\xi$ (tags <i>ea</i>ξ, kept for comparison), under which a row can put a large share of its weight on one close neighbour and some leading joint modes are carried by two images (Kernel tab, first figure; <code>invert/SPEC.md</code> §8)."
+   },
+   {
+    "name": "2 · Its out-of-sample row (a new activation x)",
+    "tex": "p_l(x)_j=\\frac{v_j\\,\\big[q_x(j)+q(x\\mid j)\\big]}{\\sum_{k}v_k\\,\\big[q_x(k)+q(x\\mid k)\\big]}",
+    "where": "where $q_x$ is the new point's own conditional over the probe (width calibrated on its own cosines by the same rule), $q(x\\mid j)$ is probe image $j$'s frozen conditional evaluated at $x$, and $v$ are the probe's frozen scalings. A probe image replayed with itself masked gets its own row of $P_l$ exactly (tested in <code>invert/test_dm.py</code>)."
+   },
+   {
+    "name": "3 · Joint operator (all sites at once)",
+    "tex": "\\mathcal{L}f=\\mu f,\\qquad \\mathcal{L}=\\bigoplus_{l=1}^{L}\\frac{I-P_l}{2c_l}\\;+\\;t\\,\\big(D_{\\mathrm{path}}\\otimes I_N\\big)",
+    "where": "where $f=(f_1,\\dots,f_L)$ stacks one slice $f_l\\in\\mathbb{R}^N$ per site; $c_l$ are the relative site units; $t=t^*$ is the coupling; $D_{\\mathrm{path}}$ is the Laplacian of the path stem – b1 – … – logits. The modes are the $K$ leading eigenvectors; nothing is trained."
+   },
+   {
+    "name": "4 · Source coordinates and the depth filter",
+    "tex": "s_{l,k}(x_l)=p_l(x_l)\\cdot f_{l,k},\\qquad y_k=T_k^{-1}\\,\\frac{s_k}{2c},\\qquad T_k=\\operatorname{diag}\\!\\Big(\\frac{1}{2c_l}\\Big)+t\\,D_{\\mathrm{path}}-\\mu_k I",
+    "where": "where $s_{l,k}$, the <b>source coordinate</b> of mode $k$ at site $l$, depends on the activation $x_l$ at that site only (the kernel average of the mode's slice over its probe neighbours); $s_k$ stacks the sources of all $L$ sites and is divided site by site by $2c_l$; the joint coordinate $y_{l,k}$ mixes all sites' sources through the fixed $L\\times L$ filter $T_k^{-1}$. On the probe, $s_l=P_lf_l$."
+   },
+   {
+    "name": "5 · Conditional-mean decoder (kernel ridge on coordinates)",
+    "tex": "\\hat x_l(\\psi)=\\bar x_l+\\sum_{j=1}^{N}W_j(\\psi)\\,\\big(x_{l,j}-\\bar x_l\\big),\\qquad W(\\psi)=\\phi(\\psi)^{\\top}\\Phi^{+}+k_h(\\psi,\\Psi)\\,(K_h+\\lambda I)^{-1}\\big(I-\\Phi\\Phi^{+}\\big)",
+    "where": "where $\\psi$ is the $K$ joint coordinates of an image at site $l$ and $\\Psi$ those of the probe; $\\phi(\\psi)=(1,\\psi)$ and $\\Phi$ its probe matrix; $k_h$ is a Gaussian kernel on coordinates with width $h$ (in units of the median 15-nearest-neighbour distance); $(h,\\lambda)$ are chosen on an inner 80/20 split of the probe. The decode is an estimate of the conditional mean of the activation given the coordinates; it is linear in the probe activations and predicts the norm with the same weights. The other decoders differ only in $W$."
+   },
+   {
+    "name": "6 · Source matching (round trip in source coordinates, and edits)",
+    "tex": "x^{*}=\\arg\\min_{x}\\ \\lVert x-x_0\\rVert\\quad\\text{s.t.}\\quad s_l(x)=s',\\qquad s'(\\psi)=W(\\psi)\\,P_lf_l",
+    "where": "where $x_0$ is the decode $\\hat x_l(\\psi)$ (giving a decoder whose sources meet the target) or a real activation (an edit); the target $s'$ is an image's true sources (oracle) or is inferred from joint coordinates with the decoder's own weights. Solved by damped Gauss–Newton with a step cap and a trust radius: a bounded residual-reduction scheme, not a certified nearest point. It meets source targets; it does not make the patched run's joint coordinate equal a request. Targets outside the convex hull of the probe's slice values have no pre-image."
+   }
+  ],
+  "h_map": "Experiment map",
+  "map_intro": "<p>Status is computed from what <code>results.json</code> holds at build time. Tags read <i>probe · kernel</i>: P2 = 2,000-image probe, P8 = 8,000-image probe; <i>pr</i>k = participation-ratio rule (headline), <i>ea</i>ξ = Shannon-perplexity rule, <i>ds</i> = one global width, <i>knn</i> = k-NN rule. Default selections: decoding {main_tag}; matching and edits {rt_tag}. Caption numbers are computed at build time for these defaults and state their K; the figures follow the selectors.</p>",
+  "map_header": [
+   "Tab",
+   "Question",
+   "Readout",
+   "Status"
+  ],
+  "map": [
+   {
+    "tab": "Kernel (amendment, SPEC §8)",
+    "question": "Are leading modes carried by two images, and does the participation-ratio rule remove them?",
+    "readout": "top-2 share of each mode's squared norm",
+    "status_key": "modeloc"
+   },
+   {
+    "tab": "Kernel",
+    "question": "Which kernel has no hubs, reproducible modes and a stable out-of-sample extension?",
+    "readout": "k-occurrence; half-split reproducibility; refit share",
+    "status_key": "kernel"
+   },
+   {
+    "tab": "Decoding",
+    "question": "How much of the activation do K joint coordinates recover, and with which decoder?",
+    "readout": "held-out cosine and captured share",
+    "status_key": "decode"
+   },
+   {
+    "tab": "Function",
+    "question": "Does patching in the decode leave the output close to the clean run?",
+    "readout": "KL and top-1 agreement after patching",
+    "status_key": "function"
+   },
+   {
+    "tab": "Sources and matching (amendment, SPEC §7)",
+    "question": "A joint coordinate mixes all sites' sources, so the single-site inverse is posed in source coordinates",
+    "readout": "own-source share; source residual; patched-run joint error",
+    "status_key": "rt"
+   },
+   {
+    "tab": "Sources and matching",
+    "question": "How do source and joint coordinates relate; does source matching meet source targets, and does the patched run then meet the joint request?",
+    "readout": "own-source share; source residual, move, stationarity; patched-run joint error; request residuals",
+    "status_key": "rt"
+   },
+   {
+    "tab": "Edits",
+    "question": "Giving image a the sources of image b at one site: where do the sources, later sites and the output go?",
+    "readout": "mean softmax probability of b's and a's class; edit size; source progress; patched-run progress",
+    "status_key": "edits"
+   },
+   {
+    "tab": "Out of distribution",
+    "question": "How do decode and patching degrade on other datasets, noise and attacks?",
+    "readout": "decode cosine and patched KL per set",
+    "status_key": "ood"
+   },
+   {
+    "tab": "Adversarial",
+    "question": "Where through depth do attacked images separate from their clean versions, in joint and in source coordinates?",
+    "readout": "displacement; nearest-centroid readouts; image grids",
+    "status_key": "adv"
+   },
+   {
+    "tab": "Pixels",
+    "question": "What image does a point of the embedding decode to?",
+    "readout": "decoded pixel grids",
+    "status_key": "pixels"
+   }
+  ],
+  "h_data": "Data",
+  "data": "<p>All images are from the CIFAR-10 test set (the network was trained on the training set). <b>P2</b> is the 2,000-image probe; <b>P8</b> is P2 plus 6,000 more; <b>H</b> is the remaining 2,000, held out from every operator and every fit. Out-of-distribution sets: CIFAR-100 test, SVHN test, H with Gaussian pixel noise (σ = 0.05, 0.1, 0.2), and PGD L∞ attacks on H (ε = 2/255 and 8/255, 20 steps, untargeted). Decode numbers use all of H; matching and edit numbers the first 256 images of H; adversarial numbers the first 1,000. Error bars, where drawn, are ±2 standard errors over held-out images. Labels do not enter any kernel, basis or decoder; they are used to stratify the 2,000-image probe, generate the PGD examples and fit the centroid readout.</p>"
+ },
+ "kernel": {
+  "intro": "<p>The kernel sets everything downstream. The first figure shows why the headline kernel was changed (SPEC §8): with the Shannon-perplexity rule, some leading joint modes are carried by two images. The remaining figures compare the participation-ratio rule (purples), the Shannon-perplexity rule (blues), one global width (greens) and the k-NN rule (orange) on single-site kernels built from one site's 2,000-image Gram matrix. The kernels run at different effective widths (final walk perplexity across sites: participation ratio k = 300 {=ker:pr300:perp:min;int}–{=ker:pr300:perp:max;int}, Shannon ξ = 300 {=ker:ea300:perp:min;int}–{=ker:ea300:perp:max;int}, k-NN {=ker:knn15:perp:min;int}–{=ker:knn15:perp:max;int}), so these are not like-for-like comparisons of the rules.</p>",
+  "outro": ""
+ },
+ "decoding": {
+  "intro": "<p>Every decoder maps the $K$ joint coordinates of a held-out image at one site to a weighting of the probe activations at that site (object 5): an estimate of the conditional mean of the activation given the coordinates. The target is the raw centred activation, so the decoder must also predict its norm. Tuned decoders (kernel ridge, geometric harmonics, Laplacian pyramid) are fitted on an inner split of the probe; H is used only to score. Cosine is shown as a mean over held-out images; captured share as a median, because its mean is dominated by a few images.</p>",
+  "outro": ""
+ },
+ "function": {
+  "intro": "<p>The decoded activation, with the probe mean added back, replaces the true activation at the site, and the rest of the forward pass runs from it. The readout compares the patched run's softmax with the clean run's on the same image. Controls with known answers: the probe mean (no coordinates) and the true activation patched back (KL 0). Logits are not patched (nothing comes after them). Mean and median KL differ a lot: the mean is pulled up by a few images.</p>",
+  "outro": ""
+ },
+ "sources": {
+  "intro": "<p>Object 4 splits the joint coordinates into per-site sources and a fixed depth filter. The first row measures how much of a site's joint coordinate is its own source. The rest tests <b>source matching</b> (object 6): decode, then move the decode until its sources equal a target. Matching meets source targets; it does not make the patched run's joint coordinate equal the request (third figure). Source errors are mean squared differences in units of each mode's spread over held-out images: 0 is exact, 1 is the error of predicting the held-out mean, 2 is the expected value for two independent images.</p>",
+  "outro": ""
+ },
+ "edits": {
+  "intro": "<p>Pairs of held-out images $a$, $b$ with different predicted classes. At one site, $a$'s activation is edited towards $b$'s source coordinates by each method below. The patched run keeps $a$'s sources before the site, uses the edit at the site, and uses the activations that the forward pass produces from the edit afterwards. The readout is the <b>mean softmax probability</b> of $b$'s predicted class: probability mass, not a switch rate. Methods: <b>swap</b> patches $x_b$ itself (its value, {=rt:main:16:E4|swap|p_b:median}, is $b$'s own confidence: a reference, not a success rate); <b>decode</b> patches $D(\\psi_b)$ with no reference image; <b>residual guess</b> is $x_a + D(\\psi_b) - D(\\psi_a)$; <b>source matching</b> from $x_a$ meets $s_b$ exactly (Euclidean, or the probe metric); <b>residual guess + matching</b> starts matching from the residual guess; the <i>inferred target</i> variants use the target inferred from $b$'s joint coordinates. Every method has an isotropic random edit of the same size as a control (dotted, same hue); a control matched to the probe's covariance was not run. The methods differ in edit size, so they are not compared at equal budget.</p>",
+  "outro": ""
+ },
+ "ood": {
+  "intro": "<p>The same decode and patch, kernel ridge at the selected K, applied to images that are not CIFAR-10 test images (or are noisy or attacked versions of H). The probe, kernel and decoder are unchanged; the decode is scored against the activation each image actually produces.</p>",
+  "outro": ""
+ },
+ "adversarial": {
+  "intro": "<p>PGD-attacked held-out images and their clean versions, followed through depth in the selected embedding, in joint coordinates and in each site's own source coordinates. Joint coordinates are depth-filtered, so a change at a late site shows up in them at earlier sites too; source coordinates depend on one site only. Labels are used to fit the nearest-centroid readout and generate the attacks; they enter no kernel, basis or decoder.</p>",
+  "outro": ""
+ },
+ "pixels": {
+  "intro": "<p>Pixels decoded as a function on the probe: the probe's images are averaged using the decoder's weights, computed from the coordinates at one site. The grids come from the 13-site operator in which centred, normalised pixels are site 0, so pixel space has coordinates too; the default grids use the participation-ratio kernel on the 8,000-image probe. Rows are the same held-out images throughout; column headers are repeated above each grid.</p>",
+  "h_other": "Other datasets",
+  "outro": ""
+ },
+ "method": {
+  "h_recipe": "Recipe",
+  "recipe_intro": "<p>The method in one table, from activation to coordinates and back.</p>",
+  "recipe": {
+   "header": [
+    "Step",
+    "Map",
+    "Formula",
+    "Parameters"
+   ],
+   "rows": [
+    [
+     "Forward, one site",
+     "activation at site $l$ → $K$ source coordinates",
+     "$s_l(x)=p_l(x)\\cdot f_l$",
+     "the kernel's k (participation ratio); smooth; exact masked out-of-sample row; no reference image"
+    ],
+    [
+     "Forward, whole image",
+     "sources at all sites → joint coordinates",
+     "$y_k=T_k^{-1}(s_k/2c)$ (the Nyström extension)",
+     "$t=t^*$, $c_l$ from the joint operator"
+    ],
+    [
+     "Inverse (decode)",
+     "$K$ joint coordinates at $l$ → activation at $l$",
+     "kernel ridge $W(\\psi)$ on the probe activations: an estimate of the conditional mean",
+     "$(h,\\lambda)$ on an inner split of the probe (fit)"
+    ],
+    [
+     "Source target",
+     "joint coordinates at $l$ → target sources",
+     "$s'(\\psi)=W(\\psi)P_lf_l$",
+     "the decoder's weights (fit; error on H in the Sources and matching tab)"
+    ],
+    [
+     "Source round trip",
+     "target sources → activation",
+     "source matching from the decode",
+     "solver only: damped Gauss–Newton, step cap, trust radius; meets source targets, not joint ones"
+    ],
+    [
+     "Edit",
+     "image $a$ + source coordinates of $b$ → edited activation",
+     "residual guess $x_a + D(\\psi_b) - D(\\psi_a)$, optionally followed by source matching",
+     "as above; isotropic random edit of the same size as control"
+    ],
+    [
+     "Patched run",
+     "edited activation → joint coordinates and output",
+     "sources before $l$ from $a$, at $l$ from the edit, after $l$ from the forward pass; then the depth filter",
+     "none"
+    ]
+   ]
+  },
+  "h_decisions": "Decisions made on the owner's behalf",
+  "decisions_intro": "<p>From <code>invert/SPEC.md</code> sections 5, 7 and 8.</p>",
+  "decisions": {
+   "header": [
+    "Decision",
+    "Default chosen",
+    "Alternative",
+    "How to test"
+   ],
+   "rows": [
+    [
+     "Kernel",
+     "the repo's per-point bandwidth rule (one parameter, exact masked out-of-sample row), calibrated by participation ratio rather than Shannon perplexity (§8)",
+     "symmetric entropic affinities (Van Assel et al. 2023); local scaling (Zelnik-Manor & Perona)",
+     "Kernel tab: hubness, half-split reproducibility, refit stability"
+    ],
+    [
+     "Diagonal",
+     "zero, so a new point is treated like a probe point (by its affinity to the other probe images)",
+     "keep the diagonal, which at these distances puts nearly all of a row's weight on itself",
+     "refit stability; masked replay in <code>invert/test_dm.py</code>"
+    ],
+    [
+     "Held-out images",
+     "from the CIFAR-10 test set",
+     "training-set images (fitted by the network)",
+     "repeat the decode on training images"
+    ],
+    [
+     "Recommendation criterion",
+     "in order: no fitted parameters or only automatic ones; sane behaviour off the probe; accuracy",
+     "accuracy first",
+     "read the Decoding and Out of distribution tabs in that order"
+    ],
+    [
+     "Single-site inverse (amendment)",
+     "posed in source coordinates, which depend on one site only",
+     "the earlier 'held' convention (other sites' rows fixed at a reference image), dropped",
+     "Sources tab: own-source share; Edits tab: patched-run progress"
+    ],
+    [
+     "Kernel rule (amendment, §8)",
+     "participation ratio: each row's width set so that $1/\\sum_j q(j\\mid i)^2=k$; no conditional weight exceeds $1/\\sqrt{k}$ (before symmetrisation and Sinkhorn)",
+     "the Shannon-perplexity rule (kept as comparison), under which some leading modes are carried by two images",
+     "Kernel tab: top-2 share per mode and its counts table; <code>test_participation_rule_bounds_duplicates</code>"
+    ],
+    [
+     "Kernel-ridge tuning (§8)",
+     "solved directly; ridge grid up to 100; the linear decoder always a candidate",
+     "eigendecomposition solve; smaller grid",
+     "validation scores in <code>decode[tag][site]['_meta']</code>"
+    ]
+   ]
+  },
+  "h_caveats": "Caveats",
+  "caveats": [
+   "One network (ResNet-20, seed 0), one checkpoint (step 64,000), one probe draw, CIFAR-10 test images. No variability across probes or seeds was measured; the spec's bootstrap intervals and 5-fold small-probe runs were not done.",
+   "Labels do not enter any kernel, basis or decoder, but they are used to stratify the 2,000-image probe, generate the PGD examples and fit the centroid readout.",
+   "The tuning split is not end-to-end held out: its coordinates come from an operator fitted on the whole probe, and tuning validates on in-probe coordinates, not out-of-sample ones. H informed the recommendations in NOTES.md, so they have no fresh confirmation.",
+   "Held-out images that nearly copy a probe image get overshooting coordinates (zero-diagonal kernel; no mode of the L × L system is excluded for conditioning). They pull the mean captured share down, which is why captured share is shown as a median.",
+   "Decoder behaviour off the probe is a convention (kernel ridge with a linear part extrapolates linearly).",
+   "Kernel comparisons are at different effective widths; the refit and half-split tests change several things at once.",
+   "The pairs that carry modes under the Shannon-perplexity rule were not verified to be duplicate images.",
+   "Source matching is a bounded residual-reduction scheme, not a certified nearest point. It meets source targets, but the patched run's joint coordinate at the site does not match the request before b9.",
+   "Edit readouts are mean softmax probability of b's class (probability mass, not a switch rate). Methods differ in edit size; the random control is isotropic, and a control matched to the probe's covariance was not run.",
+   "Tuned decoders (kernel ridge, geometric harmonics, Laplacian pyramid, the MLP benchmark) are fits. The trained MLP is at the level of kernel ridge in cosine and ahead of it in patched agreement at b4. PCA and the kernel step use the target activation itself, so they are references, not decoders from coordinates.",
+   "Matching and edit quantities are means over the first 256 images of H (edits: pairs with different predicted classes) and carry no error bars here.",
+   "Cross-network transfer was out of scope and is untested. Lower coupling t was not explored. The 13-site operator (pixels as a site) was run only for the image figures."
+  ],
+  "h_files": "Files",
+  "files": "<p>Spec: <code>invert/SPEC.md</code>. Stages: <code>invert/p0_kernel.py</code> (kernels), <code>invert/refit.py</code>, <code>invert/stage_decode.py</code>, <code>invert/stage_rt.py</code>, <code>invert/adv.py</code>, <code>invert/make_figs.py</code>; merged by <code>invert/collect.py</code> into <code>data/invert/results.json</code>. Page: <code>invert/build_page.py</code> with prose in <code>invert/page_text.json</code>; check with <code>invert/verify_page.sh</code>.</p>"
+ },
+ "fig": {
+  "kernel_hub": {
+   "title": "Hubness by site, one line per kernel · single-site kernels, probe P2",
+   "caption": "Each point is the largest number of probe images that list one image among their 15 heaviest kernel entries (no hubs ≈ 15). For the k-NN rule the line is the raw-cosine 15-NN graph, because ties make the walk's own top 15 arbitrary (that line is in the legend, hidden by default): it peaks at {hub_raw_max} (at {hub_raw_argmax}), against {hub_pr300_max} for the participation-ratio rule at k = 300 and {hub_ea300_max} for the Shannon rule at ξ = 300."
+  },
+  "kernel_stab": {
+   "title": "Reproducibility of modes on a disjoint half · against mode index, three sites",
+   "caption": "The kernel is built on one half of the probe (one 1,000/1,000 split) and its mode k is extended to the other half by the kernel's own out-of-sample row; each point is how much of that extended mode lies inside the other half's first 2k + 10 modes (chance-corrected: 1 = reproduced, 0 = chance). Mode 16 reproduces at {=ker:pr300:stab16:min}–{=ker:pr300:stab16:max} across sites for the participation-ratio rule (k = 300), {=ker:ea300:stab16:min}–{=ker:ea300:stab16:max} for the Shannon rule (ξ = 300) and {=ker:knn15:stab16:min}–{=ker:knn15:stab16:max} for the k-NN rule; the kernels differ in effective width, so this is not a like-for-like comparison of the rules."
+  },
+  "kernel_refit": {
+   "title": "Refit stability of the out-of-sample extension · by site, probe P2",
+   "caption": "Share of the squared coordinate norm of H reproduced when the operator is refitted on probe + H (kernel parameter scaled with N), after one orthogonal K × K alignment over all sites: solid = frozen-probe extension; with 'all three', dashed = one kernel step and dotted = the probe images themselves (the refit moves them too). From stem to b9, first 16 / first 64 modes: participation ratio k = 300 {=refit:pr300:16:held:min@stem-b9}–{=refit:pr300:16:held:max@stem-b9} / {=refit:pr300:64:held:min@stem-b9}–{=refit:pr300:64:held:max@stem-b9}; Shannon ξ = 300 {=refit:ea300:16:held:min@stem-b9}–{=refit:ea300:16:held:max@stem-b9} / {=refit:ea300:64:held:min@stem-b9}–{=refit:ea300:64:held:max@stem-b9}; k-NN {=refit:knn15:16:held:min@stem-b9}–{=refit:knn15:16:held:max@stem-b9} / {=refit:knn15:64:held:min@stem-b9}–{=refit:knn15:64:held:max@stem-b9}."
+  },
+  "dec_cos": {
+   "title": "Held-out decode cosine by site · one line per decoder",
+   "caption": "Mean cosine between the true centred activation of a held-out image and its decode from K joint coordinates at the same site; dashed lines are references that use the target activation (PCA with K + 1 components, one kernel step), dotted is the trained MLP benchmark. At K = 64 kernel ridge reaches {=dec:main:64:krr:cos_raw:min@b1-b8}–{=dec:main:64:krr:cos_raw:max@b1-b8} in b1–b8, {=dec:main:64:krr:cos_raw:b9} at b9 and {=dec:main:64:krr:cos_raw:pool} at pool, the highest of the closed-form decoders; the trained MLP is at the same level (ahead at most sites at K = 16, slightly behind at K = 64), and PCA with K + 1 components gives {=dec:main:64:pca:cos_raw:min@b1-b8}–{=dec:main:64:pca:cos_raw:max@b1-b8} in b1–b8."
+  },
+  "dec_cap": {
+   "title": "Held-out captured share by site · one line per decoder",
+   "caption": "Captured share 1 − |x − x̂|²/|x|² on the raw centred activation, so the decoder's predicted norm counts (0 = the probe mean, 1 = exact, negative = worse than the probe mean); median over held-out images by default, because the mean is dominated by a few images. At K = 64 kernel ridge's median is {=dec:main:64:krr:cap_raw_med:min@b1-b8}–{=dec:main:64:krr:cap_raw_med:max@b1-b8} in b1–b8, {=dec:main:64:krr:cap_raw_med:b9} at b9 and {=dec:main:64:krr:cap_raw_med:pool} at pool; at b4 its mean is {=dec:main:64:krr:cap_raw:b4} against a median of {=dec:main:64:krr:cap_raw_med:b4}, which puts it below the linear decoder's mean ({=dec:main:64:linear:cap_raw:b4}). Switch to the mean to see the MLP benchmark's negative values (lowest {mlp_cap_k16_min_all}, {mlp_cap_k16_min_all_where}, K = 16)."
+  },
+  "dec_vsK": {
+   "title": "Decode against K at three sites · both probes",
+   "caption": "Held-out cosine (mean) or captured share (median) against the number of coordinates K, one panel per site; solid = 2,000-image probe, dashed = 8,000-image probe, each with its main participation-ratio kernel. At b4 and K = 64 kernel ridge gives {=dec:P2:64:krr:cos_raw:b4} on P2 (k = 300) and {=dec:P8:64:krr:cos_raw:b4} on P8 (k = 400); width and probe size change together, so this is a local comparison, not an isolated effect of N."
+  },
+  "dec_kernels": {
+   "title": "Kernel comparison · kernel ridge by site, one line per kernel and probe",
+   "caption": "Kernel ridge decode at the selected K for every kernel and probe: hue is the kernel family (purples: participation ratio; blues: Shannon perplexity; greens: one global width; orange: k-NN), shade is its parameter, solid is P2 and dashed is P8. 'difference from k-NN' subtracts the k-NN rule of the same probe. Decoder and K are the same for every line, but the kernels run at different effective widths, so differences between lines are not differences between the rules alone."
+  },
+  "fn_kl": {
+   "title": "Patched-run KL by site · one line per decoder",
+   "caption": "KL divergence of the patched run's softmax from the clean run's after the decode replaces the activation at that site (solid: predicted norm; dashed: true norm supplied), log axis, mean or median over held-out images. Grey dotted is the probe mean patched in, and the true activation patched back is annotated as a control. At K = 64, kernel ridge's mean KL is {=dec:main:64:krr:kl:b4} nats at b4 and its median is at most {=dec:main:64:krr:kl_med:max@b5-pool;2f} from b5 on; at stem, its mean KL ({=dec:main:64:krr:kl:stem}) is above that of the probe mean ({=dec:main:0:mean:kl:stem})."
+  },
+  "fn_agree": {
+   "title": "Patched-run top-1 agreement by site · one line per decoder",
+   "caption": "Share of held-out images whose patched-run top-1 class equals the clean run's; the probe mean (grey dotted) is at most {mean_agree_max}. At K = 64, kernel ridge gives {=dec:main:64:krr:agree:min@stem-b4;pct}–{=dec:main:64:krr:agree:max@stem-b4;pct} at stem–b4, {=dec:main:64:krr:agree:min@b5-b6;pct}–{=dec:main:64:krr:agree:max@b5-b6;pct} at b5–b6 and {=dec:main:64:krr:agree:min@b7-pool;pct}–{=dec:main:64:krr:agree:max@b7-pool;pct} from b7 to pool. Supplying the true norm (which also changes the decoded direction) gives {=dec:main:64:krr:agree_on:b3;pct} at b3 and {=dec:main:64:krr:agree_on:b4;pct} at b4. The trained MLP's agreement at b4 is higher ({=dec:main:64:mlp:agree:b4;pct} against {=dec:main:64:krr:agree:b4;pct})."
+  },
+  "src_share": {
+   "title": "Weight of a site's own source in its joint coordinate · by site",
+   "caption": "$|[T_k^{-1}]_{ll}/2c_l|$ over the sum of the row's absolute weights, averaged over the K modes; 1 would make $y_l$ a function of site $l$'s activation alone. At K = 16 it is {=rt:main:16:E1|share_ll:min@stem-b9;pct}–{=rt:main:16:E1|share_ll:max@stem-b9;pct} at the conv sites, {=rt:main:16:E1|share_ll:pool;pct} at pool and {=rt:main:16:E1|share_ll:logits;pct} at logits."
+  },
+  "src_corr": {
+   "title": "Correlation of source and joint coordinate · by site",
+   "caption": "Per mode, the correlation over held-out images between $s_{l,k}$ and $y_{l,k}$, averaged over modes. At K = 16 it ranges from {=rt:main:16:E1|corr:min} to {=rt:main:16:E1|corr:max} across sites."
+  },
+  "src_target": {
+   "title": "Accuracy of the inferred source target · by site",
+   "caption": "Error of $s'(\\psi)=W(\\psi)P_lf_l$, the source target inferred from a held-out image's joint coordinates, against its true sources (per-mode spread units, log axis; 1 = the error of the held-out mean). With kernel-ridge weights at K = 16, it is {=rt:main:16:E1|krr|srel:min@stem-b8}–{=rt:main:16:E1|krr|srel:max@stem-b8} through b8 and at most {=rt:main:16:E1|krr|srel:max@b9-logits} from b9 on."
+  },
+  "rt_miss": {
+   "title": "Source matching: residual against the source target · by site",
+   "caption": "Residual $|s_l(x^*)-s'|$ after source matching from the kernel-ridge decode (solid: the image's true sources as target, an oracle that tests the solver; dashed: the target inferred from joint coordinates), per-mode spread units, log axis. At K = 16, it is at most {=rt:main:16:E3|miss:max} (oracle) and {=rt:main:16:E3n|miss:max} (inferred) at every site."
+  },
+  "rt_err": {
+   "title": "Source matching: error against the true sources · by site",
+   "caption": "Distance of the achieved sources from the image's true sources: source matching (teal) against the decode alone (dotted; kernel ridge and linear), log axis. At K = 16, the kernel-ridge decode alone misses by a median of {=rt:main:16:E2|krr|srel:median} across sites. Matching to the oracle target brings this down to its residual, and matching to the inferred target brings it down to the error of that target."
+  },
+  "rt_move": {
+   "title": "Source matching: size of the move · by site",
+   "caption": "$|x^*-\\hat x|$ relative to the norm of the true centred activation. At K = 16 the move is {=rt:main:16:E3|move:min}–{=rt:main:16:E3|move:max} with the oracle target and {=rt:main:16:E3n|move:min}–{=rt:main:16:E3n|move:max} with the inferred one."
+  },
+  "rt_tang": {
+   "title": "Source matching: stationarity · by site",
+   "caption": "Share of the move entering the last step that lies along the constraint surface: 0 at a stationary point of the nearest-point problem, so larger values flag solutions that are not the nearest. At K = 16 it is {=rt:main:16:E3n|tang:min}–{=rt:main:16:E3n|tang:max} (inferred target): the solver is a bounded residual-reduction scheme, not a certified nearest point. Its Jacobian, with the implicit derivative of the per-point width, agrees with a finite difference to {=rt:main:16:E0|jac_fd_rel:min}–{=rt:main:16:E0|jac_fd_rel:max} (relative)."
+  },
+  "rt_req": {
+   "title": "Source matching: requests with no known pre-image · by site",
+   "caption": "Residual of source matching from $x_a$ to the source midpoint of images a and b (solid) and to the 1.5× extrapolation beyond b (dashed); dotted is the reachable request τ = 1 (b's own sources). At K = 16, midpoints are matched (residual at most {=rt:main:16:E5|0.5|miss_S:max@stem-pool}; {=rt:main:16:E5|0.5|miss_S:logits} at logits) and 1.5× extrapolations are not ({=rt:main:16:E5|1.5|miss_S:min}–{=rt:main:16:E5|1.5|miss_S:max}). This is solver performance, not a proof that the extrapolations have no pre-image."
+  },
+  "edit_pb": {
+   "title": "Edits: mean softmax probability of image b's class · by edited site, one line per method",
+   "caption": "Mean softmax probability of b's predicted class in the patched run (probability mass, not a switch rate), solid for each method and dotted for an isotropic random edit of the same size. The swap line is b's own confidence ({=rt:main:16:E4|swap|p_b:median}), a reference, not a success rate. At b4 and K = 16: residual guess {=rt:main:16:E4|resid|p_b:b4}, residual guess + matching {=rt:main:16:E4|resid+match|p_b:b4}, matching from $x_a$ {=rt:main:16:E4|match|p_b:b4}, decode with no reference {=rt:main:16:E4|decode|p_b:b4}. The residual guess already does nearly all of the steering; matching makes the sources exact without a consistent gain. From b5 on, the decode with no reference steers at least as well (with a larger edit). Euclidean matching from $x_a$ is poor at pool and logits ({=rt:main:16:E4|match|p_b:pool}, {=rt:main:16:E4|match|p_b:logits}), and before b3 no method moves the output much. Random edits of the residual guess's size stay at or below {=rt:main:16:E4|rand~resid|p_b:max@stem-pool} outside logits."
+  },
+  "edit_pa": {
+   "title": "Edits: mean softmax probability of image a's class · by edited site, one line per method",
+   "caption": "Mean softmax probability of a's own predicted class after the same edits. Read with the first figure: an edit that brings a's sources to b's need not move the output to b."
+  },
+  "edit_size": {
+   "title": "Edits: size of the edit · by site",
+   "caption": "$|x'-x_a|/|x_b-x_a|$ (the swap is 1 by definition and is omitted). The methods differ in size, so they are not compared at equal budget: at b4 and K = 16, residual guess {=rt:main:16:E4|resid|size:b4}, residual guess + matching {=rt:main:16:E4|resid+match|size:b4}, matching from $x_a$ {=rt:main:16:E4|match|size:b4}, decode with no reference {=rt:main:16:E4|decode|size:b4}."
+  },
+  "edit_progS": {
+   "title": "Edits: source progress from a to b · by site",
+   "caption": "Projection of the edited sources' change onto the direction $s_b-s_a$ (per-mode spread units): 0 = a, 1 = b. Matching edits reach at least {=rt:main:16:E4|match|prog_S:min} at K = 16; the dotted random edits show what an edit of the same size does without a target."
+  },
+  "edit_missS": {
+   "title": "Edits: remaining source error against b · by site",
+   "caption": "Mean squared distance of the edited sources from b's, per-mode spread units, log axis; 2 = the expected value for two independent images. At K = 16 the residual guess alone leaves {=rt:main:16:E4|resid|miss_S:min@stem-b8}–{=rt:main:16:E4|resid|miss_S:max@stem-b8} at stem–b8, and the matching methods sit at their solver residual."
+  },
+  "edit_heat": {
+   "title": "Edits: patched-run progress towards b at later sites · two methods",
+   "caption": "Rows are the edited site and columns are the site where the patched run's joint coordinates are read (diagonal: the edited site itself). A cell is the progress of those coordinates from a's towards b's (0 = a, 1 = b). Sources before the edited site stay a's and later ones come from the forward pass run from the edit, so a row shows how far the edit carries along depth."
+  },
+  "ood_cos": {
+   "title": "Out of distribution: decode cosine by site · kernel ridge, one line per set",
+   "caption": "Mean cosine of the kernel-ridge decode against the activation that each image actually produces, at the selected K, for each target set, with the same probe, kernel and decoder throughout. At K = 64: CIFAR-100 stays close to CIFAR-10 held-out through b6 and is lower later ({=ood:main:c100:64:krr:cos_raw:b9} against {=ood:main:H:64:krr:cos_raw:b9} at b9); SVHN gives {=ood:main:svhn:64:krr:cos_raw:min@stem-b6}–{=ood:main:svhn:64:krr:cos_raw:max@stem-b6} through b6, higher than CIFAR-10 (cause not measured); pixel noise σ = 0.2 gives {=ood:main:noise20:64:krr:cos_raw:min@stem-b2}–{=ood:main:noise20:64:krr:cos_raw:max@stem-b2} at stem–b2 and is close to clean at b3–b8; PGD 8/255 is lower than clean through b8 and {=ood:main:pgd8:64:krr:cos_raw:b9} at b9."
+  },
+  "ood_kl": {
+   "title": "Out of distribution: patched-run KL by site · kernel ridge, one line per set",
+   "caption": "Mean KL of the patched run from the clean run of the same image, log axis; grey dotted is the probe mean patched into H images. Because the reference is the same image unpatched, the KL measures what the decode loses on that set, not how far the set is from CIFAR-10."
+  },
+  "adv_disp": {
+   "title": "Adversarial: displacement of attacked from clean · by site, joint and source coordinates",
+   "caption": "Mean squared difference between an attacked image's first K coordinates and its clean version's, in units of each mode's spread over held-out images (log axis; 2 = the expected value for two independent images); solid = joint coordinates, dashed = each site's own source coordinates. For PGD 2/255, the source displacement is at most {=adv:pgd2_src:disp:max@stem-b6} through b6, {=adv:pgd2_src:disp:b8} at b8 and {=adv:pgd2_src:disp:b9} at b9, while the joint displacement is already {=adv:pgd2:disp:b5} at b5. A check by the reviewer (NOTES.md, not in results.json) found that zeroing the source changes at b7 and later reduces that to 0.015, so the early joint displacement is depth mixing, not an early change at that site."
+  },
+  "adv_nc": {
+   "title": "Adversarial: nearest-centroid readouts · by site, joint and source coordinates",
+   "caption": "Nearest class centroid in the first K coordinates (centroids fitted on probe labels), for the selected attack: clean images whose centroid matches their true label (black) or clean prediction (grey), attacked images whose centroid matches their true label (blue) or the attacked network's prediction (red); solid = joint coordinates, dashed = source coordinates. For PGD 2/255 the source-coordinate centroid agrees with the attacked network's prediction for {=adv:pgd2_src:adv_follows_attack:min@stem-b6;pct}–{=adv:pgd2_src:adv_follows_attack:max@stem-b6;pct} of images through b6 and {=adv:pgd2_src:adv_follows_attack:b9;pct} at b9."
+  },
+  "adv_img_src": {
+   "title": "Adversarial: pixels decoded from source coordinates, clean and attacked",
+   "caption": "Columns: the clean and attacked image, then the pixel decode from source coordinates at each listed site for the clean version and the attacked one (‘att.’); rows are held-out images. Decodes from late-site sources change visibly under attack; no classifier was run on the decoded pixels."
+  },
+  "adv_img_joint": {
+   "title": "Adversarial: pixels decoded from joint coordinates, clean and attacked",
+   "caption": "As above, decoding from joint coordinates, which mix the sources of all sites through the depth filter, so a change at late sites also shows in the decodes from early sites."
+  },
+  "px_depth": {
+   "title": "Pixels from joint coordinates at each site",
+   "caption": "Columns: the held-out image, then its pixels decoded from the K joint coordinates at each site. Each decode is a weighted mean of probe images, and decodes from joint coordinates change little across sites. A dark central blob appears in the P8 Shannon-perplexity grids (ξ = 400; clearest in the first row), but not in the participation-ratio grids."
+  },
+  "px_depthsrc": {
+   "title": "Pixels from source coordinates at each site",
+   "caption": "As left, decoding from the K source coordinates at each site, which depend on that site's activation alone. The decodes lose instance detail with depth."
+  },
+  "px_path": {
+   "title": "Pixels along straight paths in coordinates · one site",
+   "caption": "Each row shows pixels decoded along a straight line in coordinates at the selected site, from image a (τ = 0) to image b (τ = 1), extended to τ = −0.5 and 1.5. End columns are the original images. Joint or source coordinates as selected."
+  },
+  "px_other": {
+   "title": "Other datasets: pixels from joint coordinates",
+   "caption": "Columns as in the held-out grid, for images of the selected set decoded with the CIFAR-10 probe and kernel. The decode can only return weighted means of CIFAR-10 probe images."
+  },
+  "px_othersrc": {
+   "title": "Other datasets: pixels from source coordinates",
+   "caption": "As left, decoding from source coordinates. Rows are the first images of the selected set."
+  },
+  "kernel_modeloc": {
+   "title": "Modes carried by two images · top-2 share against mode index, one line per kernel",
+   "caption": "For each of the first 64 joint modes, the share of its squared norm on its two heaviest probe images (log axis; dotted lines at 0.1 and 0.5). A value near 1 means the mode is carried by two images, while a mode spread over the probe sits near 2/N. With the Shannon-perplexity rule at P8 (ξ = 400), the largest share is {ml_p8ea400_max} ({ml_p8ea400_argmax}) and {ml_p8ea400_n01_64} of 64 modes exceed 0.1 ({ml_p8ea400_n05_64} exceed 0.5; P2, ξ = 300: {ml_p2ea300_n01_64} above 0.1). The participation-ratio rule at P8 (k = 400) peaks at {ml_p8pr400_max}, and the k-NN rule peaks at {ml_p8knn_max}. The pairs were not verified to be duplicate images."
+  },
+  "rt_joint": {
+   "title": "Source matching does not reproduce the requested joint coordinate · patched-run error at the site",
+   "caption": "Squared error of the patched run's joint coordinate at site l against the requested coordinate (per-mode spread units, log axis). Sites before l come from the image, site l is matched (teal) or decoded without matching (dotted), and later sites are recomputed by the forward pass. At K = 16, matching to the inferred target leaves {=rt:main:16:E3n|relerr_D:stem} at stem, {=rt:main:16:E3n|relerr_D:b4} at b4, {=rt:main:16:E3n|relerr_D:min@b5-b8}–{=rt:main:16:E3n|relerr_D:max@b5-b8} at b5–b8 and at most {=rt:main:16:E3n|relerr_D:max@b9-logits} from b9. That is no better than the unmatched decode ({=rt:main:16:E2|krr|relerr_D:stem}, {=rt:main:16:E2|krr|relerr_D:b4}, {=rt:main:16:E2|krr|relerr_D:min@b5-b8}–{=rt:main:16:E2|krr|relerr_D:max@b5-b8}): matching meets source targets, not joint ones."
+  }
+ },
+ "legend": {
+  "method": {
+   "swap": "swap: x_b itself (b's own confidence)",
+   "decode": "decode D(ψ_b), no reference",
+   "resid": "residual guess x_a + D(ψ_b) − D(ψ_a)",
+   "match": "source matching from x_a",
+   "match_p": "source matching from x_a, probe metric",
+   "resid+match": "residual guess + source matching",
+   "match_req": "source matching from x_a, inferred target",
+   "resid+match_req": "residual guess + source matching, inferred target",
+   "none": "no edit"
+  },
+  "matching": {
+   "E3": "source matching from the decode, oracle target (true sources)",
+   "E3n": "source matching from the decode, inferred target s′(ψ)"
+  }
+ }
+}

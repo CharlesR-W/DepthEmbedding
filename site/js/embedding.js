@@ -245,32 +245,42 @@ export class DepthEmbedding {
 
   // ------------------------------------------------ controls
   buildControls() {
+    const accTxt = n => n.acc != null ? ` (${(100 * n.acc).toFixed(1)}%)` : "";
     const box = $("emb-nets"); box.innerHTML = "";
     for (const n of this.nets) {
-      const l = document.createElement("label"); l.className = "emb-check";
+      const l = document.createElement("label"); l.className = "emb-check"; l.dataset.net = n.id;
       const c = document.createElement("input"); c.type = "checkbox"; c.value = n.id; c.dataset.net = n.id;
-      l.append(c, ` ${n.label}` + (n.acc != null ? ` (${(100 * n.acc).toFixed(1)}%)` : ""));
+      const acc = Object.assign(document.createElement("span"), { className: "emb-hint", textContent: accTxt(n) });
+      l.append(c, ` ${n.label}`, acc);
       box.append(l);
     }
-    $("emb-ref").replaceChildren(...this.nets.map(n => new Option(n.label, n.id)));
+    $("emb-ref").replaceChildren(...this.nets.map(n => new Option(`${n.label}${accTxt(n)}`, n.id)));
+    $("emb-ref").title = "final validation accuracy in brackets";
   }
   ref() { return this.byId[this.st.ref]; }
   shown() { const s = this.st.nets.filter(id => this.byId[id]); if (!s.includes(this.st.ref)) s.unshift(this.st.ref); return s.map(id => this.byId[id]); }
-  syncControls() {
+  // the options under "More options", and whether any differs from its default (then the section opens and says so)
+  advancedChanged() {
     const st = this.st, ref = this.ref();
-    document.querySelectorAll("#emb-nets input").forEach(c => { c.checked = st.nets.includes(c.value) || c.value === st.ref; c.disabled = c.value === st.ref; });
+    return st.method === "modes" && (st.variant !== ref.variants[0].id || st.c !== 3) || (st.method !== "umap" && st.K !== 8) || st.norm !== "site" ||
+      st.basis !== "pooled" || st.ax.some((a, d) => a !== d) || st.three || !st.fix;
+  }
+  syncControls() {
+    const st = this.st, ref = this.ref(), multi = this.shown().length > 1;
+    document.querySelectorAll("#emb-nets label").forEach(l => { l.hidden = l.dataset.net === st.ref; });
+    document.querySelectorAll("#emb-nets input").forEach(c => { c.checked = st.nets.includes(c.value) && c.value !== st.ref; });
     $("emb-ref").value = st.ref;
     $("emb-step").replaceChildren(...ref.steps.map(s => new Option(s.toLocaleString("en"), s))); $("emb-step").value = st.step;
-    $("emb-variant").replaceChildren(...ref.variants.map(v => new Option(v.label, v.id))); $("emb-variant").value = st.variant;
+    $("emb-variant").replaceChildren(...ref.variants.map(v => new Option(v.label + (v.id === ref.variants[0].id ? " (default)" : ""), v.id))); $("emb-variant").value = st.variant;
     const V = ref.variants.find(v => v.id === st.variant);
     const nf = this.m.spacetime.factors.length;
     $("emb-coup").max = nf - 1; $("emb-coup").value = st.c; $("emb-coup").disabled = V.C === 1;
     $("emb-K").value = st.K; $("emb-norm").value = st.norm; $("emb-dmode").value = st.dmode; $("emb-align").checked = st.align;
     $("emb-basis").value = st.basis; $("emb-three").checked = st.three; $("emb-color").value = st.color;
-    $("emb-anchor").replaceChildren(...ref.sites.map((s, l) => new Option(s, l))); $("emb-anchor").value = st.anchor;
+    for (const id of ["emb-anchor", "emb-anchor2"]) { $(id).replaceChildren(...ref.sites.map((s, l) => new Option(s, l))); $(id).value = st.anchor; }
     $("emb-trails").checked = st.trails; $("emb-fix").checked = st.fix;
     $("emb-depth").max = ref.sites.length - 1; $("emb-depth").value = st.depth;
-    this.root.querySelector(".emb-multi").hidden = this.shown().length < 2;
+    $("emb-cmp").hidden = !multi;
     for (let d = 0; d < 3; d++) {
       const s = $("emb-ax" + d);
       s.replaceChildren(...Array.from({ length: st.K }, (_, k) => new Option(st.basis === "modes" ? `mode ${k + 1}` : `PC${k + 1}`, k)));
@@ -279,31 +289,48 @@ export class DepthEmbedding {
     }
     $("emb-ax2").disabled = !st.three || st.method === "umap";
     document.body.classList.toggle("emb-rot", st.three);
-    $("emb-method").value = st.method;
+    $("emb-reset3d").disabled = !st.three; $("emb-3dhint").hidden = !st.three;
+    $("emb-mousehint").textContent = st.three ? "Plot: hover a dot to see its image. Keys: ← → step a site (when the plot is not focused), Space plays."
+      : "Plot: hover a dot to see its image; drag a box to select images and follow them through depth. Keys: ← → step a site, Space plays.";
+    this.root.querySelectorAll("input[name=emb-method]").forEach(r => { r.checked = r.value === st.method; });
     const base = st.method !== "modes";
     $("emb-variant").disabled = base; $("emb-coup").disabled = base || V.C === 1; $("emb-K").disabled = st.method === "umap"; $("emb-three").disabled = st.method === "umap";
     [...$("emb-color").options].forEach(o => { o.disabled = base && (o.value.startsWith("set") || o.value === "seba"); });
     $("emb-r-row").hidden = st.color !== "seba"; $("emb-r").value = st.r;
-    $("emb-layout").value = st.layout; $("emb-ocol").value = st.ocol; $("emb-show").value = st.show; $("emb-links").checked = st.links;
+    $("emb-anchor-row").hidden = st.color !== "pos"; $("emb-anchor2-row").hidden = st.basis !== "anchor";      // UMAP's 2-d coordinates are rotated by this basis too
+    $("emb-color-hint").textContent = ({
+      class: "The class labels colour the dots only; they are not used to build anything.",
+      pos: "Hue = direction and depth of colour = distance from the centre in the x/y axes, at the chosen site. Watch which colours stay together.",
+      seba: "A post-hoc readout: SEBA run once on the stacked modes. Each network runs its own; colours are matched to the reference by overlap.",
+    })[st.color] || (st.color.startsWith("set") ? "A post-hoc readout: k-means sets of the rank-8 readout, computed per network and per site." : "");
+    if (base) $("emb-color-hint").textContent += " (The set colourings need the through-depth modes.)";
+    this.root.querySelectorAll("input[name=emb-layout]").forEach(r => { r.checked = r.value === st.layout; });
+    $("emb-ocol").value = st.ocol; $("emb-show").value = st.show; $("emb-links").checked = st.links;
     $("emb-ov-opts").hidden = st.layout !== "overlay";
+    const adv = this.advancedChanged();
+    $("emb-more-note").textContent = adv ? "(some changed from the defaults)" : "";
+    if (adv && !this.moreOpened) { $("emb-more").open = true; this.moreOpened = true; }
   }
   bind() {
     const st = this.st, on = (id, ev, f) => $(id).addEventListener(ev, f);
     // while a load is pending, controls only change the state: the load recomputes with the latest state when it lands
     const re = (f, reload = true) => async () => { f(); this.clamp(); this.syncControls(); this.saveHash(); if (reload) await this.load(); else if (!this.loading && this.data) { this.recompute(); await this.refreshSeba(); } };
-    $("emb-nets").addEventListener("change", re(() => { st.nets = [...document.querySelectorAll("#emb-nets input:checked")].map(c => c.value); }));
+    $("emb-nets").addEventListener("change", re(() => { st.nets = [st.ref, ...[...document.querySelectorAll("#emb-nets input:checked")].map(c => c.value).filter(id => id !== st.ref)]; }));
     on("emb-one", "click", re(() => { st.nets = [st.ref]; }));
     on("emb-all", "click", re(() => { st.nets = this.nets.map(n => n.id); }));
-    on("emb-ref", "change", re(() => { st.ref = $("emb-ref").value; if (!st.nets.includes(st.ref)) st.nets.push(st.ref); st.anchor = 0; st.depth = 0; }));
+    // the main network: alone, it is replaced; when comparing, the new one becomes the reference and the rest stay
+    on("emb-ref", "change", re(() => { const single = this.shown().length < 2; st.ref = $("emb-ref").value; if (single) st.nets = [st.ref]; else if (!st.nets.includes(st.ref)) st.nets.push(st.ref); st.anchor = 0; st.depth = 0; }));
     on("emb-step", "change", re(() => { st.step = +$("emb-step").value; }));
-    on("emb-method", "change", re(() => { st.method = $("emb-method").value; if (st.method !== "modes" && (st.color.startsWith("set") || st.color === "seba")) st.color = "class"; }));
+    this.root.querySelectorAll("input[name=emb-method]").forEach(r => r.addEventListener("change", re(() => {
+      st.method = r.value; if (st.method !== "modes" && (st.color.startsWith("set") || st.color === "seba")) st.color = "class";
+    })));
     on("emb-variant", "change", re(() => { st.variant = $("emb-variant").value; }));
     on("emb-coup", "input", re(() => { st.c = +$("emb-coup").value; }));
     on("emb-K", "change", re(() => { st.K = +$("emb-K").value; }, false));
     on("emb-norm", "change", re(() => { st.norm = $("emb-norm").value; }, false));
     on("emb-dmode", "change", re(() => { st.dmode = $("emb-dmode").value; }, false));
     const redraw = f => () => { f(); this.syncControls(); this.saveHash(); if (this.refD) { this.renderPanels(); this.legend(); this.drawAll(); } };
-    on("emb-layout", "change", redraw(() => { st.layout = $("emb-layout").value; }));
+    this.root.querySelectorAll("input[name=emb-layout]").forEach(r => r.addEventListener("change", redraw(() => { st.layout = r.value; })));
     on("emb-ocol", "change", redraw(() => { st.ocol = $("emb-ocol").value; }));
     on("emb-show", "change", redraw(() => { st.show = $("emb-show").value; }));
     on("emb-links", "change", redraw(() => { st.links = $("emb-links").checked; }));
@@ -311,22 +338,55 @@ export class DepthEmbedding {
     on("emb-basis", "change", re(() => { st.basis = $("emb-basis").value; }, false));
     for (let d = 0; d < 3; d++) on("emb-ax" + d, "change", re(() => { st.ax[d] = +$("emb-ax" + d).value; }, false));
     on("emb-three", "change", re(() => { st.three = $("emb-three").checked; }, false));
+    on("emb-reset3d", "click", () => this.resetRotation());
     on("emb-anchor", "change", re(() => { st.anchor = +$("emb-anchor").value; }, false));
+    on("emb-anchor2", "change", re(() => { st.anchor = +$("emb-anchor2").value; }, false));
     on("emb-color", "change", async () => { st.color = $("emb-color").value; this.hidden.clear(); this.syncControls(); this.saveHash(); if (this.loading || !this.refD) return; this.buildColours(); this.drawAll(); await this.refreshSeba(); });
     on("emb-r", "change", async () => { st.r = +$("emb-r").value; this.hidden.clear(); this.saveHash(); if (this.loading || !this.refD) return; this.buildColours(); this.drawAll(); await this.refreshSeba(); });
     on("emb-trails", "change", () => { st.trails = $("emb-trails").checked; this.draw(); });
-    on("emb-fix", "change", () => { st.fix = $("emb-fix").checked; this.drawAll(); });
+    on("emb-fix", "change", () => { st.fix = $("emb-fix").checked; this.syncControls(); this.drawAll(); });
     on("emb-depth", "input", () => { this.stop(); const prev = Math.round(st.depth); st.depth = +$("emb-depth").value; this.draw(); if (Math.round(st.depth) !== prev) this.legend(); });
     on("emb-depth", "change", () => this.saveHash());
-    on("emb-gif", "click", () => this.exportGif());
+    on("emb-gif", "click", () => { if (this.exporting) this.exportCancel = true; else this.exportGif(); });
+    // while a GIF is being rendered, nothing that changes the drawing may run: the frames must match the header the
+    // export wrote at its start. Form controls are disabled (lockForExport); this catches the rest (legend, strip,
+    // plots, keys), in the capture phase so no handler below sees the event
+    for (const ev of ["click", "pointerdown", "keydown", "change", "input"]) this.root.addEventListener(ev, e => {
+      if (!this.exporting || e.target.closest?.("#emb-gif, #emb-jump, #emb-back")) return;      // Cancel, and moving around the page
+      if (ev === "keydown" && !["Enter", " ", "ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Home", "End", "PageUp", "PageDown", "r", "R", "0"].includes(e.key)) return;
+      if (ev === "click" && e.target.closest?.("summary, a")) return;      // opening a section or following a link changes nothing drawn
+      e.preventDefault(); e.stopPropagation();
+    }, true);
     on("emb-clear", "click", () => { this.sel.fill(0); this.selChanged(); });
     on("emb-rand", "click", () => { this.sel.fill(0); for (let k = 0; k < 60; k++) this.sel[(Math.random() * this.N) | 0] = 1; this.selChanged(); });
-    on("emb-play", "click", () => {
-      if (this.playing) return this.stop();
-      if (st.depth >= this.ref().sites.length - 1) st.depth = 0;
-      this.playing = true; this.lastT = 0; $("emb-play").textContent = "❚❚ Pause"; requestAnimationFrame(t => this.tick(t));
+    on("emb-play", "click", () => this.togglePlay());
+    on("emb-jump", "click", () => { const c = $("emb-controls"); c.scrollIntoView({ block: "start" }); c.focus({ preventScroll: true }); });
+    on("emb-back", "click", () => { this.root.querySelector(".emb-stage").scrollIntoView({ block: "start" }); $("emb-play").focus({ preventScroll: true }); });
+    // touch only: whether a swipe on a plot scrolls the page (default) or draws a selection box / rotates the 3D view
+    this.root.querySelectorAll("input[name=emb-touch]").forEach(r => r.addEventListener("change", () => {
+      this.touchSel = r.value === "select" && r.checked; this.root.classList.toggle("touch-sel", this.touchSel);
+    }));
+    // keyboard: arrows step one site, space plays or pauses (only when focus is not in a form control)
+    document.addEventListener("keydown", e => {
+      if (document.body.dataset.tab !== "embedding" || !this.refD || this.exporting || e.ctrlKey || e.metaKey || e.altKey) return;
+      const t = e.target instanceof Element ? e.target : document.body;
+      if (t.closest("select, textarea, [contenteditable], input[type=radio], input[type=text], input[type=number], input[type=range]:not(#emb-depth)")) return;
+      if (e.key === " ") { if (t.closest("input, button, summary, a")) return; e.preventDefault(); this.togglePlay(); }
+      else if (e.key === "ArrowRight" || e.key === "ArrowLeft") { e.preventDefault(); this.stepSite(e.key === "ArrowRight" ? 1 : -1); }
     });
+    window.addEventListener("scroll", () => { $("emb-tip").style.display = "none"; }, { passive: true });
     let rz; window.addEventListener("resize", () => { clearTimeout(rz); rz = setTimeout(() => this.layout(), 120); });
+  }
+  togglePlay() {
+    const st = this.st;
+    if (this.playing) return this.stop();
+    if (st.depth >= this.ref().sites.length - 1) st.depth = 0;
+    this.playing = true; this.lastT = 0; $("emb-play").textContent = "❚❚ Pause"; $("emb-play").setAttribute("aria-label", "Pause"); requestAnimationFrame(t => this.tick(t));
+  }
+  stepSite(dir) {
+    this.stop(); const L = this.ref().sites.length, s = this.st.depth;
+    this.st.depth = Math.max(0, Math.min(L - 1, dir > 0 ? Math.floor(s + 1e-6) + 1 : Math.ceil(s - 1e-6) - 1));
+    $("emb-depth").value = this.st.depth; this.legend(); this.draw(); this.saveHash();
   }
   clamp() {
     const st = this.st, ref = this.ref();
@@ -353,6 +413,18 @@ export class DepthEmbedding {
   }
   async applyParams(h) {
     await this.ready; if (!this.nets?.length) return;
+    // a link opened mid-export waits for the export to end (finish, cancel or error). Then only the newest waiting
+    // request proceeds, and it applies the hash that is current at that moment, not the one it was called with:
+    // Back/Forward during the export may have moved the address bar since (and if it now shows the state already on
+    // screen, lastHash, there is nothing to apply)
+    if (this.exporting) {
+      const tok = this.queuedTok = (this.queuedTok || 0) + 1;
+      await this.exportDone;
+      if (tok !== this.queuedTok || document.body.dataset.tab !== "embedding" || location.hash === this.lastHash) return;
+      const raw = decodeURIComponent(location.hash.slice(1)), qi = raw.indexOf("?");
+      if (raw.slice(0, qi < 0 ? raw.length : qi) !== "embedding" || qi < 0) return;
+      h = new URLSearchParams(raw.slice(qi + 1));
+    }
     const st = this.st, num = (k, d) => h.has(k) && isFinite(+h.get(k)) ? +h.get(k) : d;
     if (["modes", "pca", "umap"].includes(h.get("m"))) st.method = h.get("m");
     if (SEBA_R.includes(+h.get("r"))) st.r = +h.get("r");
@@ -617,28 +689,54 @@ export class DepthEmbedding {
     }
     this.legend();
   }
+  // the legend is rebuilt on every change (depth, colouring, toggles); keyboard focus is carried across by item key
   legend() {
-    const el = $("emb-legend"); el.innerHTML = ""; if (!this.refD) return;
+    const el = $("emb-legend"), a = document.activeElement, fk = a && el.contains(a) ? a.dataset.key : null;
+    this.buildLegend();
+    if (fk) (el.querySelector(`[data-key="${CSS.escape(fk)}"]`) || el.querySelector("button"))?.focus({ preventScroll: true });
+  }
+  buildLegend() {
+    const el = $("emb-legend"), hint = $("emb-leghint"); el.innerHTML = ""; hint.textContent = ""; if (!this.refD) return;
+    const item = (sw, text, pressedOff, title, key) => {
+      const b = document.createElement("button"); b.type = "button"; b.className = "emb-leg"; b.title = title; b.dataset.key = key;
+      b.append(sw, text); if (pressedOff) b.classList.add("off"); el.append(b); return b;
+    };
+    // groups hidden with Alt-click stay hidden in every layout, so say so (and offer to show them) wherever they are in effect
+    const showHidden = () => {
+      if (!this.hidden.size) return;
+      const b = document.createElement("button"); b.type = "button"; b.className = "emb-leg emb-showhidden"; b.dataset.key = "showhidden";
+      b.textContent = `${this.hidden.size} colour group${this.hidden.size > 1 ? "s" : ""} hidden · show all`;
+      b.onclick = () => { this.hidden.clear(); this.legend(); this.drawAll(); };
+      el.append(b);
+    };
+    const dot = c => { const i = document.createElement("i"); i.style.background = c; return i; };
+    const mute = t => Object.assign(document.createElement("span"), { textContent: t, className: "emb-legnote" });
     if (this.overlayOn()) {
-      const row = document.createElement("div"); row.className = "emb-netleg";
+      const row = document.createElement("div"); row.className = "emb-netleg"; el.append(row);
+      const byNet = this.st.ocol === "net" && this.st.show !== "centroids";
       this.panels.forEach((d, k) => {
         if (d.missing) return;
-        const s = document.createElement("span"), cv = document.createElement("canvas"); cv.width = cv.height = 14;
-        const g = cv.getContext("2d"), byNet = this.st.ocol === "net" && this.st.show !== "centroids";
+        const cv = document.createElement("canvas"); cv.width = cv.height = 14;
+        const g = cv.getContext("2d");
         g.fillStyle = byNet ? rgba(this.netColour(k), 1) : "#6b6b70"; mark(g, k, 7, 7, 5); g.fill();
-        s.append(cv, ` ${d.net.label}${d === this.refD ? " (reference)" : ""}`); s.title = "click: hide or show this network";
-        if (this.hiddenNets.has(d.net.id)) s.classList.add("off");
-        s.onclick = () => { this.hiddenNets.has(d.net.id) ? this.hiddenNets.delete(d.net.id) : this.hiddenNets.add(d.net.id); this.legend(); this.draw(); };
-        row.append(s);
+        const b = item(cv, ` ${d.net.label}${d === this.refD ? " (reference)" : ""}`, this.hiddenNets.has(d.net.id), "click: hide or show this network", `net:${d.net.id}`);
+        b.setAttribute("aria-pressed", String(!this.hiddenNets.has(d.net.id)));
+        b.onclick = () => { this.hiddenNets.has(d.net.id) ? this.hiddenNets.delete(d.net.id) : this.hiddenNets.add(d.net.id); this.legend(); this.draw(); };
+        row.append(b);
       });
-      el.append(row);
-      if (this.st.ocol === "net" && this.st.show !== "centroids") return;
+      hint.textContent = "Shapes mark networks; click a network to hide or show it.";
+      if (byNet) { showHidden(); return; }
       if (this.st.show === "centroids") {      // centroids are always coloured by class
-        for (const [j, n] of this.m.classes.entries()) { const sp = document.createElement("span"), i = document.createElement("i"); i.style.background = this.pal.classes[j]; sp.append(i, n); el.append(sp); }
-        return;
+        for (const [j, n] of this.m.classes.entries()) {
+          const s = document.createElement("span"); s.className = "emb-leg static"; s.append(dot(this.pal.classes[j]), n);
+          if (this.st.color === "class" && this.hidden.has(j)) s.classList.add("off");
+          el.append(s);
+        }
+        hint.textContent += " Class centroids: colour = CIFAR class (labels used for display only).";
+        showHidden(); return;
       }
     }
-    const p = this.plane(), refD = this.refD, mute = t => Object.assign(document.createElement("em"), { textContent: t, className: "emb-hint" });
+    const p = this.plane(), refD = this.refD;
     let items = [];
     if (this.st.color === "class") items = this.m.classes.map((n, j) => ({ j, n, c: this.pal.classes[j] }));
     else if (this.isSeba()) {
@@ -646,53 +744,60 @@ export class DepthEmbedding {
       if (!S) { el.append(mute(refD.seba?.error && refD.seba.key === this.sebaKey(refD) ? `SEBA: ${refD.seba.error}` : "computing SEBA sets…")); return; }
       const seen = new Map(); for (let i = 0; i < this.N; i++) { const g = S.lab[l * this.N + i]; seen.set(g, (seen.get(g) || 0) + 1); }
       items = [...seen.keys()].sort((a, b) => a - b).map(j => ({ j, n: j < 0 ? `unassigned (${seen.get(j)})` : `set ${j + 1} (${seen.get(j)})`, c: j < 0 ? this.pal.unassigned : `rgb(${this.setPal(j).join(",")})` }));
-      el.append(mute(`SEBA sets through depth (r = ${S.r}, ${S.iters} iterations${S.converged ? "" : ", NOT converged"}), ${refD.net.short || refD.net.label} at ${refD.net.sites[l]}${this.panels.length > 1 ? "; other networks' sets are matched one-to-one to the reference's by overlap, greedily (a set may get its second choice, or a colour of its own)" : ""}:`));
+      el.append(mute(`SEBA sets through depth, a post-hoc readout (r = ${S.r}, ${S.iters} iterations${S.converged ? "" : ", NOT converged"}), ${refD.net.short || refD.net.label} at ${refD.net.sites[l]}${this.otherLoaded().length ? "; other networks' sets are matched one-to-one to the reference's by overlap, greedily (a set may get its second choice, or a colour of its own)" : ""}:`));
     }
     else if (p >= 0) {
       const l = Math.round(this.st.depth), seen = new Map();
       for (let i = 0; i < this.N; i++) { const g = this.setLabel(refD, p, l, i); seen.set(g, (seen.get(g) || 0) + 1); }
       items = [...seen.keys()].sort((a, b) => a - b).map(j => ({ j, n: j < 0 ? `no label (${seen.get(j)})` : `set ${j + 1} (${seen.get(j)})`, c: j < 0 ? this.pal.unassigned : `rgb(${this.setPal(j).join(",")})` }));
       el.append(mute(`post-hoc k-means sets of the rank-8 readout (fixed, whatever K is plotted), ${refD.net.short || refD.net.label} at ${refD.net.sites[l]}; set numbers are per network and per site:`));
-    } else { el.append(mute(`colour = direction and distance from the centre in ${refD.net.label} at ${refD.net.sites[this.st.anchor]}, in the x/y axes. Watch which colours stay together, in each network.`)); return; }
+    } else {
+      const sw = document.createElement("i"); sw.className = "emb-wheel";
+      const s = document.createElement("span"); s.className = "emb-leg static";
+      s.append(sw, `colour = direction and distance from the centre in ${refD.net.label} at ${refD.net.sites[this.st.anchor]}, in the x/y axes. Watch which colours stay together, in each network.`);
+      el.append(s); showHidden(); return;
+    }
     for (const it of items) {
-      const s = document.createElement("span"), i = document.createElement("i");
-      i.style.background = it.c; s.append(i, it.n); s.title = "click: select this group (shift adds); alt-click: hide or show";
-      if (this.hidden.has(it.j)) s.classList.add("off");
-      s.onclick = e => {
-        if (e.altKey) { this.hidden.has(it.j) ? this.hidden.delete(it.j) : this.hidden.add(it.j); this.legend(); this.drawAll(); return; }
+      const b = item(dot(it.c), it.n, this.hidden.has(it.j), "click: select this group (shift adds); alt-click: hide or show", `grp:${it.j}`);
+      const toggleHide = () => { this.hidden.has(it.j) ? this.hidden.delete(it.j) : this.hidden.add(it.j); this.legend(); this.drawAll(); };
+      // keyboard: a click synthesised from Enter carries no modifier keys, so Alt+Enter is handled here
+      b.onkeydown = e => { if (e.altKey && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); toggleHide(); } };
+      b.onclick = e => {
+        if (e.altKey) { toggleHide(); return; }
         const grp = refD.colCache[Math.round(this.st.depth)].grp;
         if (!e.shiftKey) this.sel.fill(0);
         for (let k = 0; k < this.N; k++) if (grp[k] === it.j) this.sel[k] = 1;
         this.selChanged();
       };
-      el.append(s);
     }
+    hint.textContent += (hint.textContent ? " " : "") + "Legend: click an entry to select those images (Shift adds); Alt-click (or Alt+Enter) hides or shows it.";
+    showHidden();
   }
 
   // ------------------------------------------------ panels
   overlayOn() { return this.st.layout === "overlay" && this.panels.filter(d => !d.missing).length > 1; }
   renderPanels() {
     const wrap = $("emb-plots"), n = this.panels.length;
-    wrap.innerHTML = ""; wrap.dataset.n = n; this.ov = null;
+    wrap.innerHTML = ""; wrap.dataset.n = n; this.ov = null; delete wrap.dataset.ov;
     if (this.overlayOn()) {
       const fig = document.createElement("figure"); fig.className = "emb-panel";
       const cap = document.createElement("figcaption"), cv = document.createElement("canvas");
-      fig.append(cap, cv); wrap.append(fig); wrap.dataset.n = 1;
+      fig.append(cap, cv); wrap.append(fig); wrap.dataset.n = 1; wrap.dataset.ov = 1;
       this.ov = { overlay: true, fig, cap, cv };
       this.bindPlot(this.ov);
-      $("emb-strip-card").hidden = true; $("emb-dis-card").hidden = false; this.root.querySelector(".emb-multi").hidden = false;
+      $("emb-strip-card").hidden = true; $("emb-dis-card").hidden = false; $("emb-cmp").hidden = false;
       return;
     }
     for (const d of this.panels) {
       const fig = document.createElement("figure"); fig.className = "emb-panel";
       const cap = document.createElement("figcaption"), cv = document.createElement("canvas");
       fig.append(cap, cv); wrap.append(fig); d.fig = fig; d.cap = cap; d.cv = cv;
-      if (d.missing) { cv.hidden = true; cap.textContent = `${d.net.label}: ${d.error ? "failed to load" : "no data at this checkpoint or variant"}`; continue; }
+      if (d.missing) { cv.hidden = true; cap.textContent = `${d.net.label}: ${d.error ? "failed to load" : "no data at this checkpoint or variant"}; no comparison fit was run`; continue; }
       this.bindPlot(d);
     }
     const single = n === 1;
-    $("emb-strip-card").hidden = !single; $("emb-dis-card").hidden = single;
-    this.root.querySelector(".emb-multi").hidden = single;
+    $("emb-strip-card").hidden = !single; $("emb-dis-card").hidden = !this.otherLoaded().length;      // no chart when no comparison fit ran
+    $("emb-cmp").hidden = single;
     if (single) this.drawStripInit();
   }
   posOf(d) {          // fractional site of d at the current depth
@@ -746,7 +851,10 @@ export class DepthEmbedding {
     if (!this.refD || document.body.dataset.tab !== "embedding") return;
     if (this.ov) this.drawOverlay(); else for (const d of this.panels) if (!d.missing) this.drawPanel(d);
     const ref = this.refD.net, lc = Math.round(this.st.depth), s = this.st.depth;
-    $("emb-sitehead").textContent = Math.abs(s - lc) < 0.02 ? ref.sites[lc] : `${ref.sites[Math.floor(s)]} → ${ref.sites[Math.min(ref.sites.length - 1, Math.floor(s) + 1)]}`;
+    const near = Math.abs(s - lc) < 0.02, L = ref.sites.length;
+    $("emb-sitehead").textContent = near ? ref.sites[lc] : `${ref.sites[Math.floor(s)]} → ${ref.sites[Math.min(L - 1, Math.floor(s) + 1)]}`;
+    $("emb-sitesub").textContent = `site ${near ? lc + 1 : (s + 1).toFixed(1)} of ${L}${this.panels.length > 1 ? ` (${ref.short || ref.label})` : ""}`;
+    $("emb-depth").setAttribute("aria-valuetext", `${near ? ref.sites[lc] : $("emb-sitehead").textContent}, site ${lc + 1} of ${L}`);
     if (this.panels.length === 1) [...$("emb-strip").children].forEach((f, l) => f.classList.toggle("on", l === lc));
     this.drawOccCursor(); this.drawDisCursor(); if (this.isSeba()) this.drawSeba();
   }
@@ -787,10 +895,12 @@ export class DepthEmbedding {
     // caption: network, matched site, accuracy, fit quality
     const L = d.P.length, near = Math.abs(b - Math.round(b)) < 0.02;
     const site = near ? d.net.sites[Math.round(b)] : `${d.net.sites[Math.floor(b)]} → ${d.net.sites[Math.min(L - 1, Math.floor(b) + 1)]}`;
-    const extra = d === this.refD ? (this.panels.length > 1 ? " · reference" : "") : d.resid != null ? ` · residual ${d.resid.toFixed(2)}${d.svMin != null && d.svMin < 0.05 ? " (weak fit)" : ""}` : "";
+    const extra = d === this.refD ? (this.panels.length > 1 ? " · reference" : "") : d.resid != null ? ` · residual vs reference ${d.resid.toFixed(2)}${st.align ? "" : " (no rotation)"}${d.svMin != null && d.svMin < 0.05 ? " (weak fit)" : ""}` : "";
     const coup = d.unit && st.variant !== "paper" && d.net.fidx ? ` · t/t* = ${fmtFactor(this.m.spacetime.factors[d.net.fidx[this.cIdx(d)]])}` : "";
-    d.cap.title = `${d.net.label} · ${site}${d.net.acc != null ? ` · final acc ${(100 * d.net.acc).toFixed(1)}%` : ""}${coup}${extra}`;
-    d.cap.innerHTML = `<b>${d.net.label}</b> · ${site}<span class="emb-hint">${d.net.acc != null ? ` · final acc ${(100 * d.net.acc).toFixed(1)}%` : ""}${coup}${extra}</span>`;
+    const acc = d.net.acc != null ? `final acc ${(100 * d.net.acc).toFixed(1)}%` : "";
+    const cap = `<b>${d.net.label}</b> · ${site}<br><span class="emb-hint">${acc}${coup}${extra}</span>`;
+    d.cap.title = `${d.net.label} · ${site} · ${acc}${coup}${extra}`;
+    if (d.capHtml !== cap) { d.cap.innerHTML = cap; d.capHtml = cap; }
   }
   drawBox(g, d) { if (d.box) { g.strokeStyle = css("--accent"); g.setLineDash([4, 3]); g.strokeRect(Math.min(d.box.x0, d.box.x1), Math.min(d.box.y0, d.box.y1), Math.abs(d.box.x1 - d.box.x0), Math.abs(d.box.y1 - d.box.y0)); g.setLineDash([]); } }
   siteName(d) {
@@ -858,25 +968,53 @@ export class DepthEmbedding {
     this.drawBox(g, ov);
     const sites = mem.map(({ d }) => `${d.net.short || d.net.label} ${this.siteName(d)}`).join(" · ");
     const missing = this.panels.filter(d => d.missing).map(d => d.net.short || d.net.label);
-    ov.cap.title = sites;
-    ov.cap.innerHTML = `<b>All networks in one space</b> <span class="emb-hint">(${this.st.align ? "each rotated onto" : "no rotation; coordinates of"} ${this.refD.net.label}${st.align ? "" : " not comparable"}) · ${sites}${missing.length ? ` · no data: ${missing.join(", ")}` : ""}</span>`;
+    ov.cap.title = `${this.describe().overlayTitle}: ${sites}`;
+    const D = this.describe();
+    const cap = `<b>${D.overlayTitle}</b> <span class="emb-hint">(${D.overlaySub})</span><br><span class="emb-hint">${sites}${missing.length ? ` · no data: ${missing.join(", ")}` : ""}</span>`;
+    if (ov.capHtml !== cap) { ov.cap.innerHTML = cap; ov.capHtml = cap; }
   }
+  // 3D view angle, from the keyboard (arrow keys on a focused plot) or the Reset button; dragging sets it too
+  rotateBy(dyaw, dpitch) {
+    this.rot.yaw += dyaw; this.rot.pitch = Math.max(-1.5, Math.min(1.5, this.rot.pitch + dpitch));
+    this.draw(); if (this.panels.length === 1) this.drawStrip();
+  }
+  resetRotation() { this.rot = { yaw: 0.6, pitch: 0.35 }; this.draw(); if (this.panels.length === 1) this.drawStrip(); }
   bindPlot(d) {
     const cv = d.cv;
+    // focusable, so the 3D view can be rotated from the keyboard; the keys act only while the plot has focus, and only
+    // in 3D (in 2D the arrows keep stepping through depth)
+    cv.tabIndex = 0;
+    cv.setAttribute("aria-label", `${d.overlay ? "All shown networks in one plot" : d.net.label}: scatter plot of the probe images. In 3D, arrow keys rotate the view and R resets it.`);
+    cv.addEventListener("keydown", e => {
+      if (!this.st.three || e.ctrlKey || e.metaKey || e.altKey) return;
+      const step = e.shiftKey ? 0.35 : 0.12, k = e.key;
+      if (k === "ArrowLeft") this.rotateBy(-step, 0); else if (k === "ArrowRight") this.rotateBy(step, 0);
+      else if (k === "ArrowUp") this.rotateBy(0, -step); else if (k === "ArrowDown") this.rotateBy(0, step);
+      else if (k === "r" || k === "R" || k === "0" || k === "Home") this.resetRotation();
+      else return;
+      e.preventDefault(); e.stopPropagation();
+    });
     cv.addEventListener("pointerdown", e => {
+      $("emb-tip").style.display = "none";
+      // touch, unless "Swipe on plot: Select / rotate" is on: the page scrolls (CSS touch-action), a tap shows an image
+      if (e.pointerType === "touch" && !this.touchSel) { this.drag = { d, x: e.clientX, y: e.clientY, scroll: true, moved: false }; return; }
       const r = cv.getBoundingClientRect(); cv.setPointerCapture(e.pointerId);
       this.drag = { d, x: e.clientX, y: e.clientY, yaw: this.rot.yaw, pitch: this.rot.pitch, shift: e.shiftKey, moved: false };
       if (!this.st.three) d.box = { x0: e.clientX - r.left, y0: e.clientY - r.top, x1: e.clientX - r.left, y1: e.clientY - r.top };
     });
     cv.addEventListener("pointermove", e => {
       const dr = this.drag; if (!dr) return this.hover(d, e);
+      if (dr.scroll) { if (Math.abs(e.clientX - dr.x) + Math.abs(e.clientY - dr.y) > 8) dr.moved = true; return; }
       const r = cv.getBoundingClientRect();
       if (Math.abs(e.clientX - dr.x) + Math.abs(e.clientY - dr.y) > 3) dr.moved = true;
       if (this.st.three) { this.rot.yaw = dr.yaw + (e.clientX - dr.x) * 0.01; this.rot.pitch = Math.max(-1.5, Math.min(1.5, dr.pitch + (e.clientY - dr.y) * 0.01)); this.draw(); }
       else { d.box.x1 = e.clientX - r.left; d.box.y1 = e.clientY - r.top; d.overlay ? this.drawOverlay() : this.drawPanel(d); }
     });
-    const up = () => {
+    const up = e => {
       const dr = this.drag; if (!dr) return; this.drag = null;
+      if (dr.scroll) { if (!dr.moved && e.type === "pointerup") this.hover(d, e); return; }
+      // a tap (touch or pen, no drag) shows the nearest image, as hovering does with a mouse
+      if (!dr.moved && e.type === "pointerup" && e.pointerType !== "mouse" && !this.st.three) { d.box = null; this.draw(); this.hover(d, e); return; }
       if (!this.st.three && d.box && dr.moved) {
         const b = d.box, [x0, x1] = [Math.min(b.x0, b.x1), Math.max(b.x0, b.x1)], [y0, y1] = [Math.min(b.y0, b.y1), Math.max(b.y0, b.y1)];
         if (!dr.shift) this.sel.fill(0);
@@ -887,7 +1025,7 @@ export class DepthEmbedding {
       d.box = null; if (this.st.three && dr.moved && this.panels.length === 1) this.drawStrip(); this.draw();
     };
     cv.addEventListener("pointerup", up); cv.addEventListener("pointercancel", up);
-    cv.addEventListener("pointerleave", () => { $("emb-tip").style.display = "none"; });
+    cv.addEventListener("pointerleave", e => { if (e.pointerType === "mouse") $("emb-tip").style.display = "none"; });
   }
   hover(d0, e) {
     const tip = $("emb-tip"), r = d0.cv.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
@@ -903,7 +1041,7 @@ export class DepthEmbedding {
     txt.innerHTML = `<b>${this.m.classes[this.labels[best]]}</b> · image ${best}<br>${d.net.label}, ${d.net.sites[lc]}: row norm ${fmt(d.rowNorm[lc][best])}` + (setTxt ? `<br>${setTxt}` : "");
     tip.replaceChildren(cv, txt); tip.style.display = "flex";
     const host = $("emb-tip").offsetParent?.getBoundingClientRect() || { left: 0, top: 0, width: innerWidth };
-    tip.style.left = Math.min(host.width - 240, e.clientX - host.left + 14) + "px"; tip.style.top = (e.clientY - host.top + 14) + "px";
+    tip.style.left = Math.max(4, Math.min(host.width - 240, e.clientX - host.left + 14)) + "px"; tip.style.top = (e.clientY - host.top + 14) + "px";
   }
   selChanged() { this.nSel = this.sel.reduce((a, b) => a + b, 0); this.drawAll(); }
 
@@ -942,17 +1080,22 @@ export class DepthEmbedding {
   drawOcc() {
     if (!this.refD || document.body.dataset.tab !== "embedding") return;
     const cv = $("emb-occ"), { g, w, h } = this.fit(cv), o = this.occupancy() || new Float64Array(this.refD.net.sites.length), L = o.length, mx = Math.max(...o, 1e-9), pad = 8, mute = css("--mute"), sites = this.refD.net.sites;
-    g.fillStyle = css("--surface"); g.fillRect(0, 0, w, h); g.font = "10px system-ui, sans-serif"; g.textAlign = "center";
-    const every = Math.ceil(L / Math.max(1, Math.floor((w - 2 * pad) / 34)));
+    g.fillStyle = css("--surface"); g.fillRect(0, 0, w, h); g.font = "10px system-ui, sans-serif";
+    // site labels: first and last always, the rest wherever they fit without touching a neighbour
+    const bw = Math.max(3, Math.min(12, (w - 2 * pad) / L - 3)), X = l => pad + (w - 2 * pad) * l / Math.max(1, L - 1);
+    const span = l => { const tw = g.measureText(sites[l]).width, x = X(l); return l === 0 ? [Math.max(0, x - bw / 2), Math.max(0, x - bw / 2) + tw] : l === L - 1 ? [Math.min(w, x + bw / 2) - tw, Math.min(w, x + bw / 2)] : [x - tw / 2, x + tw / 2]; };
+    const lastL = span(L - 1)[0]; let right = -Infinity;
     for (let l = 0; l < L; l++) {
-      const x = pad + (w - 2 * pad) * l / Math.max(1, L - 1), bh = (h - 14) * o[l] / mx, bw = Math.max(3, Math.min(12, (w - 2 * pad) / L - 3));
+      const x = X(l), bh = (h - 14) * o[l] / mx;
       g.fillStyle = mute; g.globalAlpha = 0.45; g.fillRect(x - bw / 2, h - 12 - bh, bw, bh); g.globalAlpha = 1;
-      if (l % every === 0 || l === L - 1) g.fillText(sites[l], x, h - 2);
+      const [a0, a1] = span(l);
+      if (l === 0 || l === L - 1 || (a0 > right + 6 && a1 < lastL - 6)) { g.textAlign = "left"; g.fillText(sites[l], a0, h - 2); right = a1; }
     }
     g.textAlign = "left";
-    g.fillText(this.st.method === "modes" ? `${this.refD.net.label}: occupancy of the first ${this.st.K} modes per site (sums to ${this.st.K})`
-      : this.st.method === "pca" ? `${this.refD.net.label}: share of each site's variance in its first ${this.st.K} principal coordinates (max ${fmt(mx)})`
-      : `${this.refD.net.label}: UMAP per site (no per-site weights)`, 2, 10);
+    const K = this.st.K, net = this.refD.net.short || this.refD.net.label;
+    $("emb-occ-cap").textContent = this.st.method === "modes" ? `Bars: how much of the first ${K} modes lies at each site of ${net} (total ${K})`
+      : this.st.method === "pca" ? `Bars: share of each site's variance in its first ${K} principal coordinates (${net}; max ${fmt(mx)})`
+      : `${net}: UMAP per site (no per-site weights)`;
     this.occBase = g.getImageData(0, 0, cv.width, cv.height); this.drawOccCursor();
   }
   drawOccCursor() {
@@ -963,10 +1106,10 @@ export class DepthEmbedding {
   }
   netColour(j) { return hexRgb(this.pal.sets[j % this.pal.sets.length]); }
   drawDis() {
-    if (this.panels.length < 2 || !this.refD || document.body.dataset.tab !== "embedding") return;
-    $("emb-dis-what").textContent = this.st.align ? "after the Procrustes rotation" : "without rotation (each network's own coordinates)";
+    if (!this.otherLoaded().length || document.body.dataset.tab !== "embedding") return;
+    $("emb-dis-what").textContent = this.st.align ? "after the Procrustes rotation (a post-hoc fit)" : "without rotation (each network's own coordinates)";
     const cv = $("emb-dis"), { g, w, h } = this.fit(cv), sites = this.refD.net.sites, L = sites.length;
-    const padL = 34, padR = 150, padT = 8, padB = 18, others = this.panels.filter(d => !d.missing && d !== this.refD);
+    const padL = 34, padR = Math.min(150, Math.max(96, w * 0.3)), padT = 8, padB = 18, others = this.panels.filter(d => !d.missing && d !== this.refD);
     const ymax = Math.max(0.5, ...others.flatMap(d => d.dis.filter(v => v != null)));
     g.fillStyle = css("--surface"); g.fillRect(0, 0, w, h);
     const X = l => padL + (w - padL - padR) * l / Math.max(1, L - 1), Y = v => padT + (h - padT - padB) * (1 - v / ymax);
@@ -983,69 +1126,146 @@ export class DepthEmbedding {
     this.disBase = g.getImageData(0, 0, cv.width, cv.height); this.disGeom = { X }; this.drawDisCursor();
   }
   drawDisCursor() {
-    if (!this.disBase || this.panels.length < 2) return;
+    if (!this.disBase || !this.otherLoaded().length) return;
     const cv = $("emb-dis"), g = cv.getContext("2d"); g.putImageData(this.disBase, 0, 0);
     const x = this.disGeom.X(this.st.depth); g.strokeStyle = css("--accent"); g.lineWidth = 1.5; g.beginPath(); g.moveTo(x, 6); g.lineTo(x, cv.clientHeight - 16); g.stroke();
   }
+  // one plain-text description of the view, used by the key above the plots, the one-plot caption, the comparison
+  // help and the GIF header, so that all of them name the same fits (honest labelling: every post-hoc step in use)
+  describe() {
+    const st = this.st, d = this.refD, ref = d.net.label, refS = d.net.short || ref;
+    // claims about the comparison fits rest on the networks that loaded: recompute() fits only those
+    const others = this.otherLoaded(), multi = others.length > 0, nm = x => x.net.short || x.net.label;
+    const missing = this.panels.filter(x => x.missing).map(nm), why = st.method !== "modes" ? "this checkpoint" : "this checkpoint and variant";
+    const dm = st.dmode === "dtw" ? "DTW on subspace distance" : "fractional depth";
+    const base = st.method !== "modes", bname = st.method === "pca" ? "PCA" : "UMAP";
+    const kind = base ? `${bname} baseline: each site separately, chained along depth by Procrustes (a fit)` : `Through-depth modes (the construction), first ${st.K}`;
+    const noData = missing.length ? `no data at ${why} for ${missing.join(", ")}, so no fit was run for ${missing.length > 1 ? "them" : "it"}` : "";
+    const fits = !multi ? null : (st.align
+      ? `depths matched by ${dm}; ${others.map(nm).join(", ")} rotated onto ${ref} (Procrustes)`
+      : `depths matched by ${dm}. No rotation: each network is shown in its own coordinates, which are not comparable across networks`) + (noData ? `. ${noData[0].toUpperCase()}${noData.slice(1)}` : "");
+    const noFit = !multi && missing.length ? `no data at ${why} for ${missing.join(", ")}, so no depth matching or rotation was run` : null;
+    const overlayTitle = st.align ? "All networks in one space" : "Overlay of separate coordinate systems";
+    const overlaySub = st.align ? `each network rotated onto ${ref} by Procrustes, a post-hoc fit; depths matched by ${dm}, a post-hoc fit`
+      : `no rotation: each network in its own coordinates, so positions are not comparable across networks; depths matched by ${dm}, a post-hoc fit`;
+    const help = "Each network's operator is built on its own; nothing ties two networks together in the construction. " +
+      (!multi && missing.length ? `None of the networks chosen for comparison has data at ${why}, so no depth matching or rotation was run.`
+        : st.align ? "To show them together, depths are matched and each network is rotated onto the one chosen under Network (the reference). Both are post-hoc fits."
+        : "Depths are matched (a post-hoc fit). Rotation is off, so each network keeps its own coordinates and their positions cannot be compared directly.") +
+      (base ? ` The ${bname} baseline is also chained along depth by Procrustes within each network (a fit).` : "");
+    const ov = this.overlayOn(), sets = st.color.match(/^set(5|10)([as])$/);
+    let colour = ov && st.show === "centroids" ? "class centroids and their paths; colour = CIFAR class (labels used for display only); shape = network"
+      : ov && st.ocol === "net" ? "network (one colour and shape each)"
+      : st.color === "class" ? "CIFAR class (labels used for colour only)"
+      : st.color === "pos" ? `position in ${refS} at ${d.net.sites[st.anchor]}, in the x/y axes (hue = direction, depth of colour = distance)`
+      : st.color === "seba" ? `SEBA sets through depth, r = ${st.r} (a post-hoc readout of the modes${multi ? "; other networks' sets matched to the reference's by overlap" : ""})`
+      : sets ? `k-means sets, k = ${sets[1]}, ${sets[2] === "a" ? "shape-aligned" : "shared-coordinates"} readout (a post-hoc readout, per network and per site)` : st.color;
+    if (ov && st.show !== "centroids" && st.ocol !== "net") colour += "; shape = network";
+    if (this.hidden.size) colour += `; ${this.hidden.size} colour group${this.hidden.size > 1 ? "s" : ""} hidden`;
+    const hiddenNets = ov ? this.panels.filter(x => !x.missing && this.hiddenNets.has(x.net.id)).map(x => x.net.short || x.net.label) : [];
+    if (hiddenNets.length) colour += `; hidden: ${hiddenNets.join(", ")}`;
+    return { kind, fits, noFit, fitsBadge: st.align ? "Post-hoc fits" : "Post-hoc fit", overlayTitle, overlaySub, help, colour };
+  }
+  otherLoaded() { return this.refD ? this.panels.filter(x => !x.missing && x !== this.refD) : []; }
+  // what is plotted (prominent, above the plots; names every post-hoc fit in use) and the details line under them
   status() {
     if (!this.refD) return;
-    if (this.refD.base) {
-      const st = this.st, multi = this.panels.length > 1 ? ` · depth matched by ${st.dmode === "dtw" ? "DTW" : "fractional depth"}${st.align ? ", Procrustes onto the reference" : ""}` : "";
+    const st = this.st, d = this.refD, multi = this.panels.length > 1, ref = d.net.label;
+    const who = multi ? `reference ${ref}` : `${ref}${d.net.acc != null ? ` (final acc ${(100 * d.net.acc).toFixed(1)}%)` : ""}`;
+    const D = this.describe();
+    const fits = D.fits ? `<div class="emb-whatfit"><span class="emb-badge fit">${D.fitsBadge}</span> ${D.fits}</div>`
+      : D.noFit ? `<div class="emb-whatfit"><span class="emb-badge">No comparison fit</span> ${D.noFit}</div>` : "";
+    $("emb-cmp-help").textContent = D.help;
+    $("emb-selinfo").textContent = this.nSel ? `${this.nSel} selected` : "";
+    if (d.base) {
       $("emb-tlabel").textContent = "(not used by the baselines)";
-      $("emb-status").textContent = `step ${st.step.toLocaleString("en")} · BASELINE: ${st.method === "pca" ? `PCA, first ${st.K} principal coordinates of the centred cosine activations` : "UMAP (15 neighbours, min_dist 0.1) on the cosine distance"} at each site independently, chained along depth by Procrustes (a fit)${multi}`;
-      $("emb-selinfo").textContent = this.nSel ? `${this.nSel} selected` : "";
+      $("emb-what").innerHTML = `<div><span class="emb-badge base">Baseline</span> <b>${st.method === "pca" ? "PCA" : "UMAP"} at each site separately</b>, chained along depth by Procrustes (a fit) · ${who} · training step ${st.step.toLocaleString("en")}</div>${fits}`;
+      $("emb-status").textContent = st.method === "pca" ? `PCA: first ${st.K} principal coordinates of the centred cosine activations, at each site independently.` : "UMAP (15 neighbours, min_dist 0.1) on the cosine distance, at each site independently.";
       return;
     }
-    const st = this.st, d = this.refD, V = d.net.variants.find(v => v.id === st.variant), rec = d.summ.variants[st.variant], c = this.cIdx(d);
+    const V = d.net.variants.find(v => v.id === st.variant), rec = d.summ.variants[st.variant], c = this.cIdx(d);
     const S = this.m.spacetime, t = rec.t ? rec.t[c] : null;
     const paper = st.variant === "paper", fi = d.net.fidx ? d.net.fidx[c] : c, coup = paper ? "no coupling parameter" : `t/t* = ${fmtFactor(S.factors[fi])}`;
     const off = this.panels.filter(x => !x.missing && x.unit && x.net.fidx && x.net.fidx[this.cIdx(x)] !== st.c && st.variant !== "paper").map(x => x.net.short || x.net.label);
     $("emb-tlabel").textContent = paper ? "(not used by this variant)" : `t/t* = ${fmtFactor(S.factors[fi])} (${d.net.short || d.net.label}: t = ${fmt(t)})`;
     const vals = rec.vals[c].slice(0, st.K).map(x => fmt(x)).join(", ");
-    const multi = this.panels.length > 1 ? ` · depth matched by ${st.dmode === "dtw" ? "DTW" : "fractional depth"}${st.align ? ", Procrustes onto the reference" : ", no rotation (each network's own modes)"}` : "";
-    $("emb-status").textContent = `step ${st.step.toLocaleString("en")} · ${V.label} · ${coup} · ${d.net.label} eigenvalues 1–${st.K}: ${vals}${multi}` +
+    $("emb-what").innerHTML = `<div><span class="emb-badge">The construction</span> <b>Through-depth modes</b>, first ${st.K} · ${who} · training step ${st.step.toLocaleString("en")}</div>${fits}`;
+    $("emb-status").textContent = `${V.label} · ${coup} · ${d.net.label} eigenvalues 1–${st.K}: ${vals}` +
       (off.length ? ` · ${off.join(", ")}: only t/t* = 1 is shipped, shown instead` : "") +
       (this.flatPooled ? " · raw scale: the pooled spectrum is flat, so the axes are the raw modes" : "");
-    $("emb-selinfo").textContent = this.nSel ? `${this.nSel} selected` : "";
   }
   // ---- GIF export: the current view (all panels, or the overlay) swept from the first site to the last, with a
   // header naming the reference site and a legend; encoded in the browser with gifenc (vendor/gifenc, MIT)
+  // disable every control except the GIF button (which becomes Cancel), and show that the viewer is locked
+  lockForExport(on) {
+    this.root.classList.toggle("exporting", on);
+    for (const el of this.root.querySelectorAll("input, select, button")) {
+      if (el.id === "emb-gif" || el.id === "emb-jump" || el.id === "emb-back") continue;
+      if (on) { el.dataset.preLock = el.disabled ? "1" : "0"; el.disabled = true; }
+      else if (el.dataset.preLock != null) { el.disabled = el.dataset.preLock === "1"; delete el.dataset.preLock; }
+    }
+    $("emb-gif").textContent = on ? "Cancel" : "Save GIF";
+    $("emb-exportnote").hidden = !on;
+  }
   async exportGif() {
     if (this.exporting || !this.refD) return;
-    this.exporting = true; this.stop();
-    const btn = $("emb-gif"), info = $("emb-gifinfo"), st = this.st, saved = st.depth;
-    btn.disabled = true;
+    const info = $("emb-gifinfo");
+    // the colouring must be final before the header is written: wait out a pending load or SEBA solve
+    if (this.loading || (this.isSeba() && this.data.some(d => !d.missing && d.unit && !this.sebaReady(d)))) {
+      info.textContent = "Still loading or computing; try again in a moment."; return;
+    }
+    this.exporting = true; this.exportCancel = false; this.stop();
+    let done; this.exportDone = new Promise(r => { done = r; });
+    const btn = $("emb-gif"), st = this.st, saved = st.depth;
+    this.lockForExport(true);
+    const progress = t => { info.textContent = t; $("emb-exportnote").textContent = `Saving GIF: ${t} Controls are locked until it is saved (Cancel, under Save as GIF, stops it).`; };
     try {
       const { GIFEncoder, quantize, applyPalette } = await import("../vendor/gifenc/gifenc.esm.js");
       const W = +$("emb-gifw").value, perSite = +$("emb-gifspeed").value, L = this.refD.net.sites.length;
-      const cvs = this.ov ? [{ cv: this.ov.cv, title: "All networks in one space" }] : this.panels.filter(d => !d.missing).map(d => ({ cv: d.cv, d }));
+      const D = this.describe(), multi = this.panels.length > 1;
+      const cvs = this.ov ? [{ cv: this.ov.cv, title: D.overlayTitle }] : this.panels.filter(d => !d.missing).map(d => ({ cv: d.cv, d }));
+      // header text: what is plotted, every post-hoc fit in use, and what the colours are (the GIF travels without the page)
+      const wrap = (font, text, maxW) => {
+        g.font = font; const out = []; let line = "";
+        for (const w of text.split(" ")) { const t = line ? `${line} ${w}` : w; if (line && g.measureText(t).width > maxW) { out.push(line); line = w; } else line = t; }
+        if (line) out.push(line); return out;
+      };
       const cols = cvs.length === 1 ? 1 : cvs.length <= 4 ? 2 : 3, gap = 8, cellW = Math.floor((W - gap * (cols + 1)) / cols);
       const ar = cvs[0].cv.height / cvs[0].cv.width, cellH = Math.round(cellW * ar), capH = 18, rows = Math.ceil(cvs.length / cols);
-      const legend = this.gifLegend(), headH = 46, legH = legend.length ? 22 * Math.ceil(legend.length / Math.max(1, Math.floor(W / 120))) + 8 : 0;
+      const legend = this.gifLegend(), legH = legend.length ? 22 * Math.ceil(legend.length / Math.max(1, Math.floor(W / 120))) + 8 : 0;
+      const out = document.createElement("canvas"), g = out.getContext("2d", { willReadFrequently: true });
+      const small = "11px system-ui, sans-serif", tw = W - 2 * gap;
+      const notes = [...wrap(small, D.kind + ".", tw),
+        ...(D.fits ? wrap(small, `${D.fitsBadge}: ${D.fits}.`, tw) : []),
+        ...(D.noFit ? wrap(small, `No comparison fit: ${D.noFit}.`, tw) : []),
+        ...wrap(small, `Colour: ${D.colour}.`, tw)];
+      const trackY = 18 + 6 + 14 * notes.length + 12, headH = trackY + 20;
       const H = headH + rows * (cellH + capH + gap) + gap + legH + 16;
-      const out = document.createElement("canvas"); out.width = W; out.height = H;
-      const g = out.getContext("2d", { willReadFrequently: true });
+      out.width = W; out.height = H;
       const depths = []; for (let k = 0; k <= (L - 1) * perSite; k++) depths.push(k / perSite);
       const frames = [];
       for (let f = 0; f < depths.length; f++) {
         st.depth = depths[f]; $("emb-depth").value = st.depth; this.draw();
-        info.textContent = `rendering frame ${f + 1} of ${depths.length}…`;
+        if (this.exportCancel) throw new Error("cancelled");
+        if (document.body.dataset.tab !== "embedding") throw new Error("cancelled: the viewer was hidden");
+        progress(`rendering frame ${f + 1} of ${depths.length}…`);
         g.fillStyle = "#ffffff"; g.fillRect(0, 0, W, H);
         // header: reference site and a depth track
         const ref = this.refD.net, lc = Math.round(st.depth);
         g.fillStyle = "#16161a"; g.font = "600 15px system-ui, sans-serif"; g.textAlign = "left";
-        g.fillText(`${this.st.method === "modes" ? "Through-depth modes" : this.st.method.toUpperCase() + " baseline"} · step ${st.step.toLocaleString("en")} · ${ref.label}: ${ref.sites[lc]}`, gap, 18);
-        const x0 = gap + 4, x1 = W - gap - 4, y = 34; g.strokeStyle = "#d4d4d4"; g.lineWidth = 2; g.beginPath(); g.moveTo(x0, y); g.lineTo(x1, y); g.stroke();
+        g.fillText(`${this.st.method === "modes" ? "Through-depth modes" : (this.st.method === "pca" ? "PCA" : "UMAP") + " baseline"} · step ${st.step.toLocaleString("en")} · ${multi ? "reference " : ""}${ref.label}: ${ref.sites[lc]}`, gap, 18, tw);
+        g.font = small; g.fillStyle = "#4a4a50"; notes.forEach((t, k) => g.fillText(t, gap, 18 + 6 + 14 * (k + 1) - 3));
+        const x0 = gap + 4, x1 = W - gap - 4, y = trackY; g.strokeStyle = "#d4d4d4"; g.lineWidth = 2; g.beginPath(); g.moveTo(x0, y); g.lineTo(x1, y); g.stroke();
         g.font = "10px system-ui, sans-serif"; g.textAlign = "center";
         const every = Math.ceil(L / Math.max(1, Math.floor((x1 - x0) / 34)));
-        ref.sites.forEach((s2, l) => { const x = x0 + (x1 - x0) * l / Math.max(1, L - 1); g.fillStyle = Math.abs(l - st.depth) < 0.5 ? "#c2410c" : "#9a9aa0"; g.beginPath(); g.arc(x, y, 3, 0, 7); g.fill(); if (l % every === 0 || l === L - 1) g.fillText(s2, x, y + 11); });
+        ref.sites.forEach((s2, l) => { const x = x0 + (x1 - x0) * l / Math.max(1, L - 1); g.fillStyle = Math.abs(l - st.depth) < 0.5 ? "#c2410c" : "#9a9aa0"; g.beginPath(); g.arc(x, y, 3, 0, 7); g.fill(); if (l % every === 0 || l === L - 1) { g.textAlign = l === 0 ? "left" : l === L - 1 ? "right" : "center"; g.fillText(s2, l === 0 ? x0 - 4 : l === L - 1 ? x1 + 4 : x, y + 11); } });
         const xc = x0 + (x1 - x0) * st.depth / Math.max(1, L - 1); g.strokeStyle = "#c2410c"; g.beginPath(); g.arc(xc, y, 6, 0, 7); g.stroke();
         // panels
         g.textAlign = "left";
         cvs.forEach((c, j) => {
           const cx = gap + (j % cols) * (cellW + gap), cy = headH + Math.floor(j / cols) * (cellH + capH + gap);
           g.fillStyle = "#16161a"; g.font = "600 12px system-ui, sans-serif";
-          g.fillText(c.d ? `${c.d.net.label} · ${this.siteName(c.d)}` : c.title, cx, cy + 12, cellW);
+          g.fillText(c.d ? `${c.d.net.label}${multi && c.d === this.refD ? " (reference)" : ""} · ${this.siteName(c.d)}` : c.title, cx, cy + 12, cellW);
           g.drawImage(c.cv, cx, cy + capH, cellW, cellH);
         });
         // legend
@@ -1058,32 +1278,39 @@ export class DepthEmbedding {
         frames.push(g.getImageData(0, 0, W, H).data);
         await new Promise(r => requestAnimationFrame(r));
       }
-      info.textContent = "encoding…"; await new Promise(r => setTimeout(r, 0));
+      // encoding is interruptible too: Cancel (and leaving the tab) is checked before it starts and every few frames
+      const check = () => {
+        if (this.exportCancel) throw new Error("cancelled");
+        if (document.body.dataset.tab !== "embedding") throw new Error("cancelled: the viewer was hidden");
+      };
+      progress("encoding…"); await new Promise(r => setTimeout(r, 0)); check();
       // one palette for all frames (from a sample of them), so colours do not flicker
       const pick = [0, Math.floor(frames.length / 2), frames.length - 1], step = 4 * 7, sample = [];
       for (const k of pick) { const f = frames[k]; for (let i = 0; i < f.length; i += step) sample.push(f[i], f[i + 1], f[i + 2], f[i + 3]); }
       const palette = quantize(new Uint8Array(sample), 256), gif = GIFEncoder(), delay = Math.round(1000 / 12);
-      frames.forEach((f, k) => {
-        const idx = applyPalette(f, palette);
+      for (let k = 0; k < frames.length; k++) {
+        if (k % 6 === 0) { progress(`encoding frame ${k + 1} of ${frames.length}…`); await new Promise(r => setTimeout(r, 0)); check(); }
+        const idx = applyPalette(frames[k], palette);
         gif.writeFrame(idx, W, H, { palette: k ? undefined : palette, delay: k === 0 ? 800 : k === frames.length - 1 ? 2000 : delay });
-      });
+      }
+      check();
       gif.finish();
       const blob = new Blob([gif.bytes()], { type: "image/gif" }), a = document.createElement("a");
       a.href = URL.createObjectURL(blob); a.download = `depth-embedding_${this.st.method}_${this.refD.net.id}_${st.step}${this.ov ? "_overlay" : ""}.gif`;
       document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 60000);
       info.textContent = `saved ${a.download} (${(blob.size / 1e6).toFixed(1)} MB, ${frames.length} frames)`;
-    } catch (e) { console.error(e); info.textContent = "GIF export failed: " + e.message; }
-    finally { st.depth = saved; $("emb-depth").value = saved; this.draw(); btn.disabled = false; this.exporting = false; }
+    } catch (e) { if (e.message.startsWith("cancelled")) info.textContent = `GIF export ${e.message}.`; else { console.error(e); info.textContent = "GIF export failed: " + e.message; } }
+    finally { st.depth = saved; $("emb-depth").value = saved; this.exporting = false; this.lockForExport(false); this.syncControls(); this.draw(); btn.focus({ preventScroll: true }); done(); }
   }
   gifLegend() {
     const ovl = this.overlayOn(), shapes = ovl && !(this.st.ocol === "net" && this.st.show !== "centroids")
       ? this.panels.map((d, k) => d.missing || this.hiddenNets.has(d.net.id) ? null : { n: d.net.short || d.net.label, c: "#6b6b70", k }).filter(Boolean) : [];
-    if (ovl && this.st.show === "centroids") return [...shapes, ...this.m.classes.map((n, j) => ({ n, c: this.pal.classes[j] }))];
+    if (ovl && this.st.show === "centroids") return [...shapes, ...this.m.classes.map((n, j) => this.st.color === "class" && this.hidden.has(j) ? null : { n, c: this.pal.classes[j] }).filter(Boolean)];
     if (ovl && this.st.ocol === "net") return this.panels.map((d, k) => d.missing || this.hiddenNets.has(d.net.id) ? null : { n: d.net.short || d.net.label, c: rgba(this.netColour(k), 1), k }).filter(Boolean);
-    if (this.st.color === "class") return [...shapes, ...this.m.classes.map((n, j) => ({ n, c: this.pal.classes[j] }))];
+    if (this.st.color === "class") return [...shapes, ...this.m.classes.map((n, j) => this.hidden.has(j) ? null : { n, c: this.pal.classes[j] }).filter(Boolean)];
     return shapes;
   }
-  stop() { const was = this.playing; this.playing = false; $("emb-play").textContent = "▶ Play"; if (was) this.saveHash(); }
+  stop() { const was = this.playing; this.playing = false; $("emb-play").textContent = "▶ Play"; $("emb-play").setAttribute("aria-label", "Play through depth"); if (was) this.saveHash(); }
   tick(t) {
     if (!this.playing) return;
     const dt = this.lastT ? (t - this.lastT) / 1000 : 0; this.lastT = t;

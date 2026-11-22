@@ -3,3 +3,9 @@ build/
 __pycache__/
 .pytest_cache/
 runs/
+xp/out/
+xp/pages/
+xp/runs/
+invert/pages/
+invert/runs/
+wavelets/ref/
