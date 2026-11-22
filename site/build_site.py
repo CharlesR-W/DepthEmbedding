@@ -8,10 +8,12 @@ Reads (all under data/, which is not in git; see README.md):
   data/<tag>/spacetime/st_<step>_0.npz           its through-depth units (spacetime_modal.py)
   data/stnets/<net>/st_<step>_0.npz, info.json   the other networks' units (spacetime_nets_modal.py, spacetime_vgg_modal.py)
   data/stbase/<net>/{pca,umap}_<step>.npz        per-site PCA / UMAP baselines (baseline_embed_modal.py)
+  data/wavelets/joint_dw_<step>.{npz,json}       diffusion-wavelet scaling functions of the reference operator (wavelets/stage_joint_dw.py)
 and site/ sources. Writes build/site/ (deploy root, .nojekyll):
   d/meta.json     steps, sites, classes, palette, probe digests, and descriptions of d/st, d/stn, d/stb (js/embedding.js netList)
   d/labels.bin    i8 (N) CIFAR labels; d/sprite.webp: the 2,000 probe images, 50 per row
   d/st, d/stn/<net>, d/stb/<net>   see Builder.spacetime and Builder.stnets
+  d/stw/<net>                      see Builder.wavelets
 The export code is the Depth embedding part of CoherentModes' explore/cifar_coherent/site/build_site.py, unchanged in
 what it writes: d/st, d/stn and d/stb are byte-identical to that build's.
 """
@@ -43,6 +45,7 @@ ST_FORMAT = "st-v1"            # bump when d/st changes layout (SPEC_SPACETIME.m
 ST_RULE = 0                    # kernel rule 0 (kNN graph, k = 15) only
 STN_FSEL = (3,)                # couplings shipped for the other networks (index into the factors: t/t* = 1)
 STB_K = 16                     # PCA baseline dimensions shipped
+DW_STEP = 64000                # the wavelet view: reference network, final checkpoint (wavelets/SPEC_DW.md, "Viewer")
 ST_LOW = 0.01                  # slices holding less of their mode's squared norm are drawn grey (not a direction)
 
 
@@ -160,7 +163,7 @@ class Builder:
             self.steps, self.sites, self.modes, self.n = m["steps"], m["sites"], m["modes"], m["n"]
             self.S = len(self.sites)
         self.d = self.out / "d"
-        self.st_meta = self.stn_meta = None
+        self.st_meta = self.stn_meta = self.dw_meta = None
 
     def copy_static(self):
         for name in ["css", "js", "vendor"]:
@@ -376,6 +379,72 @@ class Builder:
                              "training": f"Trained on {train}: {detail}{aug}. Normalised by its own training-set channel statistics.",
                              "variants": [{"id": "own", "label": "relative site units", "C": 1}], "fidx": list(STN_FSEL)})
 
+    def wavelets(self):
+        """Diffusion-wavelet scaling functions of the reference network's own operator (L_t, scale own, t = t*, rule 0) at
+        step DW_STEP, from data/wavelets/joint_dw_<step>.{npz,json} (wavelets/stage_joint_dw.py) -> d/stw/r20s0/:
+          <step>_j<j>.bin.gz   i8 (L, S_j, N): value of scaling function s at site l, image i = q * scale[l][s] (raw values:
+                               the functions are unit-norm over all L x N entries; one int8 scale per (site, function))
+          <step>_dw.json.gz    per level: rank, shipped, cut-off, heat time, edge gap, scale (L, S_j), and per function its
+                               id, QR seed (pivot image and site), absolute peak, depth profile and 90%-mass support
+        Probe order is verified (the build fails on a mismatch). Skipped (with a log line) when the staged data are absent,
+        unless --strict."""
+        src = DATA / "wavelets" / f"joint_dw_{DW_STEP}"
+        out = self.d / "stw" / "r20s0"
+        shutil.rmtree(self.d / "stw", ignore_errors=True)
+        if not (src.with_suffix(".npz").exists() and src.with_suffix(".json").exists()):
+            if self.strict:
+                sys.exit(f"--strict: no {src}.npz/.json (run wavelets/modal_joint_dw.py run, then wavelets/stage_joint_dw.py stage)")
+            log("wavelets: no staged data/wavelets/joint_dw_*.npz: diffusion-wavelet view not built")
+            return
+        rec = json.loads(src.with_suffix(".json").read_text())
+        probe_idx = np.load(self.src / "probe.npz")["idx"]
+        g4 = lambda x: float(f"{float(x):.4g}")
+        with np.load(src.with_suffix(".npz")) as z:
+            if not np.array_equal(z["probe_idx"], probe_idx):
+                sys.exit(f"{src}.npz: probe order differs from {self.src / 'probe.npz'}")
+            with np.load(self.src / "spacetime" / f"st_{DW_STEP}_{ST_RULE}.npz") as st:
+                ship = st["vals"][0, 3][:rec["checks"]["ship"]["K"]]
+                if abs(float(st["t"][0, 3]) - float(z["t"])) > 1e-9 * float(z["t"]) or np.abs(z["vals"][:len(ship)] / ship - 1).max() > 1e-8:
+                    sys.exit(f"{src}.npz: operator differs from the shipped reference modes (t or eigenvalues)")
+            c = rec["checks"]
+            bad = [k for k, ok in (("accepted by the stage", rec.get("accepted") is True and not rec.get("rejected_because")),
+                                   ("inertia", c["inertia_ok"]), ("residual", c["resid_max"] < 1e-8), ("slice means", c["slice_mean_max"] < 1e-10),
+                                   ("orthonormality", c["orth_err"] < 1e-9), ("modes", c["ship"]["min_abs_cos_heavy"] > 0.9999)) if not ok]
+            for lv in rec["levels"]:      # the shipped functions themselves: orthonormal over all sites and images, positive at the seed
+                f = np.asarray(z[f"phi{lv['level']}"], np.float64).reshape(-1, lv["shipped"])
+                if np.abs(f.T @ f - np.eye(lv["shipped"])).max() > 1e-9:
+                    bad.append(f"level {lv['rank']}: shipped functions not orthonormal")
+                if not all(f[x["pivot_site"] * self.n + x["pivot_image"], i] > 0 for i, x in enumerate(lv["functions"])):
+                    bad.append(f"level {lv['rank']}: a function is not positive at its seed")
+            if bad:
+                sys.exit(f"{src}.json: stage checks failed: {bad}")
+            levels, size = [], 0
+            for lv in rec["levels"]:
+                j = lv["level"]
+                a = np.asarray(z[f"phi{j}"], np.float64).transpose(0, 2, 1)         # (L, S, N)
+                assert a.shape[0] == self.S and a.shape[2] == self.n and a.shape[1] == lv["shipped"], a.shape
+                sc = np.abs(a).max(2) / 127.0; sc[sc == 0] = 1.0
+                q = np.clip(np.round(a / sc[:, :, None]), -127, 127).astype(np.int8)
+                assert np.abs(q * sc[:, :, None] - a).max() <= 0.5001 * sc.max(), "quantisation error above half a step"
+                gz = gzip.compress(q.tobytes(), compresslevel=6, mtime=0)
+                write(out / f"{DW_STEP}_j{j}.bin.gz", gz); size += len(gz)
+                fns = [{"id": f["id"], "seed_site": f["pivot_site"], "seed_image": f["pivot_image"], "seed_cifar": f["pivot_cifar"],
+                        "peak_site": f["peak_site"], "peak_image": f["peak_image"], "profile": [g4(x) for x in f["profile"]],
+                        "n90": f["n90"]} for f in lv["functions"]]
+                levels.append({"j": j, "target": lv["target"], "rank": lv["rank"], "shipped": lv["shipped"], "mu_c": g4(lv["mu_c"]),
+                               "t": g4(lv["t"]), "mu_last": g4(lv["mu_last"]), "mu_next": g4(lv["mu_next"]),
+                               "rel_gap": g4(lv["rel_gap"]), "scale": [[float(f"{x:.6g}") for x in row] for row in sc], "functions": fns})
+        body = {"step": DW_STEP, "levels": levels}
+        gz = gzip.compress(json.dumps(body, separators=(",", ":"), allow_nan=False).encode(), compresslevel=9, mtime=0)
+        write(out / f"{DW_STEP}_dw.json.gz", gz); size += len(gz)
+        op = rec["operator"]
+        self.dw_meta = {"nets": {"r20s0": {"root": "d/stw/r20s0", "step": DW_STEP,
+                                           "levels": [{k: lv[k] for k in ("j", "target", "rank", "shipped", "mu_c", "t")} for lv in levels]}},
+                        "tstar": g4(op["t_star"]), "ship": rec["ship"], "k_solved": op["k_solved"],
+                        "quant": "int8 per (site, function): value = q * scale[l][s]; functions unit-norm over all sites and images",
+                        "gz_bytes": size}
+        log(f"wavelets: {len(levels)} levels (ranks {', '.join(str(lv['rank']) for lv in levels)}), {size / 1e6:.2f} MB gzipped")
+
     # ------------------------------------------------------------------ meta + html
     def write_meta(self):
         acc = [None] * len(self.steps)
@@ -385,6 +454,7 @@ class Builder:
             acc = [by.get(s, {}).get("val_acc") for s in self.steps]
         meta = {"tag": self.tag, "steps": self.steps, "sites": self.sites, "n": self.n, "classes": self.meta["classes"],
                 "spacetime": self.st_meta, **({"stnets": self.stn_meta} if self.stn_meta else {}),
+                **({"wavelets": self.dw_meta} if self.dw_meta else {}),
                 "val_acc": acc, "sprite_cols": self.sprite_cols, "palette": self.palette,
                 "probe_ids_sha256": self.probe_ids_sha256, "probe_labels_sha256": self.probe_labels_sha256}
         write(self.d / "meta.json", json.dumps(meta, separators=(",", ":"), allow_nan=False).encode())
@@ -417,6 +487,7 @@ class Builder:
             if not self.st_meta:
                 sys.exit("no through-depth data for the reference network: nothing to show")
             self.stnets()
+            self.wavelets()
             self.write_meta()
         build_x.build_experiments(self)
         for folder in ("css", "vendor", "assets"):

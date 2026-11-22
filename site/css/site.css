@@ -219,6 +219,14 @@ body.emb-rot .emb-panel canvas { cursor: grab; }
 .emb-seg input:checked + span { background: var(--surface); color: var(--fg); font-weight: 600; box-shadow: 0 1px 2px rgba(0, 0, 0, .08), 0 0 0 1px rgba(0, 0, 0, .04); }
 .emb-seg input:focus-visible + span { outline: 2px solid var(--focus); outline-offset: 1px; }
 .emb-axes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.emb-dwcount { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.emb-dwcount > div { background: var(--wash); border-radius: 6px; padding: 4px 8px; display: grid; line-height: 1.25; }
+.emb-dwcount b { font-size: 16px; font-variant-numeric: tabular-nums; color: var(--fg); }
+.emb-dwcount span { font-size: 11px; color: var(--mute); }
+.emb-dwaxes { display: grid; gap: 6px; }
+.emb-dwax { display: grid; grid-template-columns: 32px minmax(0, 1fr); gap: 8px; align-items: end; }
+.emb-dwax canvas { width: 32px; height: 32px; image-rendering: pixelated; border-radius: 3px; background: var(--wash); }
+.emb-dwax canvas.off { visibility: hidden; }
 .emb-more > summary { cursor: pointer; font-size: 13px; font-weight: 600; color: var(--fg); }
 .emb-more[open] > summary { margin-bottom: 4px; }
 .emb-more > :not(summary) { margin-top: 8px; }

@@ -1,0 +1,361 @@
+{
+ "_readme": "All prose of invert/pages_ddm/ddm.html, read by invert/build_ddm_page.py. Keys: page, banner, legend (decoder labels), tabs, one block per tab, fig.<id>.{title,caption}. HTML allowed; math as $...$ (inline) or in the 'tex' fields (display). No placeholders: every number here is typed text from invert/NOTES_DDM.md. Plot-internal labels (axis titles, units) live in the builder.",
+ "page": {
+  "kicker": "DepthEmbedding · experiment notebook",
+  "title": "Double diffusion maps as the inverse of the depth embedding",
+  "subtitle": "Does the double-diffusion-map lift (Evangelou et al., J. Comput. Phys. 2023) map a point of the diffusion embedding back to the activation at that site better than kernel ridge, in three senses: reconstruction, re-embedding where it was asked to, and preserving what the network computes? And which of the method's premises hold here?",
+  "status": "EXPLORATORY | one network · one checkpoint · one probe draw | uncertainty over held-out images only",
+  "footer": "Built {today} from data/invert/ddm_results.json (written {built}). Data are embedded in this file; figures draw in the browser (Plotly), math by MathJax (both loaded from a CDN). Source: invert/build_ddm_page.py; prose: invert/ddm_page_text.json; spec: invert/SPEC_DDM.md; notes: invert/NOTES_DDM.md. Previous page in this series: invert/pages/invert.html."
+ },
+ "banner": {
+  "label": "Network, sites and how to read every figure",
+  "facts": "<b>resnet20-relu-seed0</b> · CIFAR-10 · step 64,000 · test accuracy 91.56%. Probe <code>P8</code> = 8,000 CIFAR-10 test images; held-out set <code>H</code> = 2,000 others; first-stage kernel <code>pr400</code> (participation-ratio Sinkhorn walk on cosine distance); joint modes <code>P8__pr400__L12</code>. Twelve sites, marked in red below.",
+  "caption": "Boxes give channels × spatial size; green arcs are the residual shortcuts; red ticks mark where each site is read. \"Conv sites\" on this page are b1 to b8.",
+  "defs": "<b>Cosine</b>: between the true centred activation and the decode, mean over <code>H</code> (bars ±2 s.e.). <b>Captured share</b>: $1-\\|x-\\hat x\\|^2/\\|x\\|^2$, median over <code>H</code>. <b>Agreement</b>: share of <code>H</code> whose top-1 class is unchanged when the decode is patched in at the site. <b>Miss</b> (round trip): squared error in units of each coordinate's variance over <code>H</code>, median over images; returning zero scores 1, another image's coordinates 2. <b>m</b>: latent harmonics kept, of $n$ = 8,000. <b>h</b>: second-kernel width in units of the median 15-nearest-neighbour distance between latent points. <b>K</b>: number of first-stage coordinates.",
+  "key_hue": "Hue = decoder family",
+  "key_dash": "Line style = variant"
+ },
+ "legend": {
+  "lh": "cut-off lift, GCV (lh)",
+  "lhlin": "cut-off lift + linear trend, GCV (lhlin)",
+  "lh_split": "cut-off lift, inner-split rule (lh_split)",
+  "lh_fsplit": "cut-off lift, chosen for function (lh_fsplit)",
+  "kr": "kernel ridge, GCV (kr)",
+  "krlin": "kernel ridge + linear trend, GCV (krlin)",
+  "krr": "kernel ridge + trend, previous session's rule (krr)",
+  "linear": "linear",
+  "nn1": "nearest probe activation (nn1)",
+  "nn15": "mean of 15 nearest (nn15)",
+  "nn1+krr": "nn1 moved by the krr difference (nn1+krr)",
+  "ref": "one kernel step (sees the activation)",
+  "mlp": "trained MLP (previous session)",
+  "family": {
+   "lift": "cut-off lift (double diffusion)",
+   "ridge": "kernel ridge",
+   "linear": "linear",
+   "nn": "nearest-neighbour family",
+   "ref": "references"
+  },
+  "dash": {
+   "solid": "GCV rule, no trend",
+   "dash": "with linear trend",
+   "dot": "inner-split rule",
+   "dashdot": "chosen for function"
+  }
+ },
+ "tabs": {
+  "overview": "Overview",
+  "matched": "Cut-off vs ridge",
+  "function": "Reconstruction vs function",
+  "coords": "Coordinate systems",
+  "premise": "Is the premise true?",
+  "roundtrip": "Round trips",
+  "next": "What to use, what next"
+ },
+ "controls": {
+  "coords": "Coordinates",
+  "K": "K",
+  "cell": "Cell",
+  "site": "Site",
+  "path": "Path",
+  "decoder": "Decoder",
+  "stat": "Statistic",
+  "arm": "Predictor"
+ },
+ "overview": {
+  "h_question": "The question",
+  "question": [
+   "The viewer shows each image as a point of the joint through-depth diffusion embedding. This page asks whether the double-diffusion-map lift maps such a point back to the activation at that site better than what <code>invert/</code> already had (kernel ridge on the joint coordinates), in three separate senses: (a) reconstruction, (b) the decode re-embeds where it was asked to, (c) the decode preserves what the network computes. And which of the method's premises hold here?",
+   "What already existed: the previous session's <code>gh</code> decoder was the paper's lifting step alone (Gaussian kernel on the K joint coordinates, spectral cut-off, Nyström), with $(h, \\delta)$ on a coarse grid whose edges were selected at most sites, scored by reconstruction only. This session adds the selection of non-harmonic coordinates, the restriction, a cut-off rule with no tuning split, a matched comparison against ridge, and measurements of function and of the round trip."
+  ],
+  "h_method": "The method in four steps",
+  "method_intro": "An adaptation of Evangelou et al. (2023), not a replication: the paper's first stage is an ordinary Gaussian diffusion map with coordinates picked by eye; ours is this repo's participation-ratio Sinkhorn walk on cosine distance.",
+  "steps": [
+   {
+    "name": "1 · First stage: three coordinate systems at site $l$",
+    "html": "<b>joint</b>: slices $f_k(\\cdot, l)$ of the joint through-depth modes (the embedding the viewer shows; not a function of the site's activation alone). <b>source</b>: $s = p_l(x)\\cdot f_l$, one kernel step of the slices, a function of the site's activation. <b>site</b>: eigenvectors $\\phi_k$ of the site's own walk $P_l$, unit variance, constant removed, extended to a new image by Nyström, $\\phi_k(x) = p_l(x)\\cdot\\phi_k/\\lambda_k$ (the paper's setting); variant <code>site-t1</code> uses $\\lambda_k\\phi_k$."
+   },
+   {
+    "name": "2 · Non-harmonic selection (Dsilva et al. 2018)",
+    "html": "Leave-one-out local linear regression of coordinate $k$ on coordinates $1..k-1$, Gaussian weights of scale (median distance)/3, residual $r_k$, at 1,000 anchors; reported for the first 64 coordinates. Variant <code>*-llr16</code>: the 16 of the first 64 with the largest $r_k$."
+   },
+   {
+    "name": "3 · Second stage (latent harmonics) and the lift",
+    "html": "A Gaussian kernel $K^*_{ij} = \\exp(-|z_i - z_j|^2 / 2h^2)$ on the chosen coordinates of the $n$ = 8,000 probe images, eigenpairs $(\\sigma_j, \\psi_j)$, and the lift of the centred probe activations $X_c$ to a new point $z$:",
+    "tex": "\\boxed{\\;\\hat x(z) \\;=\\; \\bar x \\;+\\; \\sum_{j\\le m} \\sigma_j^{-1}\\,\\big(k^*(z)\\cdot\\psi_j\\big)\\,\\langle \\psi_j, X_c\\rangle\\;}",
+    "where": "where $k^*(z)_i = \\exp(-|z - z_i|^2/2h^2)$ is the new point's kernel row and $m$ the number of latent harmonics kept (the spectral cut-off). The paper cuts off by count (300 of about 2,800 and 400 of about 3,800 points) and gives no rule for $h$ or $m$; here both are chosen by generalised cross-validation (Cut-off vs ridge tab)."
+   },
+   {
+    "name": "4 · Restriction",
+    "html": "The first stage's out-of-sample row of the decoded activation, $p_l(\\hat x)$, then the coordinate formula of step 1 (Round trips tab)."
+   }
+  ],
+  "h_findings": "Findings",
+  "findings": [
+   {
+    "head": "As a reconstruction, the lift is second to kernel ridge on the joint coordinates; the matched comparison points at the hard cut-off.",
+    "body": "Same kernel, same width grid, same rule (generalised cross-validation, GCV): on the joint coordinates the spectral cut-off trails ridge in cosine at every site and K. The gap is 0.003-0.009 at K = 16, 0.013-0.025 in conv sites at K = 64 (0.004-0.016 elsewhere) and 0.005-0.027 at K = 256; paired standard errors are below 0.001. Adding a linear trend to either changes cosine by at most 0.005 there, so the trend that the old <code>krr</code> had and <code>gh</code> lacked is not what separates them. b4, K = 64: linear 0.488, cut-off 0.496, ridge 0.515. (In the single-site coordinate systems the ordering holds almost everywhere; <code>site|4</code> at b9 and logits slightly favours the cut-off.)",
+    "tab": "matched"
+   },
+   {
+    "head": "GCV was competitive with the tuning split, with no split.",
+    "body": "On the joint cells the GCV cut-off is within 0.006 of the best grid point on <code>H</code> at every site and K, and between 0.003 below and 0.019 above the inner-split rule, which usually keeps fewer harmonics. For ridge, GCV and the old inner-split <code>krr</code> agree within 0.007. Outside the joint cells the shortfall from the grid maximum reaches 0.025 (<code>source|16</code>, pool). GCV is undefined at interpolation; the first version selected it there and was fixed.",
+    "tab": "matched"
+   },
+   {
+    "head": "The cut-off that reconstructs best is not the one that functions best.",
+    "body": "On the joint coordinates at K = 64, cosine peaks at about 200-300 of 8,000 harmonics in b3-b6 (about 500 in b7-b8), while agreement keeps rising well past that and peaks short of, or at, full rank (table). The same happens along the ridge (b4, h = 4: ridge 10⁻⁵ gives cosine 0.38, agreement 0.73), so it is the amount of regularisation, not cut-off against ridge. A reconstruction-optimal decode has about half the true norm in b3-b8; with less regularisation the norm, the agreement and (at b3-b6) the joint re-embedding all improve. My reading, not separately measured: the reconstruction optimum is a blurred conditional mean and the high-rank lift moves towards real nearby probe activations. The paper's own examples keep 300-400 harmonics of about 3,000 points, proportionally more than our reconstruction optimum. Size of the effect at K = 64, agreement at the cosine-best point of the cut-off sweep against the best in the sweep: b2 0.15 / 0.58, b3 0.23 / 0.70, b4 0.37 / 0.75, b5 0.73 / 0.84, b6 0.76 / 0.87, b7 0.89 / 0.91; no gain at b8; at b9, pool and logits the agreement-best point has lower rank than the cosine-best one (pool 0.98 against 0.91). These maxima are read off <code>H</code>, so they describe the trade-off; they are not a held-out score.",
+    "tab": "function",
+    "table": "<table class=\"doc ftab\"><tr><th>b4, K = 64, h = 4</th><th>m = 256</th><th>m = 1,024</th><th>m = 2,048</th><th>m = 4,096</th><th>m = 8,000</th></tr><tr><td>cosine</td><td class=num>0.50</td><td class=num>0.48</td><td class=num>0.45</td><td class=num>0.41</td><td class=num>0.30</td></tr><tr><td>agreement</td><td class=num>0.37</td><td class=num>0.53</td><td class=num>0.66</td><td class=num>0.72</td><td class=num>0.59</td></tr><tr><td>decoded norm / true norm (median)</td><td class=num>0.53</td><td class=num>0.63</td><td class=num>0.74</td><td class=num>0.85</td><td class=num>1.24</td></tr><tr><td>joint re-embedding miss</td><td class=num>0.17</td><td class=num>0.16</td><td class=num>0.13</td><td class=num>0.13</td><td class=num>0.07</td></tr></table>"
+   },
+   {
+    "head": "Held-out versions: a cut-off chosen for function, and the nearest probe activation.",
+    "body": "Choosing the cut-off on the probe's inner split by the mean KL of the patched run (<code>lh_fsplit</code>) picks high rank at b1-b7 (4,665-7,338 of 8,000; width 8 at b1, 2 at b2, 1 at b3-b7) and gives held-out agreement 0.36 / 0.49 / 0.69 / 0.74 / 0.83 / 0.87 at b1-b6 against 0.12 / 0.15 / 0.24 / 0.39 / 0.74 / 0.77 for kernel ridge, at a cosine cost of 0.12-0.21. It fails at stem, where it selects what is effectively the probe mean (agreement 0.10). The nearest probe activation in the coordinates (<code>nn1</code>), with no fitting, gives 0.58-0.84 at stem-b6: far ahead at stem-b2, and 0.04-0.06 behind <code>lh_fsplit</code> at b3-b6. Moved by the difference of the krr decodes (<code>nn1+krr</code>) it gives 0.57-0.87 and is within 0.02 of <code>lh_fsplit</code> at b3-b6, with cosine 0.21-0.34 in conv sites. Neither wins at every site, and on mean KL the lift is ahead where they tie on agreement (b4: 1.48 against 2.26). For comparison the previous session's trained MLP reached 0.49 at b4 and 0.79 at b5. All of this is clean held-out patching; edits and transfer were not tested.",
+    "tab": "function"
+   },
+   {
+    "head": "Round trips.",
+    "body": "(a) <i>In the viewer's joint coordinates</i> (decode patched in, later sites recomputed, K = 64, first 256 held-out images): kernel ridge misses by 0.82 at stem, 0.70 at b1, 0.41 at b2, 0.30 at b3, 0.18 at b4, 0.13 at b5, 0.07 at b6 and less after; the GCV cut-off lift is within 0.04 of that. The nearest probe activation, replayed with itself masked, misses by 0.32, 0.21, 0.16, 0.12, 0.08, 0.05 at stem-b5: 2.2 to 3.4 times closer. (b) <i>The paper's round trip</i> (lift, then Nyström restriction with 1/λ; single-site coordinates, K = 64, GCV ridge): the miss is 1.6-4.1 in conv sites, worse than returning zero. Dropping the 1/λ from the output gives 0.19-0.21 against the same target. A likely reason, not isolated here: a smoothed decode sits among the images that share its coordinates, so its kernel row returns φ rather than λφ. High rank can close the gap at some widths (b4, full rank: 0.35 at h = 2, 0.15-2.5 across widths). From b9 on the ridge decode's round trip closes (0.14, 0.007, 0.004). (c) <code>nn1+krr</code> re-embeds badly in joint coordinates (2.7 at b4). It lies next to a probe image and is not masked, while <code>nn1</code> is; the kernel's zero diagonal makes those two conventions differ sharply, as noted last session for near-duplicate held-out images. This comparison does not separate that from other causes.",
+    "tab": "roundtrip"
+   },
+   {
+    "head": "Is the premise true? Partly; and more coordinates did not rescue reconstruction.",
+    "body": "The paper lifts from a few coordinates because the discarded eigenvectors are functions of the kept ones. Dsilva's test on the first 64 single-site coordinates: 5-10 have residual above 0.5 in stem-b9, 2-3 at pool and logits (the first counts by convention); the median residual of the rest is 0.24-0.43 in stem-b9 and 0.14-0.16 at pool and logits, neither new directions nor clean harmonics. Held-out predictability of later single-site eigenvectors from the first K (ridge tuned by GCV for them; median R² over coordinates K+1..256): 0.05-0.08 from K = 4 and 0.22-0.48 from K = 16 in stem-b8; from K = 64, 0.32-0.72 in stem-b8 and 0.82 / 0.93 / 0.96 at b9 / pool / logits. (At K = 16, pool and logits have negative R² with squared correlation 0.3: a scale mismatch in the extension, not a prediction.) So from b9 the first 64 coordinates predict the rest well, which is the method's setting; in conv sites they predict about half. Predictability of eigenvectors is not the same as determining the activation. One kernel step from the full row, which uses every eigenvector and sees the activation, has cosine 0.56 at b4; 256 coordinates reach 0.58-0.60. That is consistent with the first kernel's smoothing (participation ratio 400 of 8,000) limiting what any coordinates carry, but it is one estimator, not a ceiling.",
+    "tab": "premise"
+   },
+   {
+    "head": "Coordinates.",
+    "body": "Single-site coordinates decode better than the joint slices, increasingly with depth: source against joint at K = 64 (GCV ridge): +0.01-0.02 at stem-b5, +0.03 at b6, +0.05-0.07 at b7-b9, +0.03 at pool; at K = 16 the site's own eigenvectors are +0.04 at b4 and +0.09-0.10 at b7-b8 over joint. Selecting 16 of the first 64 coordinates by Dsilva's residual gives +0.001 to +0.017 on joint coordinates in stem-b8 and -0.01 to -0.04 from b9; on single-site coordinates it is neutral in conv sites and +0.01 at pool and logits. Scaling coordinates by λ helps by 0.007-0.014 in conv sites and not after.",
+    "tab": "coords"
+   },
+   {
+    "head": "Negative: the second stage with the first stage's own kernel rule",
+    "body": "(per-point width, Sinkhorn) is below the Gaussian second kernel in every tested cell (b4, K = 64: 0.43-0.45 against 0.50). At pool and logits with wide k2 the GCV-chosen cut-off collapses (0.10, 0.25) although smaller cut-offs reach 0.90 and 0.95, so that part is a failure of the rule on this kernel. Its normalised walk has negative eigenvalues, so only part of the spectrum is usable. Exploratory.",
+    "tab": "coords"
+   }
+  ],
+  "h_map": "Map of the tabs",
+  "map_header": [
+   "Tab",
+   "Question",
+   "Readout",
+   "Findings"
+  ],
+  "map": [
+   [
+    "1 Cut-off vs ridge",
+    "At the same kernel, width grid and rule, is the hard spectral cut-off worse than ridge? Does GCV replace the tuning split?",
+    "cosine, captured share, agreement by site; cosine gap; GCV and held-out cosine along both paths",
+    "1, 2"
+   ],
+   [
+    "2 Reconstruction vs function",
+    "Does the decode that reconstructs best also function best when patched in?",
+    "cosine, agreement, decoded norm and round trip along the cut-off and the ridge; the frontier of all decoders",
+    "3, 4"
+   ],
+   [
+    "3 Coordinate systems",
+    "Which first-stage coordinates decode best, and do the variants help?",
+    "cosine by site for joint, source and site coordinates at K = 16, 64, 256; variants against their base",
+    "7, 8"
+   ],
+   [
+    "4 Is the premise true?",
+    "Are the later diffusion coordinates functions of the first few?",
+    "Dsilva residual r_k by site and k; held-out R² of later coordinates from the first K",
+    "6"
+   ],
+   [
+    "5 Round trips",
+    "Does the decode re-embed where it was asked to?",
+    "joint re-embedding miss; single-site restriction miss with and without 1/λ",
+    "5"
+   ],
+   [
+    "6 What to use, what next",
+    "What to use now, what to try next, what was decided on the reader's behalf, and the limits",
+    "recommendations, related approaches, decisions, limits",
+    ""
+   ]
+  ],
+  "h_controls": "Controls with known answers",
+  "controls_intro": "Every site passed the controls below (from <code>checks</code> in the results file). Beyond these, <code>invert/test_ddm.py</code> (11 tests) checks a synthetic 2-D strip in R⁶ (Dsilva's test flags the harmonics, the lift from the two selected coordinates reconstructs held-out points, lift-then-restrict returns them), that cut-off and ridge scores equal scores from explicit weights, that hat-matrix traces equal the closed forms, that GCV is infinite at interpolation, and that scores stay valid with a near-duplicate pair.",
+  "controls_verdict": "Controls at every site: stored kernel-ridge cosines reproduced to 6e-8, stored sources to 1e-9, patching the true activation gives agreement 1 and KL below 2e-11, its joint re-embedding misses by less than 2e-12.",
+  "controls_header": [
+   "Site",
+   "krr on joint vs stored cosine, max |Δ| over K = 16, 64, 256",
+   "cosine from decoded vectors vs stored, |Δ|",
+   "rows of true activations vs stored sources, max |Δ| (source scale)",
+   "true activation patched in: agreement",
+   "… KL to the clean run",
+   "… joint re-embedding miss",
+   "GPU · seconds"
+  ],
+  "h_answer": "The answer in brief",
+  "answer": [
+   "<b>Built and tested:</b> all four steps of double diffusion maps (non-harmonic selection, latent harmonics, lift, restriction), on the joint coordinates and on single-site ones, 12 sites, 11 unit tests, controls passed at every site.",
+   "<b>As a reconstruction it is second:</b> 0.01-0.03 cosine behind kernel ridge at K = 64 in conv sites, same kernel and same rule. The hard spectral cut-off is the difference; a linear trend is not.",
+   "<b>No tuning split is needed:</b> generalised cross-validation picks width and cut-off within 0.006 cosine of the best grid point on the joint cells.",
+   "<b>The useful new result:</b> the lift's rank trades reconstruction for function. At b4, going from 256 to 4,096 harmonics drops cosine from 0.50 to 0.41 and raises patched top-1 agreement from 0.37 to 0.72. The nearest probe activation with a kernel-ridge correction does about as well with no fitting.",
+   "<b>The paper's round trip does not close on a smoothed decode</b> (miss 1.6-4.1 in conv sites against 1 for returning zero), and its premise, that later eigenvectors are functions of the first few, holds well only from b9."
+  ]
+ },
+ "matched": {
+  "intro": "Both decoders below are the same linear smoother in the latent harmonics of one second kernel; they differ only in the filter applied to the spectrum, and both choose $h$ and their filter parameter by the same rule on the whole probe. So any difference between green and red is the hard cut-off.",
+  "eq_title": "Spectral filters on one kernel",
+  "eq": "\\hat x_g(z) \\;=\\; \\bar x + \\sum_{j} g(\\sigma_j)\\,\\big(k^*(z)\\cdot\\psi_j\\big)\\,\\langle\\psi_j, X_c\\rangle, \\qquad g_{\\text{cut-off}}(\\sigma_j) = \\frac{\\mathbf 1[\\,j\\le m\\,]}{\\sigma_j}, \\qquad g_{\\text{ridge}}(\\sigma_j) = \\frac{1}{\\sigma_j+\\rho}",
+  "eq_where": "With a linear trend (<code>lhlin</code>, <code>krlin</code>): first a linear regression on the coordinates, then the same filter applied to its residual. The cut-off grid is $\\sigma_j > \\delta\\,\\sigma_1$ with $\\delta = 10^{-j/2}$, j = 1..24, plus fixed counts; ridges $\\rho = 10^{-8}..10^{2}$; widths $h$ = 1, 2, 4, …, 64 × the median 15-NN distance.",
+  "gcv_title": "Generalised cross-validation (the rule for $h$, $m$ and $\\rho$)",
+  "gcv": "\\mathrm{GCV} \\;=\\; \\frac{\\mathrm{RSS}/\\|X_c\\|^2}{(1-\\mathrm{df}/n)^2}, \\qquad \\mathrm{df}_{\\text{cut-off}} = m, \\quad \\mathrm{df}_{\\text{ridge}} = \\sum_j \\frac{\\sigma_j}{\\sigma_j+\\rho}, \\quad \\mathrm{df}_{\\text{+trend}} = \\operatorname{rank}(H) + \\sum_j s_j\\,(1-o_j)",
+  "gcv_where": "RSS is the probe's residual sum of squares, computed from the discarded spectral energy; $n$ = 8,000; df is the trace of the hat matrix, $s_j$ the filter's shrink factor on harmonic $j$ and $o_j$ the share of harmonic $j$ inside the trend space. Restricted to df ≤ n/2 and undefined at interpolation (excluded there). GCV targets pooled squared error; the inner-split rule (<code>lh_split</code>, <code>krr</code>) targets mean per-image captured share on an 80/20 split of the probe. Neither rule sees <code>H</code>."
+ },
+ "function": {
+  "intro": "Along each path, from heavy to light regularisation, every score is computed from the decoded vectors themselves. A reconstruction-optimal decode behaves like a blurred conditional mean (about half the true norm); the realistic decodes below copy real probe activations instead. The site selector moves every figure on this tab; axes stay fixed across sites.",
+  "eq_title": "The realistic decodes",
+  "eq": "\\mathrm{nn1}(z) = x_{i^*},\\quad i^* = \\arg\\min_i |z - z_i| \\qquad\\qquad \\mathrm{nn1{+}krr}(z) = x_{i^*} + \\mathrm{krr}(z) - \\mathrm{krr}(z_{i^*})",
+  "eq_where": "$z_i$ are the probe's coordinates; <code>nn15</code> is the mean of the 15 nearest; <code>lh_fsplit</code> is the cut-off lift with $(h, m)$ chosen on the probe's inner split by the KL of the patched run to the clean one, instead of by squared error. Agreement and KL are measured with the decode patched in at the site and the rest of the network run forward."
+ },
+ "coords": {
+  "intro": "The decoder is fixed (the selector picks it); only the coordinates it decodes from change. <code>joint</code> slices are what the viewer shows; <code>source</code> is one kernel step of them and depends on this site's activation only; <code>site</code> are this site's own walk eigenvectors (the paper's setting). Each cell has its own GCV choice of width and filter."
+ },
+ "premise": {
+  "intro": "The paper lifts from a few coordinates because the discarded eigenvectors are functions of the kept ones. Two tests of that here: Dsilva's local-linear residual (does coordinate k add a direction?) and held-out predictability of the later coordinates from the first K.",
+  "eq_title": "Dsilva's residual",
+  "eq": "r_k \\;=\\; \\sqrt{\\frac{\\sum_{a} \\big(\\phi_k(a) - \\hat\\phi_k(a)\\big)^2}{\\sum_{a} \\phi_k(a)^2}}, \\qquad \\hat\\phi_k(a) = \\text{leave-one-out local linear fit of } \\phi_k \\text{ on } \\phi_1..\\phi_{k-1} \\text{ at anchor } a",
+  "eq_where": "Weights $\\exp(-d^2/\\varepsilon^2)$ with $\\varepsilon$ = (median distance in coordinates $1..k-1$)/3; 1,000 anchors against all 8,000 probe points; $r_1 = 1$ by convention. $r_k$ near 1: a new direction; near 0: a harmonic of the earlier ones. Predictability: each later coordinate is standardised on the probe and predicted from the first K by a cut-off lift and by a ridge, each tuned by GCV for those targets; held-out R² on <code>H</code>. Reported as predictability, not as an intrinsic dimension."
+ },
+ "roundtrip": {
+  "intro": "Decode a requested coordinate point, then measure where the decode lands. Two kinds: in the viewer's joint coordinates (the decode is patched in, later sites are recomputed by the network, and the joint out-of-sample map is applied), and the paper's single-site restriction.",
+  "eq_title": "Round-trip miss",
+  "eq": "\\mathrm{miss}(x) \\;=\\; \\frac{1}{K}\\sum_{k\\le K} \\frac{\\big(\\hat z_k - z_k(x)\\big)^2}{\\operatorname{Var}_H\\, z_k}, \\qquad \\hat z_k = \\begin{cases} p_l(\\hat x)\\cdot\\phi_k\\,/\\,\\lambda_k & \\text{site, with } 1/\\lambda \\text{ (the paper's Nyström)}\\\\ p_l(\\hat x)\\cdot\\phi_k & \\text{site, without } 1/\\lambda \\\\ f_k(\\cdot, l) \\text{ of the patched run} & \\text{joint re-embedding}\\end{cases}",
+  "eq_where": "$z(x)$ are the requested coordinates of held-out image $x$ and $\\hat x$ its decode; $p_l(\\hat x)$ is the first stage's out-of-sample kernel row. Measured references on <code>H</code>: returning zero scores 1.00 and another image's coordinates 2.00 (dotted lines). Joint re-embedding uses the first 256 held-out images; <code>nn1</code> is a probe activation, so it is restricted with its own probe image masked (the kernel's zero-diagonal convention); the other decoders are not masked."
+ },
+ "next": {
+  "h_use": "What I would use",
+  "use": [
+   "<b>Reconstruction:</b> kernel ridge, width and ridge by GCV (no split). The double-diffusion lift is the same estimator with a hard cut-off and loses 0.01-0.03 cosine at K = 64 in conv sites.",
+   "<b>Patching a decode back into the network, before b7:</b> not the reconstruction-optimal decode. Either the nearest probe activation with the krr correction, or the lift at high rank (m = n/4 at h = 2 keeps cosine within 0.06 of the best cut-off and gives 0.53 / 0.65 / 0.82 / 0.85 agreement at b3-b6). They are close on agreement; the lift is better on KL from b3, the neighbour is far better at stem-b2. Whether this carries to edits and cross-model transfer is untested.",
+   "<b>Single-site questions:</b> source coordinates, as last session; they also decode better.",
+   "<b>Do not use the paper's restriction (with 1/λ) on a smoothed decode.</b>"
+  ],
+  "h_related": "Related approaches",
+  "tested": "Tested here: GCV in place of the split; cut-off chosen for function; nearest probe activation plus correction; single-site and Dsilva-selected coordinates; the adaptive second kernel.",
+  "proposed_intro": "Proposed, not run:",
+  "proposed": [
+   "<b>Nearest probe activation, then source matching.</b> Last session's Gauss-Newton matching makes source coordinates exact starting from a reference image. Starting it from the nearest probe activation needs no reference and should give a realistic activation with an exact single-site round trip. This is the equation-free \"lift from an analog, then constrain\" recipe and the most direct next step.",
+   "<b>A finer or multiscale first stage.</b> Finding 6 is consistent with the first kernel's smoothing limiting reconstruction. A narrower kernel may recover more but brings back the near-duplicate modes; a multiscale basis (diffusion wavelets, already started in <code>wavelets/</code>) is the principled way to add fine coordinates.",
+   "<b>Embed spatial positions, not whole images.</b> A conv activation is 16-64 channels at each of 64-1,024 positions. A diffusion map over positions has clouds of low dimension, where the paper's premise (finding 6) should hold and the lift should be near exact. It changes what a \"point\" is, so it is a different embedding.",
+   "<b>A conditional sampler</b> (a small diffusion model for the activation given the coordinates) is the complete answer to one coordinate point having many activations. It is trained, so it is a benchmark for the closed-form options, not a replacement.",
+   "<b>Mask or smooth the zero diagonal for near-probe queries</b> so that realistic decodes re-embed continuously (finding 5c)."
+  ],
+  "h_decisions": "Decisions made on your behalf",
+  "decisions_intro": "From <code>invert/SPEC_DDM.md</code>. The alternative and the test columns are suggestions.",
+  "decisions": [
+   {
+    "decision": "Which coordinates carry the main result",
+    "default": "The joint coordinates (the embedding asked for); per-site coordinates as the arm closest to the paper.",
+    "alternatives": "Lead with single-site coordinates.",
+    "test": "Already measured side by side: Coordinate systems tab.",
+    "status": "measured"
+   },
+   {
+    "decision": "Probe and first-stage kernel",
+    "default": "Fixed at the previous session's recommendation (P8, pr400); no kernel sweep.",
+    "alternatives": "Repeat for the other kernels of the previous page.",
+    "test": "Rerun stage_ddm with another kernel tag and compare the matched comparison.",
+    "status": "open"
+   },
+   {
+    "decision": "What may see H",
+    "default": "H is used for the surfaces and the cosine-only grid maximum (\"oracle\"), which are descriptive; the rules gcv, split and fsplit never see H.",
+    "alternatives": "A further split of the probe for the function trade-off maxima.",
+    "test": "Hold out part of the probe, pick (h, m) for agreement there, score on H.",
+    "status": "open"
+   },
+   {
+    "decision": "Uncertainty",
+    "default": "One fit per cell, no bootstrap over probes (uncertainty is over held-out images only).",
+    "alternatives": "Bootstrap over probe draws.",
+    "test": "Refit on another 8,000-image probe draw and compare gaps with the per-image s.e.",
+    "status": "open"
+   }
+  ],
+  "h_limits": "Limits",
+  "limits": [
+   "One network, one checkpoint, one probe draw; uncertainty is over held-out images only.",
+   "The function trade-off and its maxima are read on <code>H</code>; only <code>gcv</code>, <code>split</code>, <code>fsplit</code>, <code>nn1</code> and <code>nn1+krr</code> numbers are held out.",
+   "Agreement measures the top-1 class only. KL (clean against patched) is in <code>ddm_results.json</code>; it agrees on the trade-off against reconstruction-tuned decoders but ranks the realistic decoders differently (finding 4).",
+   "Joint re-embedding uses the first 256 held-out images, in units of the coordinate's variance over all 2,000; <code>nn1</code> is replayed with its own probe image masked, the other decoders are not masked. The \"without 1/λ\" round trip changes the output only; its target is still the Nyström coordinate.",
+   "Dsilva's test in 60 dimensions with about 400 effective neighbours is noisy; the predictability test is the sturdier of the two. Neither is a dimension estimate.",
+   "No out-of-distribution sets, no extrapolated coordinates, no cross-model transfer in this round."
+  ],
+  "h_changed": "Changed after review and pilot (from the spec)",
+  "changed": [
+   "GCV selected the interpolant (0/0 clamped to 0). Now undefined at interpolation, residual computed from the discarded spectral energy, restricted to df ≤ n/2; regression tests added.",
+   "Scores came from a Gram rebuilt from float32 cosines, which is not positive semidefinite to the precision the lift needs. All scores now come from decoded vectors.",
+   "The local-linear-regression weights are shifted per row in log space so an isolated anchor cannot zero them.",
+   "The round trip for <code>joint</code> compared with sources only; the joint re-embedding of the patched run is now the main one, and the source comparison is labelled source recovery.",
+   "Later-coordinate predictability used weights tuned for activations; now tuned for the coordinates themselves.",
+   "Added the matched cut-off/ridge × trend comparison, captured share and KL beside cosine, and function along the cut-off (the pilot showed reconstruction and function disagree about the cut-off).",
+   "A nearest-neighbour decode is exactly a probe activation, so it is restricted with that probe image masked (the kernel's zero-diagonal convention)."
+  ],
+  "h_repro": "Reproduce and spend",
+  "spend": "Finished 2026-11-22. Twelve sites, 3,919 GPU-seconds on A100/H100 plus two pilots: about $5 by my estimate from logged seconds at list rates (the exact figure is on the Modal dashboard); the full run took about 10 minutes. Controls at every site are on the Overview tab.",
+  "repro": "uv run --with numpy --with scipy --with torch --with pytest python -m pytest -q invert/test_ddm.py\nINVERT_APP=crw-depth-invert-d uv run --with modal python invert/modal_invert.py deploy\nINVERT_APP=crw-depth-invert-d uv run --with modal python invert/modal_invert.py launch ddm '{\"units\":[{\"pset\":\"P8\",\"kname\":\"pr400\",\"site\":\"b4\"}, ...]}'\nuv run --with modal python invert/modal_invert.py fetch ddm data/invert/ddm P8__pr400__L12\npython3 invert/ddm_collect.py\npython3 invert/build_ddm_page.py           # this page (stdlib only)"
+ },
+ "fig": {
+  "matched_cmp": {
+   "title": "Matched comparison by site · spectral cut-off against ridge on the same kernel, width grid and rule",
+   "caption": "Green is the double-diffusion lift (hard spectral cut-off), red is kernel ridge on the same second kernel, blue is linear regression; dashed adds a linear trend, dotted is the inner-split rule, means with ±2 s.e. bars over 2,000 held-out images (captured share as a median). Ridge is above the cut-off at every site and the dashed lines sit on the solid ones, so the trend is not what separates them (b4, K = 64: linear 0.488, cut-off 0.496, ridge 0.515)."
+  },
+  "matched_gap": {
+   "title": "Cosine gap, GCV ridge minus GCV cut-off, by site · one shade per K",
+   "caption": "Difference of mean held-out cosine between ridge and cut-off (solid) and between their with-trend versions (dashed); above zero means ridge reconstructs better. The gap is positive at every site and K and largest in the conv sites at K = 64 and 256; the notes give paired standard errors of at most 0.001."
+  },
+  "matched_rule": {
+   "title": "How close each rule gets to the best cut-off on the grid · cut-off lift, by site",
+   "caption": "Grey: held-out cosine of the best grid point (picked on H, so an upper bound no rule can claim) minus that of the cut-off GCV chose; green dotted: GCV minus the inner-split rule. Near zero on the grey line means GCV found the peak without seeing H; above zero on the dotted line means GCV beats the split it replaces."
+  },
+  "matched_surface": {
+   "title": "What the rule sees · GCV on the probe and held-out cosine along the cut-off and along the ridge, one line per width h",
+   "caption": "Top row: held-out cosine (on H, never seen by the rule); bottom row: GCV on the probe (log scale, lower is better), which the rule minimises only where df ≤ n/2 (for the cut-off, m ≤ 4,000; the shaded band is excluded). Black stars mark the GCV choice and open circles the best held-out grid point: a good rule puts its star at the top of the cosine curves."
+  },
+  "path": {
+   "title": "Reconstruction and function along the regularisation path · one line per second-kernel width h",
+   "caption": "Left to right is less regularisation: more latent harmonics m (cut-off) or a smaller ridge ρ (axis reversed); shade is the width h, the thick line is the width GCV chose and the dotted vertical line its m or ρ, and the fourth panel is the cell's own round trip; the cut-off lines stop at the number of numerically usable harmonics, which falls as h grows. Cosine peaks at a few hundred harmonics while agreement keeps rising and the decoded norm grows towards the true norm (b4, K = 64, h = 4: from m = 256 to 4,096 cosine falls from 0.50 to 0.41 while agreement rises from 0.37 to 0.72); these maxima are read on H and describe the trade-off, not a held-out score."
+  },
+  "frontier": {
+   "title": "The reconstruction–function frontier · mean cosine against agreement for every decoder family",
+   "caption": "Each curve traces one family along its path at the width GCV chose for it (green: cut-off over m, red: ridge over ρ, ends labelled; the large ringed marker is the GCV choice), and the other markers are single decoders; up is better function, right is better reconstruction. At b1-b6 the decoders that return real probe activations (nn1, nn1+krr) and the lift chosen for function sit far above the reconstruction-optimal decoders, at a cosine cost; from b7 on everything is near the top."
+  },
+  "coords": {
+   "title": "Held-out cosine by site for the three coordinate systems · K = 16, 64 and 256",
+   "caption": "Shade and marker are the coordinate system (dark circle: joint slices; medium square: source; light diamond: the site's own eigenvectors), hue the decoder; the grey dashed line is one kernel step from the full row, which sees the activation. Single-site coordinates decode better than the joint slices, increasingly with depth, and 256 coordinates reach about what one kernel step reaches (b4: 0.58-0.60 against 0.56)."
+  },
+  "coords_var": {
+   "title": "Variants of the coordinates · change in held-out cosine against the base cell, by site",
+   "caption": "Each line is a variant minus its base with the same decoder: λ-scaled site coordinates (site-t1, K = 64) against unit-variance ones, and the 16 of the first 64 with the largest Dsilva residual against the first 16, on joint and on site coordinates; means over 2,000 held-out images. Selection helps a little on joint coordinates before b9 and hurts from b9, does nothing on single-site coordinates, and λ-scaling helps by about 0.01."
+  },
+  "coords_pr2": {
+   "title": "Second kernel · Gaussian against the first stage's own rule (participation ratio k2) · cut-off lift on joint coordinates",
+   "caption": "Green solid is the Gaussian second kernel with GCV; the other lines replace it with the per-point-width Sinkhorn walk at k2 = 30, 100 and 400, whose normalised walk has negative eigenvalues, so only the positive part of its spectrum is used. The adaptive kernel is below the Gaussian everywhere and breaks at pool and logits for wide k2 (exploratory, one rule)."
+  },
+  "premise_llr": {
+   "title": "Dsilva's residual r<sub>k</sub> of each of the first 64 coordinates, by site",
+   "caption": "Colour is r<sub>k</sub>: near 1 a new direction, near 0 a function (harmonic) of the earlier coordinates; white dots mark the 16 that the selected variant keeps, and the right-hand column counts r<sub>k</sub> > 0.5 (coordinate 1 included, whose residual is 1 by convention). A handful per site are above 0.5, fewer at pool and logits, and the rest sit near 0.3-0.4: neither new directions nor clean harmonics."
+  },
+  "premise_later": {
+   "title": "How well the first K coordinates predict the later ones · held-out R² by site",
+   "caption": "Median over coordinates K+1..256 (or over the 48 left out of the selected 16) of the held-out R², bars from the 25th to the 75th percentile; hue is the predictor, each tuned by GCV for these targets, and values below −1 are drawn at −1. With ridge on the site's own coordinates, the first 64 predict the rest well from b9 on (0.82 / 0.93 / 0.96 at b9 / pool / logits) and by about half in conv sites; the linear arm is near zero for the site's own eigenvectors, as expected for vectors orthogonal on the probe."
+  },
+  "rt_joint": {
+   "title": "Joint re-embedding miss by site · decode patched in, later sites recomputed, joint coordinates re-measured",
+   "caption": "Median miss over the first 256 held-out images, log scale; dotted lines are the references, returning zero (1) and another image's coordinates (2). At K = 64 kernel ridge and the cut-off lift miss by 0.82 at stem, falling to at most 0.07 from b6; the nearest probe activation is 2.2 to 3.4 times closer at stem-b5; nn1+krr re-embeds badly; it lies next to a probe image and, unlike nn1, is not masked (the kernel has a zero diagonal)."
+  },
+  "rt_site": {
+   "title": "Single-site restriction miss by site, the paper's round trip · with the Nyström 1/λ (left) and without it (right)",
+   "caption": "Lift, then restrict with the first stage's out-of-sample row on the site's own coordinates; median over 2,000 held-out images, log scale, references as above. With 1/λ the GCV ridge decode misses by 1.6-4.1 in conv sites at K = 64, worse than returning zero; without it 0.19-0.21, because a conditional-mean decode's kernel row averages φ over images with the same value and returns φ, not λφ."
+  }
+ }
+}

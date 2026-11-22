@@ -38,7 +38,7 @@ PKG = 'data/sitex/ops'
 X3 = 'xp/out/x3'
 X4 = 'xp/out/x4'
 SITES = ('stem', *(f'b{i}' for i in range(1, 10)), 'pool', 'logits')
-ENTRIES = ('inv-kernel', 'inv-sources', 'inv-decode', 'inv-ood', 'inv-edits',
+ENTRIES = ('inv-kernel', 'inv-sources', 'inv-decode', 'inv-wavelets', 'inv-ood', 'inv-edits',
            'x1-data', 'x3-adversarial', 'x4-paths', 'solver')
 TOKEN = re.compile(r'\{\{\s*fact:([^}]+?)\s*\}\}')
 
@@ -330,6 +330,67 @@ def decode(add, note):
                          ('large.pool_pca', 'pool', 'H|64|pca|cos_raw'),
                          ('large.b4_agree', 'b4', 'H|64|krr|agree'),
                          ('large.b4_mlp', 'b4', 'H|64|mlp|agree')])
+
+
+def wavelets(add, note):
+    """Diffusion-wavelet inversion: recompute from the per-site stage outputs (the generator reads the collected
+    data/invert/dw_results.json). Means from the float32 per-image exports carry ~1e-7 rounding."""
+    base = f'{INV}/dw/{P8}'
+    js = {s: read_json(f'{base}/{s}.json') for s in SITES}
+    f32 = dict(raw_atol=2e-6, raw_reason='float32 per-image export')
+
+    def mean(npz, key):
+        return float(np.mean(array(npz, key), dtype=np.float64))
+
+    wl, rl, mid = [], [], []
+    for s in SITES:
+        npz = f'{base}/{s}.npz'
+        for cell in ('joint|64', 'source|64'):
+            lead = mean(npz, f'q1|{cell}|lead|None|cos')
+            wl.append(mean(npz, f'q1|{cell}|wbest|None|cos') - lead)
+            d = mean(npz, f'q1|{cell}|ridge|cos') - lead
+            rl.append(d)
+            if cell == 'joint|64' and s in ('b4', 'b5', 'b6', 'b7', 'b8'):
+                mid.append(d)
+    p = f'{base}/<site>.npz'
+    add('q1.wbest.lo', min(wl), 'P', p, **f32)
+    add('q1.wbest.hi', max(wl), 'P', p, **f32)
+    add('q1.ridge.lo', min(rl), 'P', p, **f32)
+    add('q1.ridge.hi', max(rl), 'P', p, **f32)
+    add('q1.ridge.b4b8_lo', min(mid), 'P', p, **f32)
+    add('q1.ridge.b4b8_hi', max(mid), 'P', p, **f32)
+
+    def level(s, A):
+        return next(lv for lv in js[s]['q2']['levels'] if lv['A'] == A)
+    early, conv = SITES[:9], SITES[1:9]
+    pj = f'{base}/<site>.json'
+    ks = [level(s, 2.0)['k'] for s in early]
+    add('q2.a2.k_lo', min(ks), 'S', pj)
+    add('q2.a2.k_hi', max(ks), 'S', pj)
+    cos2 = [mean(f'{base}/{s}.npz', f"q2|{level(s, 2.0)['k']}|cos") for s in early]
+    add('q2.a2.cos_lo', min(cos2), 'P', p, pj, **f32)
+    add('q2.a2.cos_hi', max(cos2), 'P', p, pj, **f32)
+    rt32 = [level(s, 32.0)['rt']['total'] for s in conv]
+    add('q2.a32.rt_lo', min(rt32), 'S', pj)
+    add('q2.a32.rt_hi', max(rt32), 'S', pj)
+
+    def e256(s, key):
+        e = js[s]['q3']['energy'][key]
+        return e['share'][e['n'].index(256)]
+    gap = [e256(s, 'eig|None') - e256(s, 'qr|None') for s in SITES]
+    qr_rand = [e256(s, 'qr|None') - np.mean([e256(s, f'rand{i}|None') for i in range(5)]) for s in SITES]
+    add('q3.eig_wins', sum(g > 0 for g in gap), 'S', pj)
+    add('q3.qr_rand.lo', min(qr_rand), 'S', pj)
+    add('q3.qr_rand.hi', max(qr_rand), 'S', pj)
+    span = max(max(js[s]['checks']['q2_qr_vs_eig_rel'], js[s]['checks']['q2_rand_vs_eig_rel'],
+                   *(v for c in ('joint|64', 'source|64') for v in js[s]['q1'][c]['checks']['complete_band_rel'].values()))
+               for s in SITES)
+    add('ctl.span', span, 'S', pj)
+    n90 = [float(np.median(array(f'{base}/{s}.npz', f'loc|{op}|qr|n90'))) for s in SITES for op in ('site', 'joint|64', 'source|64')]
+    add('loc.qr.lo', min(n90), 'P', p)
+    add('loc.qr.hi', max(n90), 'P', p)
+    note('Q1 differences and Q2 cosines are recomputed from per-image float32 scores; round trips, energy shares, band '
+         'ranks and controls are read from the per-site stage JSON (not the collected dw_results.json the generator uses).')
 
 
 def ood(add, note):
@@ -697,7 +758,7 @@ def solver(add, note):
          'derived from the Gram/top-15 union and the CSR plus rank-one layout in opt/sparse_core.py.')
 
 
-CHECKS = (kernel, sources, decode, ood, edits, x1, x3, x4, solver)
+CHECKS = (kernel, sources, decode, wavelets, ood, edits, x1, x3, x4, solver)
 # Evidence actually consumed by the producer, independently of our own tier.
 # A literal matching a shipped sample is a passing value but not a recomputation
 # by the generator. Keep that warning distinct from a numerical failure.
@@ -720,6 +781,7 @@ RAW_WAIVERS = {
         'patch.b5.swap': 'P8 individual patched trajectories and progress scores were not staged.',
     },
     'inv-decode': {'large.*': 'Only the P8 decoder summaries are local, not the individual per-image P8 scores.'},
+    'inv-wavelets': {'q2.a2.k_*, q2.a32.rt_*, q3.*, ctl.span': 'Eigendecompositions, coordinate variances and band energies were computed on Modal; only per-site summaries and per-image scores are local.'},
     'inv-ood': {'svhn.b4*, h.b4*, c100.b9, pgd8.b9': 'No staged per-image scores for these P8 decoder conditions.'},
     'inv-edits': {'b4.*': 'No staged per-pair P8/K64 source miss, joint miss or donor probabilities; P2/K16 is a separate run.'},
     'x1-data': {'stem.*': 'The comparison matrix already pools images; per-image neighbour lists and stem features for these pipelines were not staged.'},

@@ -22,6 +22,10 @@ similarly to CIFAR-10 ones (b9 agreement {{fact:x.x1-data.pair.c10_in32.b9}} for
 <li><strong>Decoding works at pool, not b4.</strong> Given the clean trajectory, kernel ridge recovers activation
 direction with cosine {{fact:x.inv-decode.large.pool}} at pool and {{fact:x.inv-decode.large.b4}} at the much larger
 b4, ahead of latent harmonics on mean cosine. <a href="#experiments/x-inv-decode">Decoding</a></li>
+<li><strong>Wavelets do not improve the inverse.</strong> On the same coordinates, diffusion wavelets in place of
+harmonics leave the decode essentially unchanged, and the activations are not sparser in them; a spectral cut-off
+with a bounded reciprocal exists, but reconstruction, function and round trip never agree on one.
+<a href="#experiments/x-inv-wavelets">Wavelets</a></li>
 <li><strong>Matching sources barely steers.</strong> At b4, a near-exact oracle match to a donor's source coordinates did not
 improve the patched joint match and moved the donor's class probability only from {{fact:x.inv-edits.b4.residual}} to
 {{fact:x.inv-edits.b4.match}}. <a href="#experiments/x-inv-edits">Edits</a></li>

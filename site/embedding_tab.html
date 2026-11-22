@@ -1,7 +1,7 @@
 <div class="emb" id="emb">
   <header class="emb-head">
     <h1>Probe images moving through a network, site by site</h1>
-    <p>Each dot is one of 2,000 CIFAR-10 probe images, placed by its coordinates in the first K modes of one operator
+    <p>Each dot is one of 2,000 CIFAR-10 probe images, placed by <span id="emb-intro-what">its coordinates in the first K modes of one operator</span>
     built over all of a network's sites (stem, blocks, pool, logits), so every site shares one space. Press <b>Play</b>
     to watch the cloud move from the input to the logits.
     <a href="#method/through-depth">How it is built</a></p>
@@ -94,6 +94,17 @@
           <label><input type="radio" name="emb-method" value="modes" checked> <span><b>Through-depth modes</b> <span class="emb-hint">the construction</span></span></label>
           <label><input type="radio" name="emb-method" value="pca"> <span><b>PCA</b> <span class="emb-hint">baseline: each site separately, chained by Procrustes (a fit)</span></span></label>
           <label><input type="radio" name="emb-method" value="umap"> <span><b>UMAP</b> <span class="emb-hint">baseline: each site separately, chained by Procrustes (a fit), 2-d</span></span></label>
+          <label><input type="radio" name="emb-method" value="dw"> <span><b>Diffusion wavelets</b> <span class="emb-hint">scaling functions of the same through-depth operator, one heat time per scale (ResNet-20 seed 0, step 64,000)</span></span></label>
+        </div>
+        <div id="emb-dw" class="emb-sub emb-dw" hidden>
+          <label class="emb-field">Scale <span class="emb-hint">(heat time t<sub>j</sub> of the wavelets; the depth coupling stays at t*)</span><select id="emb-dwl"></select></label>
+          <div class="emb-dwcount" id="emb-dwcount" aria-live="polite"></div>
+          <div class="emb-dwaxes">
+            <div class="emb-dwax"><canvas id="emb-dwth0" width="32" height="32" aria-hidden="true"></canvas><label class="emb-field">x axis<select id="emb-dwax0"></select></label></div>
+            <div class="emb-dwax"><canvas id="emb-dwth1" width="32" height="32" aria-hidden="true"></canvas><label class="emb-field">y axis<select id="emb-dwax1"></select></label></div>
+            <div class="emb-dwax"><canvas id="emb-dwth2" width="32" height="32" aria-hidden="true"></canvas><label class="emb-field">z axis <span class="emb-hint" id="emb-dwz"></span><select id="emb-dwax2"></select></label></div>
+          </div>
+          <p class="emb-hint" id="emb-dwnote"></p>
         </div>
         <label class="emb-field">Network<select id="emb-ref"></select></label>
         <label class="emb-field">Training step<select id="emb-step"></select></label>
@@ -101,6 +112,7 @@
 
       <section class="emb-group">
         <h2>Compare with</h2>
+        <p class="emb-hint" id="emb-nets-dw" hidden>Off in the diffusion-wavelet view: it is built for ResNet-20 seed 0 at step 64,000 only, and a rotation onto another network would change the functions shown.</p>
         <div id="emb-nets" class="emb-nets"></div>
         <div class="emb-row"><button type="button" id="emb-all">All</button><button type="button" id="emb-one">None</button></div>
         <div id="emb-cmp" class="emb-sub" hidden>
@@ -157,6 +169,7 @@
 
       <details class="emb-group emb-more" id="emb-more">
         <summary>More options <span class="emb-hint" id="emb-more-note"></span></summary>
+        <p class="emb-hint" id="emb-more-dw" hidden>Diffusion wavelets: operator variant, coupling, K, size of each site, axes from PCA and the axis limits are fixed here. The plot shows the raw values of the scaling functions chosen under <i>Embedding</i>, with the same axis limits at every depth. 3D is available when the scale has at least three functions.</p>
         <label class="emb-field">Operator variant<select id="emb-variant"></select></label>
         <label class="emb-field">Coupling between neighbouring sites <span class="emb-hint" id="emb-tlabel"></span><input type="range" id="emb-coup" min="0" max="5" step="1"></label>
         <label class="emb-field">Number of modes K<select id="emb-K"><option value="2" hidden>2 (UMAP)</option><option value="4">4</option><option value="8" selected>8</option><option value="16">16</option></select></label>

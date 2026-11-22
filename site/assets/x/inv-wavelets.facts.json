@@ -1,0 +1,392 @@
+{
+  "q1.wbest.lo": {
+    "value": -0.0036991112594253715,
+    "text": "-0.004",
+    "tier": "S",
+    "source": "data/invert/dw_results.json:per_site.<site>.q1.<cell>.finals.<decoder>.d_vs_lead.cos[0]; all 12 sites, joint|64 and source|64; min over sites and cells, wbest|None"
+  },
+  "q1.wbest.hi": {
+    "value": 0.000882709303997908,
+    "text": "0.001",
+    "tier": "S",
+    "source": "data/invert/dw_results.json:per_site.<site>.q1.<cell>.finals.<decoder>.d_vs_lead.cos[0]; all 12 sites, joint|64 and source|64; max over sites and cells, wbest|None"
+  },
+  "q1.ebest_rbest.absmax": {
+    "value": 0.002729068156567847,
+    "text": "0.003",
+    "tier": "S",
+    "source": "data/invert/dw_results.json:per_site.<site>.q1.<cell>.finals.<decoder>.d_vs_lead.cos[0]; all 12 sites, joint|64 and source|64; max |difference| over ebest|None and rbest|None"
+  },
+  "q1.ridge.lo": {
+    "value": 0.0011369895719720833,
+    "text": "0.001",
+    "tier": "S",
+    "source": "data/invert/dw_results.json:per_site.<site>.q1.<cell>.finals.<decoder>.d_vs_lead.cos[0]; all 12 sites, joint|64 and source|64; min over sites and cells, ridge"
+  },
+  "q1.ridge.hi": {
+    "value": 0.025356859845916672,
+    "text": "0.025",
+    "tier": "S",
+    "source": "data/invert/dw_results.json:per_site.<site>.q1.<cell>.finals.<decoder>.d_vs_lead.cos[0]; all 12 sites, joint|64 and source|64; max over sites and cells, ridge"
+  },
+  "q1.ridge.b4b8_lo": {
+    "value": 0.01836438105901785,
+    "text": "0.018",
+    "tier": "S",
+    "source": "data/invert/dw_results.json:per_site.<site>.q1.<cell>.finals.<decoder>.d_vs_lead.cos[0]; all 12 sites, joint|64 and source|64; joint|64, b4-b8, min"
+  },
+  "q1.ridge.b4b8_hi": {
+    "value": 0.025356859845916672,
+    "text": "0.025",
+    "tier": "S",
+    "source": "data/invert/dw_results.json:per_site.<site>.q1.<cell>.finals.<decoder>.d_vs_lead.cos[0]; all 12 sites, joint|64 and source|64; joint|64, b4-b8, max"
+  },
+  "q1.b4.lead": {
+    "value": 0.49546623887812424,
+    "text": "0.495",
+    "tier": "S",
+    "source": "data/invert/dw_results.json:per_site.b4.q1.joint|64.finals.lead|None.cos[0]; mean over H"
+  },
+  "q1.b4.wbest": {
+    "value": 0.495003023975155,
+    "text": "0.495",
+    "tier": "S",
+    "source": "data/invert/dw_results.json:per_site.b4.q1.joint|64.finals.wbest|None.cos[0]; mean over H"
+  },
+  "q1.b4.ridge": {
+    "value": 0.5138306199371421,
+    "text": "0.514",
+    "tier": "S",
+    "source": "data/invert/dw_results.json:per_site.b4.q1.joint|64.finals.ridge.cos[0]; mean over H"
+  },
+  "q1.b4.krr": {
+    "value": 0.5147985462638915,
+    "text": "0.515",
+    "tier": "S",
+    "source": "data/invert/dw_results.json:per_site.b4.q1.joint|64.finals.krr.cos[0]; mean over H"
+  },
+  "q1.b4.n_lead": {
+    "value": 196,
+    "text": "196",
+    "tier": "S",
+    "source": "data/invert/dw_results.json:per_site.b4.q1.joint|64.finals.lead|None.n_eff"
+  },
+  "q1.b4.n_wbest": {
+    "value": 170,
+    "text": "170",
+    "tier": "S",
+    "source": "data/invert/dw_results.json:per_site.b4.q1.joint|64.finals.wbest|None.n_eff"
+  },
+  "q1.sigma2.lo": {
+    "value": 6.8214745391959466e-06,
+    "text": "6.8e-6",
+    "tier": "S",
+    "source": "data/invert/dw_results.json:per_site.<site>.spectrum.joint|64.levels[0].lam_next (sigma_2/sigma_1); stem-b8, min"
+  },
+  "q1.sigma2.hi": {
+    "value": 0.001969291242751605,
+    "text": "2.0e-3",
+    "tier": "S",
+    "source": "data/invert/dw_results.json:per_site.<site>.spectrum.joint|64.levels[0].lam_next; stem-b8, max"
+  },
+  "q1.adm100.one": {
+    "value": 9,
+    "text": "9",
+    "tier": "S",
+    "source": "data/invert/dw_results.json:per_site.<site>.q1.joint|64.finals.wbest|100.0.n_eff == 1; count over stem-b8"
+  },
+  "q1.adm100.wbest_b9": {
+    "value": 0.5943276554790918,
+    "text": "0.594",
+    "tier": "S",
+    "source": "data/invert/dw_results.json:per_site.b9.q1.joint|64.finals.wbest|100.0.cos[0]"
+  },
+  "q1.adm100.wbest_logits": {
+    "value": 0.9155728413190609,
+    "text": "0.916",
+    "tier": "S",
+    "source": "data/invert/dw_results.json:per_site.logits.q1.joint|64.finals.wbest|100.0.cos[0]"
+  },
+  "amp.b4b6.lo": {
+    "value": 4.433646670865112,
+    "text": "4.4",
+    "tier": "S",
+    "source": "data/invert/dw_results.json:per_site.<site>.q1.joint|64.curves.lead|None; amp0.05_med at the argmax of agree over argmax of cos (lowest n on ties); b4-b6 min"
+  },
+  "amp.b4b6.hi": {
+    "value": 4.896572455211213,
+    "text": "4.9",
+    "tier": "S",
+    "source": "data/invert/dw_results.json:per_site.<site>.q1.joint|64.curves.lead|None; amp0.05_med at the argmax of agree over argmax of cos (lowest n on ties); b4-b6 max"
+  },
+  "q2.a2.k_lo": {
+    "value": 2,
+    "text": "2",
+    "tier": "S",
+    "source": "data/invert/dw_results.json:per_site.<site>.q2.levels[A=...].k; A = 2, stem-b8 min"
+  },
+  "q2.a2.k_hi": {
+    "value": 4,
+    "text": "4",
+    "tier": "S",
+    "source": "data/invert/dw_results.json:per_site.<site>.q2.levels[A=...].k; A = 2, stem-b8 max"
+  },
+  "q2.a2.cos_lo": {
+    "value": 0.20027132946119333,
+    "text": "0.20",
+    "tier": "S",
+    "source": "data/invert/dw_results.json:per_site.<site>.q2.levels[A=...].cos[0]; A = 2, stem-b8 min"
+  },
+  "q2.a2.cos_hi": {
+    "value": 0.4674348514138142,
+    "text": "0.47",
+    "tier": "S",
+    "source": "data/invert/dw_results.json:per_site.<site>.q2.levels[A=...].cos[0]; A = 2, stem-b8 max"
+  },
+  "q2.a2.rt_lo": {
+    "value": 0.6808133150504179,
+    "text": "0.68",
+    "tier": "S",
+    "source": "data/invert/dw_results.json:per_site.<site>.q2.levels[A=...].rt.total; A = 2, b1-b8 min"
+  },
+  "q2.a2.rt_hi": {
+    "value": 1.195307180589446,
+    "text": "1.20",
+    "tier": "S",
+    "source": "data/invert/dw_results.json:per_site.<site>.q2.levels[A=...].rt.total; A = 2, b1-b8 max"
+  },
+  "q2.a2.rt_stem": {
+    "value": 0.25948145994989263,
+    "text": "0.26",
+    "tier": "S",
+    "source": "data/invert/dw_results.json:per_site.<site>.q2.levels[A=...].rt.total; A = 2, stem"
+  },
+  "q2.ref_zero.lo": {
+    "value": 1.0004841365107104,
+    "text": "1.00",
+    "tier": "S",
+    "source": "data/invert/dw_results.json:per_site.<site>.q2.levels[A=...].rt.ref_zero; A = 2, all sites min"
+  },
+  "q2.ref_zero.hi": {
+    "value": 1.00159394637292,
+    "text": "1.00",
+    "tier": "S",
+    "source": "data/invert/dw_results.json:per_site.<site>.q2.levels[A=...].rt.ref_zero; A = 2, all sites max"
+  },
+  "q2.a32.cos_lo": {
+    "value": 0.5381490191077496,
+    "text": "0.54",
+    "tier": "S",
+    "source": "data/invert/dw_results.json:per_site.<site>.q2.levels[A=...].cos[0]; A = 32, b1-b8 min"
+  },
+  "q2.a32.cos_hi": {
+    "value": 0.6560442416181056,
+    "text": "0.66",
+    "tier": "S",
+    "source": "data/invert/dw_results.json:per_site.<site>.q2.levels[A=...].cos[0]; A = 32, b1-b8 max"
+  },
+  "q2.a32.k_lo": {
+    "value": 1296,
+    "text": "1,296",
+    "tier": "S",
+    "source": "data/invert/dw_results.json:per_site.<site>.q2.levels[A=...].k; A = 32, b1-b8 min"
+  },
+  "q2.a32.k_hi": {
+    "value": 1508,
+    "text": "1,508",
+    "tier": "S",
+    "source": "data/invert/dw_results.json:per_site.<site>.q2.levels[A=...].k; A = 32, b1-b8 max"
+  },
+  "q2.a32.rt_lo": {
+    "value": 25.5059474869089,
+    "text": "26",
+    "tier": "S",
+    "source": "data/invert/dw_results.json:per_site.<site>.q2.levels[A=...].rt.total; A = 32, b1-b8 min"
+  },
+  "q2.a32.rt_hi": {
+    "value": 79.92922565357026,
+    "text": "80",
+    "tier": "S",
+    "source": "data/invert/dw_results.json:per_site.<site>.q2.levels[A=...].rt.total; A = 32, b1-b8 max"
+  },
+  "q2.common": {
+    "value": 0,
+    "text": "0",
+    "tier": "S",
+    "source": "data/invert/dw_results.json:per_site.<site>.q2.levels; b1-b8 sites where argmax cos, argmax agree and argmin rt.total over the partition levels coincide"
+  },
+  "q3.eig_wins": {
+    "value": 11,
+    "text": "11",
+    "tier": "S",
+    "source": "data/invert/dw_results.json:per_site.<site>.q3.energy.<basis>|None at n = 256 (share of |X_c|^2); sites where eig > qr"
+  },
+  "q3.gap_max": {
+    "value": 0.02771973619373913,
+    "text": "0.028",
+    "tier": "S",
+    "source": "data/invert/dw_results.json:per_site.<site>.q3.energy.<basis>|None at n = 256 (share of |X_c|^2); max of eig - qr over sites"
+  },
+  "q3.qr_rand.lo": {
+    "value": 0.0003731392052516158,
+    "text": "0.0004",
+    "tier": "S",
+    "source": "data/invert/dw_results.json:per_site.<site>.q3.energy.<basis>|None at n = 256 (share of |X_c|^2); min over sites of qr - mean(rand0..4)"
+  },
+  "q3.qr_rand.hi": {
+    "value": 0.006338522767043386,
+    "text": "0.0063",
+    "tier": "S",
+    "source": "data/invert/dw_results.json:per_site.<site>.q3.energy.<basis>|None at n = 256 (share of |X_c|^2); max over sites of qr - mean(rand0..4)"
+  },
+  "loc.qr.lo": {
+    "value": 2476.0,
+    "text": "2,476",
+    "tier": "P",
+    "source": "data/invert/dw/P8__pr400__L12/<site>.npz:loc|<op>|<basis>|n90; median over atoms; ops site, joint|64, source|64; 12 sites; min over sites and operators, qr"
+  },
+  "loc.qr.hi": {
+    "value": 3300.0,
+    "text": "3,300",
+    "tier": "P",
+    "source": "data/invert/dw/P8__pr400__L12/<site>.npz:loc|<op>|<basis>|n90; median over atoms; ops site, joint|64, source|64; 12 sites; max, qr"
+  },
+  "loc.eig.lo": {
+    "value": 2674.0,
+    "text": "2,674",
+    "tier": "P",
+    "source": "data/invert/dw/P8__pr400__L12/<site>.npz:loc|<op>|<basis>|n90; median over atoms; ops site, joint|64, source|64; 12 sites; min, eig"
+  },
+  "loc.eig.hi": {
+    "value": 3471.0,
+    "text": "3,471",
+    "tier": "P",
+    "source": "data/invert/dw/P8__pr400__L12/<site>.npz:loc|<op>|<basis>|n90; median over atoms; ops site, joint|64, source|64; 12 sites; max, eig"
+  },
+  "loc.near.qr_lo": {
+    "value": 0.16959711909294128,
+    "text": "0.17",
+    "tier": "P",
+    "source": "…/<site>.npz:loc|site|qr|near_peak; median over atoms, site operator, min over sites"
+  },
+  "loc.near.qr_hi": {
+    "value": 0.23734496533870697,
+    "text": "0.24",
+    "tier": "P",
+    "source": "…/<site>.npz:loc|site|qr|near_peak; max over sites"
+  },
+  "loc.near.eig_lo": {
+    "value": 0.05561314523220062,
+    "text": "0.06",
+    "tier": "P",
+    "source": "…/<site>.npz:loc|site|eig|near_peak; min over sites"
+  },
+  "loc.near.eig_hi": {
+    "value": 0.0642656460404396,
+    "text": "0.06",
+    "tier": "P",
+    "source": "…/<site>.npz:loc|site|eig|near_peak; max over sites"
+  },
+  "ddm.b4.cos_n": {
+    "value": 243,
+    "text": "243",
+    "tier": "S",
+    "source": "data/invert/dw_results.json:per_site.b4.q1.joint|64.curves.lead|None; n at argmax cos"
+  },
+  "ddm.b4.cos": {
+    "value": 0.49619887856763445,
+    "text": "0.496",
+    "tier": "S",
+    "source": "data/invert/dw_results.json:per_site.b4.q1.joint|64.curves.lead|None; max cos"
+  },
+  "ddm.b4.agree_n": {
+    "value": 4051,
+    "text": "4,051",
+    "tier": "S",
+    "source": "data/invert/dw_results.json:per_site.b4.q1.joint|64.curves.lead|None; n at argmax agree"
+  },
+  "ddm.b4.agree": {
+    "value": 0.7145,
+    "text": "0.715",
+    "tier": "S",
+    "source": "data/invert/dw_results.json:per_site.b4.q1.joint|64.curves.lead|None; max agree"
+  },
+  "ddm.b4.r": {
+    "value": 4051,
+    "text": "4,051",
+    "tier": "S",
+    "source": "data/invert/dw_results.json:per_site.b4.q1.joint|64.r (dictionary size at the 1e-10 floor)"
+  },
+  "ctl.span": {
+    "value": 6.640669457325627e-15,
+    "text": "6.6e-15",
+    "tier": "S",
+    "source": "data/invert/dw_results.json:per_site.<site>.checks.q2_*_vs_eig_rel and q1.<cell>.checks.complete_band_rel; max"
+  },
+  "viewer.ranks": {
+    "value": "3, 6, 13, 24, 53, 93",
+    "text": "3, 6, 13, 24, 53, 93",
+    "tier": "S",
+    "source": "data/wavelets/joint_dw_64000.json:levels[].rank"
+  },
+  "viewer.t": {
+    "value": "0.625, 0.501, 0.373, 0.300, 0.252, 0.233",
+    "text": "0.625, 0.501, 0.373, 0.300, 0.252, 0.233",
+    "tier": "S",
+    "source": "data/wavelets/joint_dw_64000.json:levels[].t (ln 2 / mu_c)"
+  },
+  "viewer.tstar": {
+    "value": 8.364412775561544,
+    "text": "8.364",
+    "tier": "S",
+    "source": "data/wavelets/joint_dw_64000.json:operator.t_star"
+  },
+  "viewer.ship": {
+    "value": 16,
+    "text": "16",
+    "tier": "S",
+    "source": "data/wavelets/joint_dw_64000.json:ship"
+  },
+  "viewer.n": {
+    "value": 24000,
+    "text": "24,000",
+    "tier": "S",
+    "source": "data/wavelets/joint_dw_64000.json:operator.n × len(operator.sites)"
+  },
+  "viewer.qr.lo": {
+    "value": 3514.0,
+    "text": "3,514",
+    "tier": "S",
+    "source": "data/wavelets/joint_dw_64000.json:levels[].n90_median; min"
+  },
+  "viewer.qr.hi": {
+    "value": 9090.0,
+    "text": "9,090",
+    "tier": "S",
+    "source": "data/wavelets/joint_dw_64000.json:levels[].n90_median; max"
+  },
+  "viewer.eig.lo": {
+    "value": 7329.0,
+    "text": "7,329",
+    "tier": "S",
+    "source": "data/wavelets/joint_dw_64000.json:levels[].eig_n90_median; min"
+  },
+  "viewer.eig.hi": {
+    "value": 11350.0,
+    "text": "11,350",
+    "tier": "S",
+    "source": "data/wavelets/joint_dw_64000.json:levels[].eig_n90_median; max"
+  },
+  "viewer.gap53": {
+    "value": 0.008717485961584687,
+    "text": "0.9%",
+    "tier": "S",
+    "source": "data/wavelets/joint_dw_64000.json:levels[4].rel_gap (rank 53)"
+  },
+  "viewer.gap93": {
+    "value": 0.0032872065217470978,
+    "text": "0.3%",
+    "tier": "S",
+    "source": "data/wavelets/joint_dw_64000.json:levels[5].rel_gap (rank 93)"
+  }
+}

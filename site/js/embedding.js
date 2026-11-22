@@ -4,6 +4,8 @@
 //   <root>/<step>_<variant>.bin.gz  i8 unit slices (C, K, L, N) scaled to max |u| = 127, then u4 set labels
 //   <root>/<step>.json.gz           per variant: t, vals, weight (C, K, L) = share of each mode's squared norm per site, ...
 // Rows: G_l[i, k] = sqrt(weight[k][l]) * u_kl(i) / |u_kl|, optionally divided by |G_l|_F ("per site").
+// Diffusion wavelets (build_site.py wavelets(), d/stw/<net>; wavelets/SPEC_DW.md "Viewer"): scaling functions of the
+// reference operator at one heat time per scale, raw values (q * scale[l][s]); three chosen functions are the axes.
 // Across networks, nothing is shared by construction; two post-hoc fits put them side by side:
 //   depth matching: fractional (site l of L at l / (L - 1)) or DTW on the subspace distance 1 - |Q_A^T Q_B|_F^2 / K;
 //   coordinates: one orthogonal K x K rotation per network onto the reference (Procrustes over the matched sites).
@@ -205,6 +207,17 @@ function loadBase(m, net, step, kind) {
     return { L, k, q: new Int8Array(b), scale: sc, rec };
   });
 }
+// diffusion wavelets: the step's level table (ids, seeds, profiles, per-(site, function) scales) and one level's values
+const loadDwRec = net => once(`w:${net.dw.root}/${net.dw.step}`, async () => JSON.parse(new TextDecoder().decode(await gunzip(`${net.dw.root}/${net.dw.step}_dw.json.gz`))));
+function loadDwLevel(m, net, j) {
+  return once(`wl:${net.dw.root}/${net.dw.step}_j${j}`, async () => {
+    const rec = await loadDwRec(net), lv = rec.levels.find(x => x.j === j);
+    if (!lv) throw new Error(`${net.dw.root}: no scale ${j}`);
+    const b = await gunzip(`${net.dw.root}/${net.dw.step}_j${j}.bin.gz`), L = lv.scale.length, S = lv.shipped;
+    if (b.byteLength !== L * S * m.n) throw new Error(`${net.dw.root}/${net.dw.step}_j${j}: ${b.byteLength} bytes, expected ${L * S * m.n}`);
+    return { j, lv, L, S, q: new Int8Array(b) };
+  });
+}
 const loadSummary = (net, step) => once(`s:${net.root}/${step}`, async () => JSON.parse(new TextDecoder().decode(await gunzip(`${net.root}/${step}.json.gz`))));
 
 // the networks this build ships: ResNet-20 seed 0 from meta.spacetime, the rest from meta.stnets.nets
@@ -213,7 +226,7 @@ export function netList(m) {
   if (S) out.push({ id: "r20s0", label: "ResNet-20 seed 0", short: "R20 s0", root: "d/st", sites: m.sites, steps: S.steps, variants: S.variants, K: S.K, fidx: S.factors.map((_, i) => i),
                     acc: m.val_acc?.[m.val_acc.length - 1] ?? null, sets: S.sets });
   for (const n of m.stnets?.nets || []) out.push({ ...n, sets: n.nsets === 0 ? [] : n.sets ?? S?.sets });
-  for (const n of out) n.base = m.stnets?.base?.[n.id] || null;
+  for (const n of out) { n.base = m.stnets?.base?.[n.id] || null; n.dw = m.wavelets?.nets?.[n.id] || null; }
   return out;
 }
 
@@ -222,7 +235,7 @@ export class DepthEmbedding {
   constructor(root) {
     this.root = root;
     this.st = { method: "modes", nets: ["r20s0"], ref: "r20s0", step: null, variant: "own", c: 3, K: 8, norm: "site", dmode: "frac", align: true,
-                basis: "pooled", ax: [0, 1, 2], three: false, color: "class", r: 6, layout: "grid", ocol: "net", show: "all", links: true, anchor: 0, trails: true, fix: true, depth: 0 };
+                basis: "pooled", ax: [0, 1, 2], wl: 0, wax: [0, 1, 2], three: false, color: "class", r: 6, layout: "grid", ocol: "net", show: "all", links: true, anchor: 0, trails: true, fix: true, depth: 0 };
     this.sel = null; this.nSel = 0; this.hidden = new Set(); this.hiddenNets = new Set(); this.rot = { yaw: 0.6, pitch: 0.35 }; this.playing = false;
     this.panels = []; this.lastHash = null;
     this.ready = this.init();
@@ -237,7 +250,7 @@ export class DepthEmbedding {
     this.st.step = this.byId.r20s0 ? this.byId.r20s0.steps.at(-1) : this.nets[0].steps.at(-1);
     this.st.ref = this.nets[0].id; this.st.nets = [this.nets[0].id];
     [this.labels] = await Promise.all([D.labels()]);
-    D.sprite().then(im => { this.sprite = im; });
+    D.sprite().then(im => { this.sprite = im; this.syncDw(); });
     this.pal = this.m.palette;
     this.buildControls();
     this.bind();
@@ -279,6 +292,7 @@ export class DepthEmbedding {
   // the options under "More options", and whether any differs from its default (then the section opens and says so)
   advancedChanged() {
     const st = this.st, ref = this.ref();
+    if (st.method === "dw") return st.three;
     return st.method === "modes" && (st.variant !== ref.variants[0].id || st.c !== 3) || (st.method !== "umap" && st.K !== 8) || st.norm !== "site" ||
       st.basis !== "pooled" || st.ax.some((a, d) => a !== d) || st.three || !st.fix;
   }
@@ -310,19 +324,32 @@ export class DepthEmbedding {
     $("emb-mousehint").textContent = st.three ? "Plot: hover a dot to see its image. Keys: ← → step a site (when the plot is not focused), Space plays."
       : "Plot: hover a dot to see its image; drag a box to select images and follow them through depth. Keys: ← → step a site, Space plays.";
     this.root.querySelectorAll("input[name=emb-method]").forEach(r => {
-      r.checked = r.value === st.method; r.disabled = ref.group === "x1" && r.value !== "modes";
+      r.checked = r.value === st.method; r.disabled = ref.group === "x1" && r.value !== "modes" || r.value === "dw" && !ref.dw;
+      if (r.value === "dw") r.closest("label").title = ref.dw ? "" : "Built for ResNet-20 seed 0 only: choose it under Network";
     });
-    const base = st.method !== "modes", noSets = this.noSetPlanes();
-    $("emb-variant").disabled = base; $("emb-coup").disabled = base || V.C === 1; $("emb-K").disabled = st.method === "umap"; $("emb-three").disabled = st.method === "umap";
+    const base = st.method !== "modes", noSets = this.noSetPlanes(), dw = st.method === "dw";
+    $("emb-variant").disabled = base; $("emb-coup").disabled = base || V.C === 1; $("emb-K").disabled = st.method === "umap" || dw; $("emb-three").disabled = st.method === "umap" || dw && this.dwShipped() < 3;
+    // diffusion wavelets: one network at one checkpoint, raw values, the chosen functions as axes (SPEC_DW.md "Viewer")
+    $("emb-dw").hidden = !dw; $("emb-nets-dw").hidden = !dw; $("emb-more-dw").hidden = !dw;
+    // controls that do not apply are hidden (their reason is stated in "More options"), the rest disabled
+    for (const id of ["emb-variant", "emb-coup", "emb-K", "emb-norm", "emb-basis"]) $(id).closest(".emb-field").hidden = dw;
+    $("emb-ax0").closest(".emb-axes").hidden = dw; if (dw) $("emb-anchor2-row").hidden = true;
+    $("emb-intro-what").textContent = dw ? "the values of diffusion-wavelet scaling functions (one per plotted axis) of one operator" : "its coordinates in the first K modes of one operator";
+    for (const id of ["emb-norm", "emb-basis", "emb-anchor2", "emb-ax0", "emb-ax1", "emb-ax2", "emb-fix", "emb-step", "emb-all", "emb-one"]) if (dw) $(id).disabled = true;
+    else if (["emb-norm", "emb-basis", "emb-anchor2", "emb-fix", "emb-step", "emb-all", "emb-one"].includes(id)) $(id).disabled = false;
+    document.querySelectorAll("#emb-nets input").forEach(c => { c.disabled = dw; });
+    $("emb-step").title = dw ? "The diffusion-wavelet view is computed at step 64,000 only" : "";
+    if (dw) { $("emb-fix").checked = true; $("emb-norm").value = "raw"; }
+    this.syncDw();
     [...$("emb-color").options].forEach(o => { o.disabled = o.value === "seba" ? base : noSets || base ? o.value.startsWith("set") : false; });
     $("emb-r-row").hidden = st.color !== "seba"; $("emb-r").value = st.r;
-    $("emb-anchor-row").hidden = st.color !== "pos"; $("emb-anchor2-row").hidden = st.basis !== "anchor";      // UMAP's 2-d coordinates are rotated by this basis too
+    $("emb-anchor-row").hidden = st.color !== "pos"; $("emb-anchor2-row").hidden = dw || st.basis !== "anchor";      // UMAP's 2-d coordinates are rotated by this basis too
     $("emb-color-hint").textContent = ({
       class: "The class labels colour the dots only; they are not used to build anything.",
       pos: "Hue = direction and depth of colour = distance from the centre in the x/y axes, at the chosen site. Watch which colours stay together.",
       seba: "A post-hoc readout: SEBA run once on the stacked modes. Each network runs its own; colours are matched to the reference by overlap.",
     })[st.color] || (st.color.startsWith("set") ? "A post-hoc readout: k-means sets of the rank-8 readout, computed per network and per site." : "");
-    if (base) $("emb-color-hint").textContent += " (The set colourings need the through-depth modes.)";
+    if (base) $("emb-color-hint").textContent += dw ? " (The set colourings are read out of the through-depth modes, so they are off here.)" : " (The set colourings need the through-depth modes.)";
     if (noSets) $("emb-color-hint").textContent += " K-means colourings are unavailable here: they were not computed for networks trained on other data. SEBA uses the modes and is still available.";
     this.root.querySelectorAll("input[name=emb-layout]").forEach(r => { r.checked = r.value === st.layout; });
     $("emb-ocol").value = st.ocol; $("emb-show").value = st.show; $("emb-links").checked = st.links;
@@ -330,6 +357,51 @@ export class DepthEmbedding {
     const adv = this.advancedChanged();
     $("emb-more-note").textContent = adv ? "(some changed from the defaults)" : "";
     if (adv && !this.moreOpened) { $("emb-more").open = true; this.moreOpened = true; }
+  }
+  // the scale's level record from meta (always present) and, once loaded, its function list (ids, seeds, profiles)
+  dwLevelMeta() { const r = this.ref(); return r.dw ? r.dw.levels.find(x => x.j === this.st.wl) || r.dw.levels[0] : null; }
+  dwShipped() { return this.dwLevelMeta()?.shipped ?? 0; }
+  // label of one scaling function: id, QR seed (image and site), where its squared mass lies
+  dwLabel(f, sites, short = false) {
+    const cls = this.m.classes[this.labels[f.seed_image]], top = f.profile.indexOf(Math.max(...f.profile));
+    if (short === "option") return `${f.id} · ${cls} #${f.seed_image}, ${sites[f.seed_site]}`;
+    return short ? `${f.id} (seed: ${cls} ${f.seed_image}, ${sites[f.seed_site]})`
+      : `${f.id} · seed ${cls} #${f.seed_image} at ${sites[f.seed_site]} · ${Math.round(100 * f.profile[top])}% of mass at ${sites[top]}`;
+  }
+  // the caption of the wavelet view (key above the plot, GIF header): what the functions are, on which space, and
+  // whether the plotted ones are the whole band; from the drawn data d, never from a pending state
+  dwCaption(d, W, k, html) {
+    const sub = html ? (a, b) => `${a}<sub>${b}</sub>` : (a, b) => `${a}_${b}`, tj = sub("t", "j"), n = this.dwShown(d).length;
+    const whole = n === W.rank ? `the ${n} plotted function${n > 1 ? "s are" : " is"} the whole band, so together they are such a rotation`
+      : `the ${n} plotted function${n > 1 ? "s are" : " is"} not (${W.shipped < W.rank ? `${W.shipped} of ${W.rank} are shipped` : `${n} of ${W.rank}`})`;
+    return (html ? `Operator L_t (relative site units, depth coupling t* = ${fmt(this.m.wavelets.tstar)}), on slice-mean-zero functions. Each axis function starts`
+      : `Scaling functions of the through-depth operator (L_t, relative site units, depth coupling t* = ${fmt(this.m.wavelets.tstar)}; slice-mean-zero functions), ` +
+      `scale ${k} of ${d.net.dw.levels.length}, rank ${W.rank}: each starts`) + ` as a heat bump at time ${tj} = ${fmt(W.t)} from one (image, site) seed, truncated to the ${W.rank} slowest slice-mean-zero modes (those keeping at least half their amplitude); ` +
+      `pivoted QR then orthonormalises the bumps in seed order, so each function after the first is its bump with the earlier ones projected out. ` +
+      `The ${W.rank} functions of the band are together a rotation of its ${W.rank} unit-norm eigenmodes (not the per-site normalised display of the modes view); ${whole}. Raw values; axes fixed through depth`;
+  }
+  syncDw() {
+    const st = this.st, ref = this.ref(), lvm = this.dwLevelMeta();
+    if (st.method !== "dw" || !lvm) return;
+    const sel = $("emb-dwl");
+    sel.replaceChildren(...ref.dw.levels.map((lv, k) => Object.assign(new Option(`${k + 1}. rank ${lv.rank} · t_j = ${fmt(lv.t)}`, lv.j),
+      { title: `scale ${k + 1} of ${ref.dw.levels.length}: the ${lv.rank} slowest modes (cut-off μ_c = ${fmt(lv.mu_c)}), heat time t_j = ln 2 / μ_c = ${fmt(lv.t)}` })));
+    sel.value = lvm.j;
+    const drawn = this.refD?.dw && this.refD.dw.j === lvm.j ? this.refD : null, plotted = drawn ? this.dwShown(drawn).length : "–";
+    $("emb-dwcount").innerHTML = `<div title="functions in the band (its dimension)"><b>${lvm.rank}</b><span>rank</span></div><div title="functions shipped in this build"><b>${lvm.shipped}</b><span>shipped</span></div><div title="functions plotted as axes"><b>${plotted}</b><span>plotted</span></div>`;
+    const rec = this.dwRec, lv = rec?.levels.find(x => x.j === lvm.j), sites = ref.sites;
+    for (let a = 0; a < 3; a++) {
+      const s = $("emb-dwax" + a), th = $("emb-dwth" + a), used = a < Math.min(lvm.shipped, st.three ? 3 : 2);
+      s.replaceChildren(...(lv ? lv.functions.map((f, k) => Object.assign(new Option(this.dwLabel(f, sites, "option"), k), { title: this.dwLabel(f, sites) })) : [new Option("loading…", st.wax[a])]));
+      s.title = lv && used ? this.dwLabel(lv.functions[st.wax[a]], sites) : "";
+      s.value = st.wax[a]; s.disabled = !used || !lv;
+      th.classList.toggle("off", !used || !lv);
+      const g = th.getContext("2d"); g.clearRect(0, 0, 32, 32);
+      if (used && lv && this.sprite) { const f = lv.functions[st.wax[a]], c = this.m.sprite_cols; g.drawImage(this.sprite, (f.seed_image % c) * 32, Math.floor(f.seed_image / c) * 32, 32, 32, 0, 0, 32, 32); th.title = `seed image ${f.seed_image} (${this.m.classes[this.labels[f.seed_image]]})`; }
+    }
+    $("emb-dwz").textContent = lvm.shipped < 3 ? "(this scale has fewer than three functions)" : st.three ? "" : "(turn on 3D under More options)";
+    const part = lvm.shipped < lvm.rank ? ` Only the first ${lvm.shipped} of the ${lvm.rank} are shipped (pivot order, i.e. greedy coverage of the band); together they are not the whole band.` : ` All ${lvm.rank} are shipped.`;
+    $("emb-dwnote").innerHTML = `Each function starts as a heat bump of this operator at time t<sub>j</sub> = ${fmt(lvm.t)} from one (image, site) seed, truncated to the ${lvm.rank} slowest slice-mean-zero modes (those that keep at least half their amplitude at t<sub>j</sub>); pivoted QR orthonormalises the bumps in seed order, so each after the first has the earlier ones projected out. The thumbnail is the seed image. An axis can show each function once: choosing one already on another axis swaps the two.${part}`;
   }
   bind() {
     const st = this.st, on = (id, ev, f) => $(id).addEventListener(ev, f);
@@ -342,9 +414,13 @@ export class DepthEmbedding {
     on("emb-ref", "change", re(() => { const single = this.shown().length < 2; st.ref = $("emb-ref").value; if (single) st.nets = [st.ref]; else if (!st.nets.includes(st.ref)) st.nets.push(st.ref); st.anchor = 0; st.depth = 0; }));
     on("emb-step", "change", re(() => { st.step = +$("emb-step").value; }));
     this.root.querySelectorAll("input[name=emb-method]").forEach(r => r.addEventListener("change", re(() => {
-      st.method = r.value; if (st.method !== "modes" && (st.color.startsWith("set") || st.color === "seba")) st.color = "class";
+      st.method = r.value; if (st.method !== "modes" && (st.color.startsWith("set") || st.color === "seba")) { st.color = "class"; this.hidden.clear(); }
     })));
     on("emb-variant", "change", re(() => { st.variant = $("emb-variant").value; }));
+    on("emb-dwl", "change", re(() => { st.wl = +$("emb-dwl").value; st.wax = [0, 1, 2]; }));      // a new scale: axes reset
+    for (let a = 0; a < 3; a++) on("emb-dwax" + a, "change", re(() => {
+      const v = +$("emb-dwax" + a).value, b = st.wax.indexOf(v); if (b >= 0 && b !== a) st.wax[b] = st.wax[a]; st.wax[a] = v;      // no repeated axis: swap
+    }, false));
     on("emb-coup", "input", re(() => { st.c = +$("emb-coup").value; }));
     on("emb-K", "change", re(() => { st.K = +$("emb-K").value; }, false));
     on("emb-norm", "change", re(() => { st.norm = $("emb-norm").value; }, false));
@@ -411,6 +487,15 @@ export class DepthEmbedding {
   clamp() {
     const st = this.st, ref = this.ref();
     if (ref.group === "x1") st.method = "modes";
+    if (st.method === "dw" && !ref.dw) st.method = "modes";
+    if (st.method === "dw") {        // one network at its one solved checkpoint; axes are functions of the chosen scale
+      st.nets = [st.ref]; st.step = ref.dw.step;
+      if (!ref.dw.levels.some(x => x.j === st.wl)) st.wl = ref.dw.levels[0].j;
+      const S = this.dwShipped();
+      st.wax = [0, 1, 2].map(a => Number.isInteger(st.wax[a]) && st.wax[a] >= 0 && st.wax[a] < S ? st.wax[a] : Math.min(a, S - 1));
+      for (let a = 1; a < Math.min(3, S); a++) if (st.wax.slice(0, a).includes(st.wax[a])) st.wax[a] = [...Array(S).keys()].find(k => !st.wax.slice(0, a).includes(k));   // no repeated axis
+      if (S < 3) st.three = false;
+    }
     if (!ref.steps.includes(st.step)) st.step = ref.steps.reduce((a, b) => Math.abs(b - st.step) < Math.abs(a - st.step) ? b : a);
     if (!ref.variants.some(v => v.id === st.variant)) st.variant = ref.variants[0].id;
     const base = st.method !== "modes";
@@ -425,7 +510,7 @@ export class DepthEmbedding {
     if (!["site", "raw"].includes(st.norm)) st.norm = "site";
     if (!["frac", "dtw"].includes(st.dmode)) st.dmode = "frac";
     st.anchor = Math.min(st.anchor, ref.sites.length - 1); st.depth = Math.min(st.depth, ref.sites.length - 1);
-    st.K = Math.min(st.K, ...this.shown().map(n => st.method === "modes" ? n.K : n.base?.K ?? n.K));
+    if (st.method !== "dw") st.K = Math.min(st.K, ...this.shown().map(n => st.method === "modes" ? n.K : n.base?.K ?? n.K));
     if (st.method === "umap") { st.K = 2; st.three = false; } else if (st.K < 4) st.K = 8;
   }
 
@@ -433,6 +518,7 @@ export class DepthEmbedding {
   saveHash() {
     const st = this.st, h = new URLSearchParams({ m: st.method, r: st.r, lay: st.layout, oc: st.ocol, sh: st.show, lk: +st.links, nets: this.shown().map(n => n.id).join("."), ref: st.ref, step: st.step, v: st.variant, c: st.c, K: st.K,
       norm: st.norm, dm: st.dmode, al: +st.align, basis: st.basis, ax: st.ax.join("."), d3: +st.three, color: st.color, anchor: st.anchor, depth: (+st.depth).toFixed(2) });
+    if (st.method === "dw") { for (const k of ["v", "c", "K", "norm", "basis", "ax", "dm", "al", "lay", "oc", "sh", "lk", "r"]) h.delete(k); h.set("wl", st.wl); h.set("wax", st.wax.join(".")); }
     this.lastHash = "#embedding?" + h.toString();
     if (document.body.dataset.tab === "embedding") history.replaceState(history.state, "", this.lastHash);
   }
@@ -450,20 +536,24 @@ export class DepthEmbedding {
       if (raw.slice(0, qi < 0 ? raw.length : qi) !== "embedding" || qi < 0) return;
       h = new URLSearchParams(raw.slice(qi + 1));
     }
-    const st = this.st, num = (k, d) => h.has(k) && isFinite(+h.get(k)) ? +h.get(k) : d;
-    if (["modes", "pca", "umap"].includes(h.get("m"))) st.method = h.get("m");
+    const st = this.st, num = (k, d) => h.has(k) && isFinite(+h.get(k)) ? +h.get(k) : d, was = `${st.method}|${st.color}`;
+    if (["modes", "pca", "umap", "dw"].includes(h.get("m"))) st.method = h.get("m");
+    if (h.has("wl") && Number.isInteger(+h.get("wl"))) st.wl = +h.get("wl");
+    if (h.get("wax")) st.wax = h.get("wax").split(".").map(Number).slice(0, 3);
     if (SEBA_R.includes(+h.get("r"))) st.r = +h.get("r");
     if (["grid", "overlay"].includes(h.get("lay"))) st.layout = h.get("lay");
     if (["net", "plot"].includes(h.get("oc"))) st.ocol = h.get("oc");
     if (["all", "sample", "centroids"].includes(h.get("sh"))) st.show = h.get("sh");
     if (h.has("lk")) st.links = h.get("lk") === "1";
     if (h.get("ref") && this.byId[h.get("ref")]) st.ref = h.get("ref");
+    else if (st.method === "dw" && !this.ref().dw) { const n = this.nets.find(x => x.dw); if (n) { st.ref = n.id; st.nets = [n.id]; } }   // the one network with wavelet data
     if (h.get("nets")) st.nets = h.get("nets").split(".").filter(id => this.byId[id]);
     st.step = num("step", st.step); st.variant = h.get("v") || st.variant; st.c = num("c", st.c); st.K = num("K", st.K);
     st.norm = h.get("norm") || st.norm; st.dmode = h.get("dm") || st.dmode; st.align = h.has("al") ? h.get("al") === "1" : st.align;
     st.basis = h.get("basis") || st.basis; st.three = h.get("d3") === "1";
     if (h.get("ax")) st.ax = h.get("ax").split(".").map(Number).slice(0, 3);
     st.color = h.get("color") || st.color; st.anchor = num("anchor", st.anchor); st.depth = num("depth", st.depth);
+    if (`${st.method}|${st.color}` !== was) this.hidden.clear();      // hidden group ids belong to the old legend
     this.clamp(); this.syncControls(); await this.load(); this.lastHash = location.hash;
   }
   async layout() {      // called by the router when the tab is shown (canvases have no size while hidden)
@@ -480,9 +570,16 @@ export class DepthEmbedding {
     const got = await Promise.all(nets.map(async n => {
       const step = this.stepFor(n);
       if (step === null) return { net: n, missing: true, reason: n.group === "x1" ? "only its final checkpoint is available; choose the reference's final step" : null };
+      if (st.method === "dw") {
+        const j = st.wl;
+        if (!n.dw || n.dw.step !== step) return { net: n, missing: true, reason: "no diffusion-wavelet data" };
+        try { const [rec, lvl] = await Promise.all([loadDwRec(n), loadDwLevel(this.m, n, j)]); return { net: n, step, dw: lvl, dwRec: rec }; }
+        catch (e) { console.error(e); return { net: n, missing: true, error: e.message }; }
+      }
       if (st.method !== "modes") {
         if (!n.base || !n.base.steps.includes(step)) return { net: n, missing: true, reason: n.group === "x1" ? "no PCA or UMAP baseline is shipped" : null };
-        try { return { net: n, step, base: await loadBase(this.m, n, step, st.method) }; }
+        const kind = st.method;
+        try { return { net: n, step, kind, base: await loadBase(this.m, n, step, kind) }; }
         catch (e) { console.error(e); return { net: n, missing: true, error: e.message }; }
       }
       if (!n.variants.some(v => v.id === st.variant)) return { net: n, missing: true, reason: n.group === "x1" ? "only the relative site units variant is shipped" : null };
@@ -492,6 +589,8 @@ export class DepthEmbedding {
     if (token !== this.loadToken) return;      // superseded by a newer request
     this.loading = false;
     this.data = got;
+    const dwd = got.find(d => d.dw);
+    if (dwd) { this.dwRec = dwd.dwRec; this.syncDw(); }
     this.recompute();
     await this.refreshSeba();
   }
@@ -503,6 +602,7 @@ export class DepthEmbedding {
   }
   buildG(d) {
     if (d.base) return this.buildBaseG(d);
+    if (d.dw) return this.buildDwG(d);
     const { st, N } = this, K = st.K, KK = d.unit.K, L = d.unit.L, c = this.cIdx(d), w = d.summ.variants[st.variant].weight[c], v = d.unit.vecs, G = [];
     for (let l = 0; l < L; l++) {
       const g = new Float64Array(N * K);
@@ -520,7 +620,7 @@ export class DepthEmbedding {
   // baselines: per-site coordinates (centred), per-site scale as chosen, then chained along depth by Procrustes
   // (site l rotated onto the already rotated site l - 1): the usual way to show an independent embedding per site
   buildBaseG(d) {
-    const { st, N } = this, B = d.base, K = st.method === "umap" ? 2 : Math.min(st.K, B.k), G = [];
+    const { st, N } = this, B = d.base, K = d.kind === "umap" ? 2 : Math.min(st.K, B.k), G = [];
     for (let l = 0; l < B.L; l++) {
       const g = new Float64Array(N * K);
       for (let k = 0; k < K; k++) { const off = (l * B.k + k) * N, sc = B.scale[l][k]; let mu = 0; for (let i = 0; i < N; i++) mu += B.q[off + i]; mu /= N; for (let i = 0; i < N; i++) g[i * K + k] = (B.q[off + i] - mu) * sc; }
@@ -533,6 +633,28 @@ export class DepthEmbedding {
     }
     return G;
   }
+  // diffusion wavelets: three columns = the chosen scaling functions' raw values at each site (no per-site rescaling,
+  // no rotation); an axis beyond the scale's functions stays 0 (a rank-1 or rank-2 band is drawn with fewer axes)
+  buildDwG(d) {
+    const { N } = this, W = d.dw, ax = this.dwAxes(d), G = [];
+    d.dwAx = ax; d.dwPlot = this.dwPlotted(d);      // labels, hover and bars read these, never the live state
+    for (let l = 0; l < W.L; l++) {
+      const g = new Float64Array(N * 3);
+      ax.forEach((s, c) => { if (s < 0) return; const off = (l * W.S + s) * N, sc = W.lv.scale[l][s]; for (let i = 0; i < N; i++) g[i * 3 + c] = W.q[off + i] * sc; });
+      G.push(g);
+    }
+    return G;
+  }
+  // the functions on the axes of loaded wavelet data d (-1 = no such axis): the state's choice, limited to what d holds
+  dwAxes(d) { const S = d.dw.S, n = Math.min(S, 3); return [0, 1, 2].map(a => a < n ? Math.min(this.st.wax[a], S - 1) : -1); }
+  dwFns(d) { return d.dwRec.levels.find(x => x.j === d.dw.j).functions; }
+  dwShown(d) { return [...new Set(d.dwAx.slice(0, d.dwPlot))]; }      // distinct functions on the drawn axes
+  dwPlotted(d) { return Math.min(d.dw.S, this.st.three ? 3 : 2); }
+  // the method of the data on screen (labels follow the drawing, not a state whose load is still pending)
+  th() { return this.refD && this.drawnThree != null ? this.drawnThree : this.st.three; }      // 3D as drawn
+  kD() { return this.refD ? this.drawnK ?? this.st.K : this.st.K; }      // the K of the drawing
+  dm() { const d = this.refD; return d ? (d.dw ? "dw" : d.base ? d.kind : "modes") : this.st.method; }
+  fixOn() { return this.st.fix || this.st.method === "dw" || !!this.refD?.dw; }
   // rows of network d at fractional site b (linear interpolation between neighbouring sites)
   rowsAt(G, b) {
     const L = G.length, l0 = Math.max(0, Math.min(L - 2, Math.floor(b))), a = Math.max(0, Math.min(1, b - l0));
@@ -542,9 +664,18 @@ export class DepthEmbedding {
     return out;
   }
   recompute() {
-    const { st, N } = this, K = st.K, ok = this.data.filter(d => !d.missing);
+    const { st, N } = this, ok = this.data.filter(d => !d.missing), K = ok.some(d => d.dw) ? 3 : st.K;
+    $("emb-tip").style.display = "none";      // a tooltip describes the drawing it was opened on
     const refD = ok.find(d => d.net.id === st.ref);
-    if (!refD) { $("emb-status").textContent = `The reference network has no data at step ${st.step} for this variant.`; this.panels = []; this.renderPanels(); return; }
+    if (!refD) {
+      const bad = this.data.find(d => d.net.id === st.ref);
+      $("emb-status").textContent = bad?.error ? `${bad.net.label} failed to load: ${bad.error}` : `The reference network has no data at step ${st.step} for this ${st.method === "dw" ? "view" : "variant"}.`;
+      $("emb-what").textContent = ""; $("emb-occ-cap").textContent = ""; this.occBase = null;
+      const occ = $("emb-occ"); occ.getContext("2d").clearRect(0, 0, occ.width, occ.height);
+      this.refD = null; this.panels = []; this.renderPanels(); this.legend();
+      for (const id of ["emb-seba-card", "emb-dis-card", "emb-strip-card", "emb-cmp"]) $(id).hidden = true;
+      this.syncDw(); return;
+    }
     for (const d of ok) d.G = this.buildG(d);
     const La = refD.G.length;
     // depth matching: map[a] = fractional site of d matched to reference site a
@@ -593,13 +724,13 @@ export class DepthEmbedding {
     // raw scale: the modes' columns are orthonormal over all sites, so the pooled spectrum is flat (1, ..., 1) and its
     // "principal" axes would be set by rounding; use the raw modes instead and say so
     this.flatPooled = st.method === "modes" && st.norm === "raw" && st.basis === "pooled";
-    if (st.basis === "modes" || this.flatPooled) { V = new Float64Array(K * K); for (let i = 0; i < K; i++) V[i * K + i] = 1; }
+    if (refD.dw || st.basis === "modes" || this.flatPooled) { V = new Float64Array(K * K); for (let i = 0; i < K; i++) V[i * K + i] = 1; }
     else {
       const R = new Float64Array(K * K), sites = st.basis === "pooled" ? [...Array(La).keys()] : [st.anchor];
       for (const l of sites) { const C = crossTN(refD.Y[l], refD.Y[l], N, K); for (let j = 0; j < R.length; j++) R[j] += C[j]; }
       const e = eigSym(R, K); V = e.V; this.evals = e.vals;
     }
-    const ax = st.method === "umap" ? [0, 1, 1] : st.ax.map(a => Math.max(0, Math.min(a, K - 1))), dims = st.three ? 3 : 2;
+    const ax = refD.dw ? [0, 1, 2] : refD.kind === "umap" ? [0, 1, 1] : st.ax.map(a => Math.max(0, Math.min(a, K - 1))), dims = refD.dw ? refD.dwPlot : st.three ? 3 : 2;
     const q995 = arr => { const s = Float32Array.from(arr).sort(); return s[Math.floor(0.995 * (s.length - 1))] || 1e-9; };
     for (const d of ok) {
       d.P = d.Y.map(y => { const p = new Float32Array(N * 3); for (let i = 0; i < N; i++) for (let t = 0; t < 3; t++) { let z = 0; for (let k = 0; k < K; k++) z += y[i * K + k] * V[k * K + ax[t]]; p[i * 3 + t] = z; } return p; });
@@ -607,8 +738,9 @@ export class DepthEmbedding {
       d.scaleBySite = d.P.map(p => { const r = new Float32Array(N); for (let i = 0; i < N; i++) { let s = 0; for (let t = 0; t < dims; t++) s += p[i * 3 + t] ** 2; r[i] = Math.sqrt(s); } return q995(r); });
     }
     this.scaleAll = Math.max(...ok.flatMap(d => d.scaleBySite));
-    this.refD = refD;
+    this.refD = refD; this.drawnK = K; this.drawnAx = ax.slice(); this.drawnBasis = st.basis; this.drawnThree = refD.dw ? refD.dwPlot === 3 : refD.kind !== "umap" && st.three;
     this.panels = this.data;
+    if (refD.dw) this.syncDw();
     this.buildColours();
     this.renderPanels();
     this.drawAll();
@@ -818,7 +950,7 @@ export class DepthEmbedding {
     for (const d of this.panels) {
       const fig = document.createElement("figure"); fig.className = "emb-panel";
       const cap = document.createElement("figcaption"), cv = document.createElement("canvas");
-      fig.append(cap, cv); wrap.append(fig); d.fig = fig; d.cap = cap; d.cv = cv;
+      fig.append(cap, cv); wrap.append(fig); d.fig = fig; d.cap = cap; d.cv = cv; d.capHtml = null;
       if (d.missing) { cv.hidden = true; cap.textContent = `${d.net.label}: ${d.error ? "failed to load" : d.reason || "no data at this checkpoint or variant"}; no comparison fit was run`; continue; }
       this.bindPlot(d);
     }
@@ -835,11 +967,11 @@ export class DepthEmbedding {
     const b = this.posOf(d), P = d.P, L = P.length, l0 = Math.max(0, Math.min(L - 2, Math.floor(b))), a = Math.max(0, Math.min(1, b - l0)), N = this.N;
     const out = new Float32Array(N * 3), p0 = P[l0], p1 = P[Math.min(L - 1, l0 + 1)];
     for (let j = 0; j < out.length; j++) out[j] = (1 - a) * p0[j] + a * p1[j];
-    return { pts: out, b, scale: this.st.fix ? this.scaleAll : (1 - a) * d.scaleBySite[l0] + a * d.scaleBySite[Math.min(L - 1, l0 + 1)] };
+    return { pts: out, b, scale: this.fixOn() ? this.scaleAll : (1 - a) * d.scaleBySite[l0] + a * d.scaleBySite[Math.min(L - 1, l0 + 1)] };
   }
-  projector(w, h, scale) {
+  projector(w, h, scale, three = this.th()) {      // as the drawn data were built
     const R = Math.min(w, h) * 0.46 / scale, cx = w / 2, cy = h / 2;
-    if (!this.st.three) return (x, y) => [cx + R * x, cy - R * y, 0];
+    if (!three) return (x, y) => [cx + R * x, cy - R * y, 0];
     const { yaw, pitch } = this.rot, cyw = Math.cos(yaw), syw = Math.sin(yaw), cp = Math.cos(pitch), sp = Math.sin(pitch);
     return (x, y, z) => { const x1 = cyw * x + syw * z, z1 = -syw * x + cyw * z, y2 = cp * y - sp * z1, z2 = sp * y + cp * z1; return [cx + R * x1, cy - R * y2, z2 / scale]; };
   }
@@ -850,8 +982,10 @@ export class DepthEmbedding {
   }
   axisNames() {
     const st = this.st, tot = this.evals ? this.evals.reduce((x, y) => x + Math.max(y, 0), 0) : 0;
-    if (st.method === "umap") return ["UMAP axis 1 (after rotation)", "UMAP axis 2 (after rotation)", ""];
-    return st.ax.map(a => st.basis === "modes" || this.flatPooled ? `mode ${a + 1}` : `PC${a + 1}${this.evals ? ` (${(100 * this.evals[a] / tot).toFixed(0)}%)` : ""}`);
+    if (this.refD?.dw) { const d = this.refD, fs = this.dwFns(d); return d.dwAx.map((s, a) => s < 0 || a >= d.dwPlot ? "" : this.dwLabel(fs[s], d.net.sites, true)); }
+    if (this.dm() === "umap") return ["UMAP axis 1 (after rotation)", "UMAP axis 2 (after rotation)", ""];
+    const axD = this.refD && this.drawnAx ? this.drawnAx : st.ax, basis = this.refD && this.drawnBasis ? this.drawnBasis : st.basis;      // as drawn
+    return axD.map(a => basis === "modes" || this.flatPooled ? `mode ${a + 1}` : `PC${a + 1}${this.evals ? ` (${(100 * this.evals[a] / tot).toFixed(0)}%)` : ""}`);
   }
   drawAll() { this.draw(); if (this.panels.length === 1) this.drawStrip(); else this.drawDis(); this.drawOcc(); this.drawSeba(); this.status(); }
   // SEBA: each set's share of images at each site of the reference (unassigned dashed grey)
@@ -891,14 +1025,14 @@ export class DepthEmbedding {
     const { pts, b, scale } = this.frame(d), proj = this.projector(w, h, scale);
     // axes
     g.strokeStyle = css("--line"); g.lineWidth = 1; g.fillStyle = css("--mute"); g.font = "11px system-ui, sans-serif";
-    const names = this.axisNames(), ends = st.three ? [[1, 0, 0], [0, 1, 0], [0, 0, 1]] : [[1, 0, 0], [0, 1, 0]];
+    const names = this.axisNames().map(n => d.dw && w < 560 ? n.split(" (")[0] : n), ends = [[1, 0, 0], [0, 1, 0], [0, 0, 1]].slice(0, d.dw ? d.dwPlot : this.th() ? 3 : 2);
     ends.forEach((e, k) => { const a = proj(-e[0] * scale, -e[1] * scale, -e[2] * scale), z = proj(e[0] * scale, e[1] * scale, e[2] * scale); g.beginPath(); g.moveTo(a[0], a[1]); g.lineTo(z[0], z[1]); g.stroke(); if (this.panels.length < 4 || k < 2) { const tw = g.measureText(names[k]).width; g.fillText(names[k], Math.min(z[0] + 4, w - tw - 2), Math.max(12, z[1] - 4)); } });
     const lc = Math.max(0, Math.min(d.P.length - 1, Math.round(b))), { cols, grp } = d.colCache[lc];
     const sc = new Float32Array(N * 2), zz = new Float32Array(N), order = [...Array(N).keys()];
     for (let i = 0; i < N; i++) { const s = proj(pts[i * 3], pts[i * 3 + 1], pts[i * 3 + 2]); sc[i * 2] = s[0]; sc[i * 2 + 1] = s[1]; zz[i] = s[2]; }
     d.screen = sc;
     const sel = this.sel, nSel = this.nSel;
-    if (st.three) order.sort((x, y) => zz[x] - zz[y]); else order.sort((x, y) => sel[x] - sel[y] || ((x * 7919) % N) - ((y * 7919) % N));
+    if (this.th()) order.sort((x, y) => zz[x] - zz[y]); else order.sort((x, y) => sel[x] - sel[y] || ((x * 7919) % N) - ((y * 7919) % N));
     if (st.trails && nSel) {
       let shown = 0;
       for (let i = 0; i < N && shown < 400; i++) {
@@ -914,7 +1048,7 @@ export class DepthEmbedding {
     const r = Math.max(1.3, Math.min(3.2, w / 330));
     for (const i of order) {
       if (this.hidden.has(grp[i])) continue;
-      const a = nSel && !sel[i] ? 0.12 : st.three ? 0.45 + 0.5 * Math.max(0, Math.min(1, (zz[i] + 1) / 2)) : 0.85;
+      const a = nSel && !sel[i] ? 0.12 : this.th() ? 0.45 + 0.5 * Math.max(0, Math.min(1, (zz[i] + 1) / 2)) : 0.85;
       g.fillStyle = rgba(cols[i], a); g.beginPath(); g.arc(sc[i * 2], sc[i * 2 + 1], nSel && sel[i] ? r + 0.8 : r, 0, 7); g.fill();
       if (nSel && sel[i]) { g.strokeStyle = css("--fg"); g.lineWidth = 0.6; g.stroke(); g.lineWidth = 1; }
     }
@@ -939,7 +1073,7 @@ export class DepthEmbedding {
   drawOverlay() {
     const { st, N } = this, ov = this.ov, { g, w, h } = this.fit(ov.cv), mem = this.ovMembers();
     g.fillStyle = css("--surface"); g.fillRect(0, 0, w, h);
-    const frames = mem.map(({ d }) => this.frame(d)), dims = st.three ? 3 : 2, C = this.m.classes.length;
+    const frames = mem.map(({ d }) => this.frame(d)), dims = this.th() ? 3 : 2, C = this.m.classes.length;
     const cmean = P => { const c = new Float64Array(C * 3), n = new Float64Array(C); for (let i = 0; i < N; i++) { const y = this.labels[i]; n[y]++; for (let t = 0; t < 3; t++) c[y * 3 + t] += P[i * 3 + t]; } for (let y = 0; y < C; y++) for (let t = 0; t < 3; t++) c[y * 3 + t] /= n[y] || 1; return c; };
     const cent = st.show === "centroids" ? mem.map(({ d }, j) => ({ path: d.P.map(cmean), cur: cmean(frames[j].pts) })) : null;
     const crad = c => { let mx = 0; for (let y = 0; y < C; y++) { let r2 = 0; for (let t = 0; t < dims; t++) r2 += c[y * 3 + t] ** 2; mx = Math.max(mx, Math.sqrt(r2)); } return mx; };
@@ -948,7 +1082,7 @@ export class DepthEmbedding {
       : st.fix ? this.scaleAll : Math.max(...frames.map(f => f.scale), 1e-9);
     const proj = this.projector(w, h, scale);
     g.strokeStyle = css("--line"); g.lineWidth = 1; g.fillStyle = css("--mute"); g.font = "11px system-ui, sans-serif";
-    const names = this.axisNames(), ends = st.three ? [[1, 0, 0], [0, 1, 0], [0, 0, 1]] : [[1, 0, 0], [0, 1, 0]];
+    const names = this.axisNames(), ends = this.th() ? [[1, 0, 0], [0, 1, 0], [0, 0, 1]] : [[1, 0, 0], [0, 1, 0]];
     ends.forEach((e, k) => { const a = proj(-e[0] * scale, -e[1] * scale, -e[2] * scale), z = proj(e[0] * scale, e[1] * scale, e[2] * scale); g.beginPath(); g.moveTo(a[0], a[1]); g.lineTo(z[0], z[1]); g.stroke(); const tw = g.measureText(names[k]).width; g.fillText(names[k], Math.min(z[0] + 4, w - tw - 2), Math.max(12, z[1] - 4)); });
     const sel = this.sel, nSel = this.nSel, r = Math.max(1.6, Math.min(3.4, w / 300));
     ov.screens = [];
@@ -1013,7 +1147,7 @@ export class DepthEmbedding {
     cv.tabIndex = 0;
     cv.setAttribute("aria-label", `${d.overlay ? "All shown networks in one plot" : d.net.label}: scatter plot of the probe images. In 3D, arrow keys rotate the view and R resets it.`);
     cv.addEventListener("keydown", e => {
-      if (!this.st.three || e.ctrlKey || e.metaKey || e.altKey) return;
+      if (!this.th() || e.ctrlKey || e.metaKey || e.altKey) return;
       const step = e.shiftKey ? 0.35 : 0.12, k = e.key;
       if (k === "ArrowLeft") this.rotateBy(-step, 0); else if (k === "ArrowRight") this.rotateBy(step, 0);
       else if (k === "ArrowUp") this.rotateBy(0, -step); else if (k === "ArrowDown") this.rotateBy(0, step);
@@ -1027,29 +1161,29 @@ export class DepthEmbedding {
       if (e.pointerType === "touch" && !this.touchSel) { this.drag = { d, x: e.clientX, y: e.clientY, scroll: true, moved: false }; return; }
       const r = cv.getBoundingClientRect(); cv.setPointerCapture(e.pointerId);
       this.drag = { d, x: e.clientX, y: e.clientY, yaw: this.rot.yaw, pitch: this.rot.pitch, shift: e.shiftKey, moved: false };
-      if (!this.st.three) d.box = { x0: e.clientX - r.left, y0: e.clientY - r.top, x1: e.clientX - r.left, y1: e.clientY - r.top };
+      if (!this.th()) d.box = { x0: e.clientX - r.left, y0: e.clientY - r.top, x1: e.clientX - r.left, y1: e.clientY - r.top };
     });
     cv.addEventListener("pointermove", e => {
       const dr = this.drag; if (!dr) return this.hover(d, e);
       if (dr.scroll) { if (Math.abs(e.clientX - dr.x) + Math.abs(e.clientY - dr.y) > 8) dr.moved = true; return; }
       const r = cv.getBoundingClientRect();
       if (Math.abs(e.clientX - dr.x) + Math.abs(e.clientY - dr.y) > 3) dr.moved = true;
-      if (this.st.three) { this.rot.yaw = dr.yaw + (e.clientX - dr.x) * 0.01; this.rot.pitch = Math.max(-1.5, Math.min(1.5, dr.pitch + (e.clientY - dr.y) * 0.01)); this.draw(); }
+      if (this.th()) { this.rot.yaw = dr.yaw + (e.clientX - dr.x) * 0.01; this.rot.pitch = Math.max(-1.5, Math.min(1.5, dr.pitch + (e.clientY - dr.y) * 0.01)); this.draw(); }
       else { d.box.x1 = e.clientX - r.left; d.box.y1 = e.clientY - r.top; d.overlay ? this.drawOverlay() : this.drawPanel(d); }
     });
     const up = e => {
       const dr = this.drag; if (!dr) return; this.drag = null;
       if (dr.scroll) { if (!dr.moved && e.type === "pointerup") this.hover(d, e); return; }
       // a tap (touch or pen, no drag) shows the nearest image, as hovering does with a mouse
-      if (!dr.moved && e.type === "pointerup" && e.pointerType !== "mouse" && !this.st.three) { d.box = null; this.draw(); this.hover(d, e); return; }
-      if (!this.st.three && d.box && dr.moved) {
+      if (!dr.moved && e.type === "pointerup" && e.pointerType !== "mouse" && !this.th()) { d.box = null; this.draw(); this.hover(d, e); return; }
+      if (!this.th() && d.box && dr.moved) {
         const b = d.box, [x0, x1] = [Math.min(b.x0, b.x1), Math.max(b.x0, b.x1)], [y0, y1] = [Math.min(b.y0, b.y1), Math.max(b.y0, b.y1)];
         if (!dr.shift) this.sel.fill(0);
         const srcs = d.overlay ? d.screens.map(s => ({ sc: s.sc, grp: s.d.colCache[s.lc].grp })) : [{ sc: d.screen, grp: d.colCache[Math.max(0, Math.min(d.P.length - 1, Math.round(this.posOf(d))))].grp }];
         for (const { sc, grp } of srcs) for (let i = 0; i < this.N; i++) { const x = sc[i * 2], y = sc[i * 2 + 1]; if (x >= x0 && x <= x1 && y >= y0 && y <= y1 && !this.hidden.has(grp[i])) this.sel[i] = 1; }
         d.box = null; this.selChanged(); return;
       }
-      d.box = null; if (this.st.three && dr.moved && this.panels.length === 1) this.drawStrip(); this.draw();
+      d.box = null; if (this.th() && dr.moved && this.panels.length === 1) this.drawStrip(); this.draw();
     };
     cv.addEventListener("pointerup", up); cv.addEventListener("pointercancel", up);
     cv.addEventListener("pointerleave", e => { if (e.pointerType === "mouse") $("emb-tip").style.display = "none"; });
@@ -1065,7 +1199,9 @@ export class DepthEmbedding {
     if (this.sprite) { const c = this.m.sprite_cols; cv.getContext("2d").drawImage(this.sprite, (best % c) * 32, Math.floor(best / c) * 32, 32, 32, 0, 0, 32, 32); }
     const txt = document.createElement("div");
     const setTxt = this.labelled() ? (() => { const g = this.labelOf(d, lc, best); return g < 0 ? (this.isSeba() ? "unassigned" : "no label") : `set ${g + 1}`; })() : null;
-    txt.innerHTML = `<b>${this.m.classes[this.labels[best]]}</b> · image ${best}<br>${d.net.label}, ${d.net.sites[lc]}: row norm ${fmt(d.rowNorm[lc][best])}` + (setTxt ? `<br>${setTxt}` : "");
+    const dwTxt = d.dw ? d.dwAx.slice(0, d.dwPlot).map((s, a) => `${"xyz"[a]} = ${this.dwFns(d)[s].id}: ${(d.dw.q[(lc * d.dw.S + s) * this.N + best] * d.dw.lv.scale[lc][s]).toExponential(2)}`).join("<br>") : null;
+    const between = Math.abs(this.posOf(d) - lc) > 1e-9;
+    txt.innerHTML = `<b>${this.m.classes[this.labels[best]]}</b> · image ${best}<br>${d.net.label}, ${d.net.sites[lc]}: ` + (dwTxt ? `raw values${between ? " at this nearest site (the dot is between sites)" : ""}<br>${dwTxt}` : `row norm ${fmt(d.rowNorm[lc][best])}`) + (setTxt ? `<br>${setTxt}` : "");
     tip.replaceChildren(cv, txt); tip.style.display = "flex";
     const host = $("emb-tip").offsetParent?.getBoundingClientRect() || { left: 0, top: 0, width: innerWidth };
     tip.style.left = Math.max(4, Math.min(host.width - 240, e.clientX - host.left + 14)) + "px"; tip.style.top = (e.clientY - host.top + 14) + "px";
@@ -1087,7 +1223,7 @@ export class DepthEmbedding {
     [...$("emb-strip").children].forEach((f, l) => {
       const { g, w, h } = this.fit(f.querySelector("canvas"));
       g.fillStyle = css("--surface"); g.fillRect(0, 0, w, h);
-      const proj = this.projector(w, h, this.st.fix ? this.scaleAll : d.scaleBySite[l]), p = d.P[l], { cols, grp } = d.colCache[l];
+      const proj = this.projector(w, h, this.fixOn() ? this.scaleAll : d.scaleBySite[l]), p = d.P[l], { cols, grp } = d.colCache[l];
       for (let pass = 0; pass < 2; pass++) for (let i = 0; i < this.N; i++) {
         if (this.hidden.has(grp[i]) || (pass === 0) === !!(this.nSel && this.sel[i])) continue;
         const s = proj(p[i * 3], p[i * 3 + 1], p[i * 3 + 2]); g.fillStyle = rgba(cols[i], this.nSel && !this.sel[i] ? 0.1 : 0.8); g.fillRect(s[0] - 0.9, s[1] - 0.9, 1.8, 1.8);
@@ -1096,12 +1232,17 @@ export class DepthEmbedding {
   }
   occupancy() {
     const d = this.refD;
+    if (d.dw) {      // the plotted functions' depth profiles (share of each one's squared mass per site), summed
+      const fs = this.dwFns(d), o = new Float64Array(d.dw.L);
+      for (const s of this.dwShown(d)) fs[s].profile.forEach((v, l) => { o[l] += v; });
+      return o;
+    }
     if (d.base) {      // PCA: share of the site's variance in the first K principal coordinates; UMAP: none
-      if (this.st.method !== "pca") return null;
-      return d.base.rec.evals.map((ev, l) => ev.slice(0, this.st.K).reduce((a, b) => a + b, 0) / (d.base.rec.trace[l] || 1));
+      if (d.kind !== "pca") return null;
+      return d.base.rec.evals.map((ev, l) => ev.slice(0, this.kD()).reduce((a, b) => a + b, 0) / (d.base.rec.trace[l] || 1));
     }
     const w = d.summ.variants[this.st.variant].weight[this.cIdx(d)], L = d.unit.L, o = new Float64Array(L);
-    for (let k = 0; k < this.st.K; k++) for (let l = 0; l < L; l++) o[l] += w[k][l];
+    for (let k = 0; k < this.kD(); k++) for (let l = 0; l < L; l++) o[l] += w[k][l];
     return o;
   }
   drawOcc() {
@@ -1119,9 +1260,11 @@ export class DepthEmbedding {
       if (l === 0 || l === L - 1 || (a0 > right + 6 && a1 < lastL - 6)) { g.textAlign = "left"; g.fillText(sites[l], a0, h - 2); right = a1; }
     }
     g.textAlign = "left";
-    const K = this.st.K, net = this.refD.net.short || this.refD.net.label;
-    $("emb-occ-cap").textContent = this.st.method === "modes" ? `Bars: how much of the first ${K} modes lies at each site of ${net} (total ${K})`
-      : this.st.method === "pca" ? `Bars: share of each site's variance in its first ${K} principal coordinates (${net}; max ${fmt(mx)})`
+    const K = this.kD(), net = this.refD.net.short || this.refD.net.label;
+    const dwn = this.refD.dw ? this.dwShown(this.refD).length : 0;
+    $("emb-occ-cap").textContent = this.refD.dw ? `Bars: how much of the ${dwn} plotted scaling function${dwn > 1 ? "s" : ""} lies at each site of ${net} (squared mass; total ${dwn})`
+      : this.dm() === "modes" ? `Bars: how much of the first ${K} modes lies at each site of ${net} (total ${K})`
+      : this.dm() === "pca" ? `Bars: share of each site's variance in its first ${K} principal coordinates (${net}; max ${fmt(mx)})`
       : `${net}: UMAP per site (no per-site weights)`;
     this.occBase = g.getImageData(0, 0, cv.width, cv.height); this.drawOccCursor();
   }
@@ -1165,11 +1308,13 @@ export class DepthEmbedding {
     const others = this.otherLoaded(), multi = others.length > 0, nm = x => x.net.short || x.net.label;
     const missing = this.panels.filter(x => x.missing).map(nm), why = st.method !== "modes" ? "this checkpoint" : "this checkpoint and variant";
     const dm = st.dmode === "dtw" ? "DTW on subspace distance" : "fractional depth";
-    const base = st.method !== "modes", bname = st.method === "pca" ? "PCA" : "UMAP";
+    const dmm = this.dm(), base = dmm === "pca" || dmm === "umap", bname = dmm === "pca" ? "PCA" : "UMAP";
     const mixedSteps = others.some(x => x.step !== d.step);
     const stepNote = mixedSteps ? " (reference); other networks at their final checkpoints" : "";
     const checkpoint = `training step ${d.step.toLocaleString("en")}${stepNote}`;
-    const kind = base ? `${bname} baseline: each site separately, chained along depth by Procrustes (a fit)` : `Through-depth modes (the construction), first ${st.K}`;
+    const W = d.dw ? d.dwRec.levels.find(x => x.j === d.dw.j) : null, Wk = W ? d.net.dw.levels.findIndex(x => x.j === W.j) + 1 : 0;
+    const kind = W ? this.dwCaption(d, W, Wk, false) + "."
+      : base ? `${bname} baseline: each site separately, chained along depth by Procrustes (a fit)` : `Through-depth modes (the construction), first ${this.kD()}`;
     const noData = missing.length ? `no data at ${why} for ${missing.join(", ")}, so no fit was run for ${missing.length > 1 ? "them" : "it"}` : "";
     const fits = !multi ? null : (st.align
       ? `depths matched by ${dm}; ${others.map(nm).join(", ")} rotated onto ${ref} (Procrustes)`
@@ -1212,10 +1357,19 @@ export class DepthEmbedding {
       : D.noFit ? `<div class="emb-whatfit"><span class="emb-badge">No comparison fit</span> ${D.noFit}</div>` : "";
     $("emb-cmp-help").textContent = D.help;
     $("emb-selinfo").textContent = this.nSel ? `${this.nSel} selected` : "";
+    if (d.dw) {
+      const W = d.dwRec.levels.find(x => x.j === d.dw.j), k = d.net.dw.levels.findIndex(x => x.j === W.j) + 1, nl = d.net.dw.levels.length, pl = this.dwShown(d).length;
+      $("emb-tlabel").textContent = `(fixed at t* = ${fmt(this.m.wavelets.tstar)} in the wavelet view)`;
+      $("emb-what").innerHTML = `<div><span class="emb-badge">Diffusion wavelets</span> <b>Scaling functions of the through-depth operator</b>, scale ${k} of ${nl} · ${who} · ${D.checkpoint}</div>` +
+        `<div class="emb-whatfit">${this.dwCaption(d, W, k, true)}.</div>`;
+      const p4 = x => (+x).toPrecision(4);
+      $("emb-status").textContent = `Diffusion wavelets · rank ${W.rank} · shipped ${W.shipped} · plotted ${pl} · heat time t_j = ln 2 / μ_c = ${p4(W.t)} (cut-off μ_c = ${p4(W.mu_c)}, between eigenvalues ${p4(W.mu_last)} and ${p4(W.mu_next)}) · depth coupling t* = ${fmt(this.m.wavelets.tstar)}, relative site units · ${d.net.label}, step ${d.step.toLocaleString("en")}`;
+      return;
+    }
     if (d.base) {
       $("emb-tlabel").textContent = "(not used by the baselines)";
-      $("emb-what").innerHTML = `<div><span class="emb-badge base">Baseline</span> <b>${st.method === "pca" ? "PCA" : "UMAP"} at each site separately</b>, chained along depth by Procrustes (a fit) · ${who} · ${D.checkpoint}</div>${fits}`;
-      $("emb-status").textContent = st.method === "pca" ? `PCA: first ${st.K} principal coordinates of the centred cosine activations, at each site independently.` : "UMAP (15 neighbours, min_dist 0.1) on the cosine distance, at each site independently.";
+      $("emb-what").innerHTML = `<div><span class="emb-badge base">Baseline</span> <b>${d.kind === "pca" ? "PCA" : "UMAP"} at each site separately</b>, chained along depth by Procrustes (a fit) · ${who} · ${D.checkpoint}</div>${fits}`;
+      $("emb-status").textContent = d.kind === "pca" ? `PCA: first ${this.kD()} principal coordinates of the centred cosine activations, at each site independently.` : "UMAP (15 neighbours, min_dist 0.1) on the cosine distance, at each site independently.";
       if (D.mixedSteps) $("emb-status").textContent += ` · ${D.checkpoint}`;
       return;
     }
@@ -1224,9 +1378,9 @@ export class DepthEmbedding {
     const paper = st.variant === "paper", fi = d.net.fidx ? d.net.fidx[c] : c, coup = paper ? "no coupling parameter" : `t/t* = ${fmtFactor(S.factors[fi])}`;
     const off = this.panels.filter(x => !x.missing && x.unit && x.net.fidx && x.net.fidx[this.cIdx(x)] !== st.c && st.variant !== "paper").map(x => x.net.short || x.net.label);
     $("emb-tlabel").textContent = paper ? "(not used by this variant)" : `t/t* = ${fmtFactor(S.factors[fi])} (${d.net.short || d.net.label}: t = ${fmt(t)})`;
-    const vals = rec.vals[c].slice(0, st.K).map(x => fmt(x)).join(", ");
-    $("emb-what").innerHTML = `<div><span class="emb-badge">The construction</span> <b>Through-depth modes</b>, first ${st.K} · ${who} · ${D.checkpoint}</div>${fits}`;
-    $("emb-status").textContent = `${V.label} · ${coup} · ${d.net.label} eigenvalues 1–${st.K}: ${vals}` +
+    const vals = rec.vals[c].slice(0, this.kD()).map(x => fmt(x)).join(", ");
+    $("emb-what").innerHTML = `<div><span class="emb-badge">The construction</span> <b>Through-depth modes</b>, first ${this.kD()} · ${who} · ${D.checkpoint}</div>${fits}`;
+    $("emb-status").textContent = `${V.label} · ${coup} · ${d.net.label} eigenvalues 1–${this.kD()}: ${vals}` +
       (D.mixedSteps ? ` · ${D.checkpoint}` : "") +
       (off.length ? ` · ${off.join(", ")}: only t/t* = 1 is shipped, shown instead` : "") +
       (this.flatPooled ? " · raw scale: the pooled spectrum is flat, so the axes are the raw modes" : "");
@@ -1291,7 +1445,7 @@ export class DepthEmbedding {
         // header: reference site and a depth track
         const ref = this.refD.net, lc = Math.round(st.depth);
         g.fillStyle = "#16161a"; g.font = "600 15px system-ui, sans-serif"; g.textAlign = "left";
-        g.fillText(`${this.st.method === "modes" ? "Through-depth modes" : (this.st.method === "pca" ? "PCA" : "UMAP") + " baseline"} · ${multi ? "reference " : ""}step ${this.refD.step.toLocaleString("en")} · ${ref.label}: ${ref.sites[lc]}`, gap, 18, tw);
+        g.fillText(`${this.refD.dw ? `Diffusion wavelets, rank ${this.refD.dw.lv.rank}` : this.dm() === "modes" ? "Through-depth modes" : (this.dm() === "pca" ? "PCA" : "UMAP") + " baseline"} · ${multi ? "reference " : ""}step ${this.refD.step.toLocaleString("en")} · ${ref.label}: ${ref.sites[lc]}`, gap, 18, tw);
         g.font = small; g.fillStyle = "#4a4a50"; notes.forEach((t, k) => g.fillText(t, gap, 18 + 6 + 14 * (k + 1) - 3));
         const x0 = gap + 4, x1 = W - gap - 4, y = trackY; g.strokeStyle = "#d4d4d4"; g.lineWidth = 2; g.beginPath(); g.moveTo(x0, y); g.lineTo(x1, y); g.stroke();
         g.font = "10px system-ui, sans-serif"; g.textAlign = "center";
@@ -1334,7 +1488,7 @@ export class DepthEmbedding {
       check();
       gif.finish();
       const blob = new Blob([gif.bytes()], { type: "image/gif" }), a = document.createElement("a");
-      a.href = URL.createObjectURL(blob); a.download = `depth-embedding_${this.st.method}_${this.refD.net.id}_${this.refD.step}${D.mixedSteps ? "_ref_other-final-checkpoints" : ""}${this.ov ? "_overlay" : ""}.gif`;
+      a.href = URL.createObjectURL(blob); a.download = `depth-embedding_${this.refD.dw ? `dw-rank${this.refD.dw.lv.rank}-${this.refD.dwAx.slice(0, this.refD.dwPlot).map(s => this.refD.dw.lv.functions[s].id).join("-")}` : this.dm()}_${this.refD.net.id}_${this.refD.step}${D.mixedSteps ? "_ref_other-final-checkpoints" : ""}${this.ov ? "_overlay" : ""}.gif`;
       document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 60000);
       info.textContent = `saved ${a.download} (${(blob.size / 1e6).toFixed(1)} MB, ${frames.length} frames)`;
     } catch (e) { if (e.message.startsWith("cancelled")) info.textContent = `GIF export ${e.message}.`; else { console.error(e); info.textContent = "GIF export failed: " + e.message; } }

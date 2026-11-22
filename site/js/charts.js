@@ -151,7 +151,7 @@ export function lineChart(container, o) {
     const gg = el("g", {}, svg);
     if (s.band) el("path", { d: bandD(s.band), fill: s.color, opacity: .12 }, gg);
     let d = "", pen = false;
-    xs.forEach((xv, i) => { const v = s.y[i]; if (!Number.isFinite(v)) { pen = false; return; } d += (pen ? "L" : "M") + X(xv).toFixed(1) + "," + Y(v).toFixed(1); pen = true; });
+    xs.forEach((xv, i) => { const v = s.y[i]; if (!Number.isFinite(v)) { if (!s.join) pen = false; return; } d += (pen ? "L" : "M") + X(xv).toFixed(1) + "," + Y(v).toFixed(1); pen = true; });
     const p = el("path", { d, fill: "none", stroke: s.noline ? "none" : s.color, "stroke-width": s.width || 2, "stroke-linejoin": "round", "stroke-linecap": "round" }, gg);
     if (s.dash) p.setAttribute("stroke-dasharray", s.dash === "dot" ? "1.5 3.5" : "5 4");
     const dr = s.dots === true ? 3 : +s.dots || 0;

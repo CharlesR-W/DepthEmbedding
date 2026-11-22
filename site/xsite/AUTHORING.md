@@ -92,7 +92,7 @@ Helpers return plain dictionaries for `Out.chart`. They accept optional renderer
 
 | HTML `data-live` | Helper and payload |
 |---|---|
-| `lines` | `lines(x, series, xlabel, ylabel, xscale="linear", yrange=(0,1), colors="categorical", **kw)`; series have `name`, `y`, optional `color`, `dash` (true or `"dot"`), `width`, `dots`, `noline`, `band: [lo, hi]`. `xticklabels` label categorical positions; `refline: {"y": …, "label": …}` adds a reference. |
+| `lines` | `lines(x, series, xlabel, ylabel, xscale="linear", yrange=(0,1), colors="categorical", **kw)`; series have `name`, `y`, optional `color`, `dash` (true or `"dot"`), `width`, `dots`, `noline`, `band: [lo, hi]`, `join` (draw the line through `null` cells instead of breaking it, for series measured on a coarser grid than the shared `x`). `xticklabels` label categorical positions; `refline: {"y": …, "label": …}` adds a reference. |
 | `heatmap` | `heat(z, rows, cols, zlabel, rowlabel, collabel, **kw)`; `zrange` defaults to `[0,1]`; optional `slider: {"label": …, "values": […]}`, `diverging` and `fmt`. |
 | `bars` | `bars(categories, series, ylabel, xlabel="", **kw)`; series have `name`, `values`, optional `err: [[lo,hi], …]`, `color`, `control` (hollow dashed outlines). Optional `yrange`, `refline: {"y": …, "label": …}`, `fmt`, `colors`. Use this for binned labels such as sites. |
 | `dots` | `dots(rows, series, xlabel, **kw)`; series have `name`, `values`, optional `lo`, `hi` (interval whiskers), `marker` (`circle`, `diamond`, `triangle`, `square`), `hollow`, `color`. Optional `rowgroups: [{"label": …, "from": …, "to": …}]`, `xrange`, `refline: {"x": …, "label": …}`, `fmt`. |

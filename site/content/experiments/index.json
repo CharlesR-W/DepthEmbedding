@@ -3,6 +3,7 @@
   {"id":"inv-kernel", "group":"inverting", "pending":true, "title":"Which kernel gives modes that reproduce and a smooth row for a new image?"},
   {"id":"inv-sources", "group":"inverting", "pending":true, "title":"Can the joint coordinate be evaluated from just this site’s kernel row?"},
   {"id":"inv-decode", "group":"inverting", "pending":true, "title":"How much of an activation can K coordinates recover?"},
+  {"id":"inv-wavelets", "group":"inverting", "pending":true, "title":"Do diffusion wavelets give a better or more interpretable inverse than harmonics?"},
   {"id":"inv-ood", "group":"inverting", "pending":true, "title":"Where do other datasets, noisy and adversarial images land?"},
   {"id":"inv-edits", "group":"inverting", "pending":true, "title":"Can an activation be given another image's source coordinates, and does the output follow?"},
   {"id":"x1-data", "group":"probing", "pending":true, "title":"Do networks trained on other data embed the same probe alike?"},

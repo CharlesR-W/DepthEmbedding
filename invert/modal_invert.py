@@ -37,7 +37,9 @@ image = (modal.Image.debian_slim(python_version='3.12')
          .add_local_file(str(HERE / 'dm.py'), remote_path='/root/cc/dm.py')
          .add_local_file(str(HERE / 'stage_decode.py'), remote_path='/root/cc/stage_decode.py')
          .add_local_file(str(HERE / 'stage_rt.py'), remote_path='/root/cc/stage_rt.py')
-         .add_local_file(str(HERE / 'stage_viz.py'), remote_path='/root/cc/stage_viz.py'))
+         .add_local_file(str(HERE / 'stage_viz.py'), remote_path='/root/cc/stage_viz.py')
+         .add_local_file(str(HERE / 'ddm.py'), remote_path='/root/cc/ddm.py')
+         .add_local_file(str(HERE / 'stage_ddm.py'), remote_path='/root/cc/stage_ddm.py'))
 app = modal.App(APP)
 vol = modal.Volume.from_name(f'{BASE}-results', create_if_missing=True)
 src = modal.Volume.from_name('cm-cifar-coherent').read_only()
@@ -389,6 +391,20 @@ def rt(unit: dict, cfg: dict):
     return out
 
 
+@app.function(image=image, gpu='L4', cpu=8, memory=32768, timeout=480, volumes=VOLS, max_containers=2)
+def rt_points_s(unit: dict, cfg: dict):
+    """Bounded stretch run, writing only to a new rt_points subtree."""
+    if not cfg.get('save_points'):
+        raise ValueError('rt_points requires save_points; deploy it under a separate -s app')
+    if cfg.get('points_dir', 'rt_points') not in ('rt_points', 'rt_points_retry'):
+        raise ValueError('Expected a new rt_points output path')
+    import stage_rt
+    vol.reload()
+    out = stage_rt.run(unit, cfg, sys.modules[__name__])
+    vol.commit()
+    return out
+
+
 @app.function(image=image, gpu=GPUS, cpu=8, memory=65536, timeout=3600, volumes=VOLS)
 def viz(unit: dict, cfg: dict):
     import stage_viz
@@ -397,6 +413,39 @@ def viz(unit: dict, cfg: dict):
     except RuntimeError:
         pass
     out = stage_viz.run(unit, cfg, sys.modules[__name__])
+    vol.commit()
+    return out
+
+
+# float64 eigendecompositions: A100/H100 run double precision at half rate, the cheaper cards at 1/32 to 1/64
+GPUS64 = ['A100-40GB', 'A100-80GB', 'H100']
+
+
+@app.function(image=image, gpu=GPUS64, cpu=8, memory=65536, timeout=4 * 3600, volumes=VOLS, max_containers=12)
+def ddmstage(unit: dict, cfg: dict):
+    import stage_ddm
+    try:
+        vol.reload()
+    except RuntimeError:
+        pass
+    out = stage_ddm.run(unit, cfg, sys.modules[__name__])
+    vol.commit()
+    return out
+
+
+# diffusion-wavelet inversion (wavelets/SPEC_DW.md): float64 eigendecompositions on the GPU, pivoted QR on the CPU
+image_dw = (image.add_local_file(str(HERE.parent / 'wavelets' / 'dw.py'), remote_path='/root/cc/dw.py')
+            .add_local_file(str(HERE / 'stage_dw.py'), remote_path='/root/cc/stage_dw.py'))
+
+
+@app.function(image=image_dw, gpu=GPUS64, cpu=16, memory=65536, timeout=3 * 3600, volumes=VOLS, max_containers=12)
+def dwstage(unit: dict, cfg: dict):
+    import stage_dw
+    try:
+        vol.reload()
+    except RuntimeError:
+        pass
+    out = stage_dw.run(unit, cfg, sys.modules[__name__])
     vol.commit()
     return out
 
@@ -462,6 +511,10 @@ def coordinator(stage: str, cfg: dict):
         out['viz'] = gather(viz.starmap([(u, cfg) for u in cfg['units']], return_exceptions=True))
     if stage in ('rt',):
         out['rt'] = gather(rt.starmap([(u, cfg) for u in cfg['units']], return_exceptions=True))
+    if stage in ('ddm',):
+        out['ddm'] = gather(ddmstage.starmap([(u, cfg) for u in cfg['units']], return_exceptions=True))
+    if stage in ('dw',) and cfg.get('units'):     # an empty starmap never returns
+        out['dw'] = gather(dwstage.starmap([(u, cfg) for u in cfg['units']], return_exceptions=True))
     p = Path(R) / 'logs'; p.mkdir(exist_ok=True)
     (p / f'{stage}_{int(time.time())}.json').write_text(json.dumps(out, default=str))
     vol.commit()
