@@ -1,0 +1,64 @@
+<section class="experiment" id="x-inv-decode">
+<h2>How much of an activation can K coordinates recover?</h2>
+<p class="x-scope">Tested: one CIFAR-10 ResNet-20 checkpoint, 2,000 held-out test images (H). The headline results use the 8,000-image probe P8 with participation-ratio target 400 (pr400). The embedding below uses the 2,000-image probe P2 with pr300; both operators have 12 sites.</p>
+<p class="x-answer"><strong>Kernel ridge recovers direction much better at pool than at an intermediate block.</strong> With 64 modes on P8 pr400, mean centred cosine is {{fact:x.inv-decode.large.b4}} at b4 and {{fact:x.inv-decode.large.pool}} at pool. Kernel ridge led the tested closed-form decoders by held-out cosine, but the trained MLP gave higher patched top-1 agreement at b4 ({{fact:x.inv-decode.large.b4_mlp}} vs {{fact:x.inv-decode.large.b4_agree}}).</p>
+<figure class="emb-fig" data-emb="assets/x/inv-decode.json#emb_lead">
+  <figcaption><strong>Plotted:</strong> The P2 pr300 probe and a sample of H placed out of sample. Held-out colour is the kernel-ridge decode cosine at the selected site and decoder K. Rings mark held-out images with a kernel row putting more than half its weight on one probe image at any site. The 2-D projection illustrates the first 16 joint modes and stays fixed as decoder K changes.</figcaption>
+</figure>
+<div class="x-numbers">
+  <div><b>{{fact:x.inv-decode.large.b4}}</b><span>b4 cosine · P8 pr400</span></div>
+  <div><b>{{fact:x.inv-decode.large.pool}}</b><span>Pool cosine · P8 pr400</span></div>
+  <div><b>{{fact:x.inv-decode.large.b4_agree}}</b><span>b4 patched top-1 · P8 pr400</span></div>
+  <div><b>{{fact:x.inv-decode.small.b4}}</b><span>b4 cosine · P2 pr300</span></div>
+</div>
+<h3>What was computed</h3>
+<p>The input $z$ is the first $K$ joint coordinates at one site; $Z$ holds the probe inputs. Except where noted, $X_c$ holds flattened probe activations centred on the probe mean $\mu$, without unit normalisation. A weight row $W(z)$ predicts $\hat x=\mu+W(z)X_c$.</p>
+<p>Yes, the <code>gh</code> decoder is the latent-harmonics step of <a href="https://arxiv.org/abs/2204.12536">Evangelou et al. (2022 preprint; 2023 journal article)</a>: a second Gaussian kernel on the latent coordinates, a truncated eigen-expansion and Nyström extension. The first stage here takes the lowest modes in the slice-mean-zero subspace of a <em>depth-coupled</em> operator built from balanced activation kernels, with out-of-sample extension via the depth solve. It does not use the paper’s single-data-cloud diffusion map with nonharmonic coordinates selected for a manifold parametrisation. Here the second kernel retains modes by relative eigenvalue, and kernel ridge, not latent harmonics, had the higher mean held-out cosine.</p>
+<div class="x-tablewrap">
+<table class="x-defs">
+  <thead><tr><th>Quantity</th><th>Equation</th><th>Symbols and choices</th><th>Code</th></tr></thead>
+  <tbody>
+    <tr><th>Linear projection</th><td>$W_L(z)=\varphi(z)F^+$</td><td>$\varphi(z)=(1,z^\top)$; $F=[\mathbf 1,Z]$. The pseudoinverse gives an affine least-squares fit.</td><td><code>stage_decode:feats, w_linear</code></td></tr>
+    <tr><th>Kernel ridge</th><td>$W=W_L+k_h(z,Z)(K_h+\rho I)^{-1}(I-FF^+)$</td><td>$k_h(z,v)=\exp(-\|z-v\|^2/(2h^2))$, $K_h=k_h(Z,Z)$. First fit the linear part, then smooth its residuals; the kernel correction decays far from the probe. Linear alone is a tuning candidate.</td><td><code>stage_decode:Gauss.w_krr</code></td></tr>
+    <tr><th>Latent (geometric) harmonics</th><td>$W=k_h(z,Z)U_R\Lambda_R^{-1}U_R^\top$</td><td>Unnormalised Gaussian $K_h=U\Lambda U^\top$; $R$ retains $\lambda_j &gt; \delta\lambda_{\max}$. No separate linear part.</td><td><code>stage_decode:Gauss.w_gh</code></td></tr>
+    <tr><th>Laplacian pyramid</th><td>$R_0=I,\ R_{j+1}=(I-Q_j)R_j,\ W=\sum_j q_j(z)R_j$</td><td>Row-normalised Gaussian $Q_j$ on the training coordinates and query row $q_j$; width starts at the training diameter, then halves. The zero-diagonal variant masks only the training diagonal and keeps the best level by training residual energy.</td><td><code>stage_decode:lp_weights</code></td></tr>
+    <tr><th>Neighbour mean</th><td>$W_i=\mathbf 1[i\in\mathrm{NN}_{15}(z)]/15$</td><td>Euclidean nearest neighbours in the $K$ coordinates, equal weights.</td><td><code>stage_decode:w_nn</code></td></tr>
+    <tr><th>PCA reference</th><td>$\hat x=\mu+\|x-\mu\|U U^\top (x-\mu)/\|x-\mu\|$</td><td>$U$ holds the top $K+1$ principal directions of the probe-centred, unit-length probe rows (capped by numerical rank). It sees the true target activation and norm; not a decoder from coordinates.</td><td><code>stage_decode:w_pca, run</code></td></tr>
+    <tr><th>Trained MLP</th><td>$\hat x=\mu+\overline{\|x_i-\mu\|}\,g(\operatorname{stdz}(z))$</td><td>Probe-standardised coordinates, two 1024-unit GELU layers, linear output. Squared loss to unit centred rows; AdamW, up to 150 epochs, best checkpoint by mean captured share on a separate 10% probe holdout. Raw prediction uses the probe mean norm.</td><td><code>stage_decode:train_mlp, run</code></td></tr>
+    <tr><th>Raw scores</th><td>$\mathrm{cos\_raw}=\cos(x-\mu,\hat x-\mu)$<br>$\mathrm{cap\_raw}=1-\|x-\hat x\|^2/\|x-\mu\|^2$</td><td>Centred cosine and captured share with the predicted scale, except for the PCA reference. Captured share can be negative: the prediction can be worse than the probe mean.</td><td><code>stage_decode:score, run</code></td></tr>
+    <tr><th>Tuning and refit</th><td>$\arg\max_{\theta}\operatorname{mean}_{\mathrm{val}}\mathrm{cap\_raw}$</td><td>Seed 0, 80/20 of up to 4,000 probe rows. Coordinates for both parts come from the whole-probe operator, not out-of-sample validation. For ridge and harmonics, $h$ is 0.5–32 times the training median 15th-neighbour distance (doubling grid). Ridges: $10^{-6},10^{-4},10^{-3},10^{-2},10^{-1},1,10,100$ or linear-only; harmonic cutoffs: $10^{-1},10^{-2},10^{-3},10^{-4},10^{-6},10^{-8}$. Standard pyramid checks up to 16 levels, stopping when validation share drops more than 0.02 below its best. Gaussian widths are rescaled using the full probe’s neighbour distance for the final fit.</td><td><code>stage_decode:select, run</code></td></tr>
+    <tr><th>Patched top-1</th><td>$\mathbf 1[\arg\max f_{&gt;l}(\hat x)=\arg\max f_{&gt;l}(x)]$</td><td>Run the suffix on the decode and compare with the same image’s unpatched prediction, not its label. The oracle-norm variant normalises the decoder’s weighted sum of <em>unit</em> probe rows before scaling to the true norm, so it can also change direction.</td><td><code>stage_decode:run</code></td></tr>
+  </tbody>
+</table>
+</div>
+<h3>Supporting figures</h3>
+<div class="x-figgrid">
+  <figure class="live" data-live="lines" data-src="assets/x/inv-decode.json#cos_site"><div class="live-body"></div><figcaption><strong>Plotted:</strong> Mean centred cosine across H by site and decoder, K = 64, P8 pr400. PCA sees the answer activation; the MLP sees the same coordinates as the other decoders.</figcaption></figure>
+  <figure class="live" data-live="lines" data-src="assets/x/inv-decode.json#captured"><div class="live-body"></div><figcaption><strong>Plotted:</strong> Median and mean captured share, K = 64, P8 pr400. At b4, kernel ridge’s mean is {{fact:x.inv-decode.large.b4_share_mean}} and its median {{fact:x.inv-decode.large.b4_share_median}}; linear regression has the higher mean there.</figcaption></figure>
+  <figure class="live" data-live="lines" data-src="assets/x/inv-decode.json#patched"><div class="live-body"></div><figcaption><strong>Plotted:</strong> Patched top-1 agreement, K = 64, P8 pr400. Not a measure of classification accuracy. At b4 the oracle-norm variant reaches {{fact:x.inv-decode.large.b4_agree_oracle}}, but is not a pure rescaling control.</figcaption></figure>
+</div>
+<h3>Caveats</h3>
+<ul>
+  <li><strong>Audit correction:</strong> The decoder’s inner validation targets are probe images whose coordinates came from an operator fitted on the full probe. H was disjoint from every fit but informed the recommendations; no fresh test or repeat over seeds was run.</li>
+  <li><strong>Audit correction:</strong> On P2 pr300 (not the P8 pr400 headline run), {{fact:x.inv-decode.near.count}} H images have row max &gt; 0.5 at some site; {{fact:x.inv-decode.near.top20}} of the 20 largest b4 joint norms at K = 64 are among them. An unmasked near-copy can overshoot when the probe operator has a zero diagonal. The row-max flag is a diagnostic, not a verified duplicate label.</li>
+  <li>Probe size and kernel width change together. The neighbouring P2 and P8 curves do not isolate the effect of adding images.</li>
+  <li>Neither centred cosine nor the PCA reference is a ceiling on how well the network’s suffix will behave. Decodes away from the probe are extrapolations.</li>
+</ul>
+<details><summary>Decisions made on the owner's behalf (5)</summary>
+<div class="x-tablewrap"><table class="x-decisions"><thead><tr><th>Decision</th><th>Chosen</th><th>Alternative</th><th>Why</th><th>Could bias</th><th>How to test</th></tr></thead><tbody>
+<tr><th>Tuning</th><td>Probe split, raw captured share</td><td>Out-of-sample validation coordinates; tune cosine</td><td>Reuse the whole-probe operator and penalise scale errors</td><td>Bandwidth may be optimistic for new images</td><td>Refit the operator inside each tuning split</td></tr>
+<tr><th>Target</th><td>Raw centred activation</td><td>Decode a direction and estimate scale separately</td><td>Suffix needs the scale, which the cosine kernel drops</td><td>Scale errors can dominate function</td><td>Keep direction fixed and vary only scale</td></tr>
+<tr><th>Extrapolation</th><td>Gaussian residual on an affine fit</td><td>Pure Gaussian smoothing</td><td>A linear fit remains outside kernel support</td><td>Distant predictions can be large</td><td>Stratify by support; compare pure ridge and clipped extrapolation</td></tr>
+<tr><th>Diagonal</th><td>Zero in the activation operator</td><td>Include self-weight</td><td>Make masked probe replay match the new-image rule</td><td>Near-copies can overshoot</td><td>Compare scores by row max and verify duplicate pairs</td></tr>
+<tr><th>Probe and uncertainty</th><td>P2 pr300 picture, P8 pr400 headline</td><td>Matched width/size sweep and repeated probes</td><td>Use the small viewer-sized probe for display and the larger fit for measurement</td><td>One draw; width and size confounded</td><td>Repeat P2 folds and sweep widths at fixed N</td></tr>
+</tbody></table></div></details>
+<details><summary>More figures</summary>
+  <figure class="live" data-live="lines" data-src="assets/x/inv-decode.json#cos_site_16"><div class="live-body"></div><figcaption><strong>Plotted:</strong> Mean centred cosine by site and decoder at K = 16, P8 pr400.</figcaption></figure>
+  <figure class="live" data-live="lines" data-src="assets/x/inv-decode.json#cos_budget"><div class="live-body"></div><figcaption><strong>Plotted:</strong> Kernel-ridge cosine versus K at stem, b4 and b9. P2 pr300 (2,000 probe images) and P8 pr400 (8,000); the width changes with N.</figcaption></figure>
+  <p>These pixel strips use a separate 13-site P8 pr400 operator, with pixels as the first site. Kernel ridge estimates pixels directly from the coordinates at each labelled site. The output is not a classifier input or an inverse of the network.</p>
+  <figure><img src="assets/fig/x_inv-decode_joint16.webp" alt="Original CIFAR-10 images beside their pixel predictions from six sites using 16 joint coordinates" width="688" height="1192"><figcaption><strong>Plotted:</strong> The first 12 held-out images and direct pixel decodes from K = 16 joint coordinates.</figcaption></figure>
+  <figure><img src="assets/fig/x_inv-decode_joint64.webp" alt="The same images and predictions using 64 joint coordinates" width="688" height="1192"><figcaption><strong>Plotted:</strong> The same examples from K = 64 joint coordinates.</figcaption></figure>
+  <figure><img src="assets/fig/x_inv-decode_source64.webp" alt="The same images and predictions using 64 source coordinates" width="688" height="1192"><figcaption><strong>Plotted:</strong> The same examples from K = 64 source coordinates, which depend only on the selected site.</figcaption></figure>
+</details>
+<p class="x-links"><a href="reports/inversion.html#tab=decoding">Full decoding report</a> · <a href="reports/inversion.html#tab=pixels">Pixel-decoding appendix</a> · <a href="#method/new-images">Placing new images</a> · <a href="https://github.com/CharlesR-W/DepthEmbedding/blob/experiments-site/invert/stage_decode.py">Decoder code</a></p>
+</section>

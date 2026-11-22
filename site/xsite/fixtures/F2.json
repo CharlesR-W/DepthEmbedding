@@ -1,0 +1,56 @@
+{
+  "type": "emb",
+  "schema": 1,
+  "panels": [
+    {
+      "op": "x4-b3-suffix",
+      "label": "x4-b3-suffix",
+      "R": null,
+      "stat": null
+    }
+  ],
+  "kinds": [
+    "joint",
+    "site"
+  ],
+  "kind": "joint",
+  "site": "b9",
+  "K": 8,
+  "dims": 2,
+  "axes": "pooled:0",
+  "norm": "site",
+  "colour": {
+    "by": "class"
+  },
+  "height": 420,
+  "switch": [
+    {
+      "label": "Start at b3",
+      "panels": [
+        {
+          "op": "x4-b3-suffix",
+          "label": "x4-b3-suffix",
+          "R": null,
+          "stat": null
+        }
+      ],
+      "paths": [
+        "x4-b3-paths"
+      ]
+    },
+    {
+      "label": "Start at b9",
+      "panels": [
+        {
+          "op": "x4-b9-suffix",
+          "label": "x4-b9-suffix",
+          "R": null,
+          "stat": null
+        }
+      ],
+      "paths": [
+        "x4-b9-paths"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "svhn.b4": {
+    "value": 0.6866229772567749,
+    "text": "0.69",
+    "tier": "S",
+    "source": "data/invert/results.json:decode/P8__pr400__L12/b4/svhn|64|krr|cos_raw[0]"
+  },
+  "h.b4": {
+    "value": 0.5147985219955444,
+    "text": "0.51",
+    "tier": "S",
+    "source": "data/invert/results.json:decode/P8__pr400__L12/b4/H|64|krr|cos_raw[0]"
+  },
+  "c100.b9": {
+    "value": 0.5670816898345947,
+    "text": "0.57",
+    "tier": "S",
+    "source": "data/invert/results.json:decode/P8__pr400__L12/b9/c100|64|krr|cos_raw[0]"
+  },
+  "pgd8.b9": {
+    "value": 0.7675135135650635,
+    "text": "0.77",
+    "tier": "S",
+    "source": "data/invert/results.json:decode/P8__pr400__L12/b9/pgd8|64|krr|cos_raw[0]"
+  }
+}

@@ -12,13 +12,14 @@ from __future__ import annotations
 
 import json
 import sys
+import os
 import time
 from pathlib import Path
 
 import modal
 
 HERE = Path(__file__).resolve().parent
-APP = 'crw-depth-xp'
+APP = os.environ.get('XP_APP', 'crw-depth-xp')
 R = '/results'
 KERNELS = ['knn15', 'ea100']
 CHAINS = {'full': list(range(12)), 'trunk': list(range(10))}       # indices into SITES
@@ -149,6 +150,13 @@ def compare(unit: dict, cfg: dict):
 
 @app.function(image=image, gpu=GPUS, cpu=8, memory=49152, timeout=6 * 3600, volumes=VOLS, max_containers=8)
 def x3(unit: dict, cfg: dict):
+    return _stage('x3', unit, cfg)
+
+
+@app.function(image=image, gpu='L4', cpu=8, memory=49152, timeout=660, volumes=VOLS, max_containers=1)
+def x3_pr(unit: dict, cfg: dict):
+    if not cfg.get('replay_baseline'):
+        raise ValueError('x3_pr requires replay_baseline; deploy it under a separate -s app')
     return _stage('x3', unit, cfg)
 
 

@@ -1,0 +1,87 @@
+<!--
+TEMPLATE for one Experiments entry. Copy to site/content/experiments/<id>.html, replace every ID with the entry id
+(e.g. x3-adversarial), fill it in, and delete these comments. Workflow, facts and chart payloads:
+site/xsite/AUTHORING.md; figure-spec fields: its "Figure spec" section.
+
+Skimmability (the owner reads this page by skimming; a passing glance must not make it "look long"):
+  - With every <details> closed an entry is about two screens: question, scope, bolded answer, lead figure, number
+    tiles, definitions table, at most two supporting figures, caveats.
+  - The answer is 2-3 sentences. Bold the one key sentence (<strong>), with its numbers as fact tokens.
+  - Maths is shown, not hidden: every quantity the answer or a tile uses has a row in "What was computed", with its
+    equation in KaTeX ($...$ inline; $$...$$ display), its symbols and choices in words, and where it is in the code.
+  - Panel labels, legends and captions use plain words ("attacked image", "site-local coordinates"), not variable
+    names. Captions start with "Plotted:" and say only what is drawn: each axis, mark, colour and line style, the
+    operator and the probe. Interpretation belongs in the answer.
+  - Colour: class colours for the probe, one accent for overlays, one sequential ramp for s or a per-image scalar
+    (the embedding figure does this itself). Charts: palette set colours; dashed = control or reference.
+  - Every number names its operator and probe where they differ from the lead figure's (e.g. a P8 pr400 headline
+    beside a P2 pr300 picture). Depths and thresholds are computed in the full-dimensional metric of the named
+    operator, never read off the 2-D picture. Post-hoc fits and readouts are called that.
+  - Caveats are a visible list (at most six). Mark audit corrections with <span class="x-tag">audit</span>.
+-->
+<section class="experiment" id="x-ID">
+<h2>QUESTION: exactly the title in index.json?</h2>
+<p class="x-scope"><b>Tested:</b> network, seed and step; probe; operator(s) and kernel; sets and how many images; what is not tested.</p>
+
+<p class="x-answer"><strong>One key sentence with the measured answer, {{fact:x.ID.example}}.</strong> One or two sentences of
+context: the control, and where the answer stops.</p>
+
+<figure class="emb-fig" data-emb="assets/x/ID.json#emb_lead">
+  <figcaption><b>Plotted:</b> the probe images (class colours) and the overlaid images in the coordinates named in the
+  operator line, at the site chosen above; arrows join each image to its attacked version (grey dashed: the noise
+  control). The picture is a 2-D projection; every number in the text uses all K dimensions.</figcaption>
+</figure>
+
+<div class="x-numbers">
+  <div class="x-num"><b>{{fact:x.ID.n1}}</b><span>what this number is, in words</span><small>operator · probe · set</small></div>
+  <div class="x-num"><b>{{fact:x.ID.n2}}</b><span>…</span><small>…</small></div>
+  <div class="x-num"><b>{{fact:x.ID.n3}}</b><span>…</span><small>…</small></div>
+</div>
+
+<h3 id="x-ID-what">What was computed</h3>
+<div class="x-tablewrap">
+<table class="x-defs">
+  <thead><tr><th>Quantity</th><th>Definition</th><th>Symbols and choices</th><th>Code</th></tr></thead>
+  <tbody>
+  <tr><td>Name in words</td><td>$\Delta_l = \lVert z_l(x') - z_l(x) \rVert / u_l$</td>
+      <td>$z_l$: the 16 site-local coordinates at site $l$; $u_l$: median same-class distance (40,000 random pairs)</td>
+      <td>xp/analyze_x3.py:main</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h3 id="x-ID-figures">Supporting figures</h3>
+<div class="x-figs">
+<figure class="live" data-live="lines" data-src="assets/x/ID.json#second" data-height="240">
+  <div class="live-body"></div>
+  <figcaption><b>Plotted:</b> …</figcaption>
+</figure>
+</div>
+
+<h3 id="x-ID-caveats">Caveats</h3>
+<ul class="x-caveats">
+  <li>What was not tested, and the limits of the measure.</li>
+  <li><span class="x-tag">audit</span>A correction made after the second model's audit, stated as the corrected claim.</li>
+</ul>
+
+<details class="x-more">
+  <summary>Decisions made on the owner's behalf <span class="x-count">(n)</span></summary>
+  <div class="x-tablewrap">
+  <table class="x-decisions">
+    <thead><tr><th>#</th><th>Decision</th><th>Chosen</th><th>Alternative</th><th>Why</th><th>Risk</th><th>Check</th></tr></thead>
+    <tbody>
+    <tr><td>1</td><td>Kernel</td><td>…</td><td>…</td><td>…</td><td>…</td><td>…</td></tr>
+    </tbody>
+  </table>
+  </div>
+</details>
+
+<details class="x-more">
+  <summary>More figures <span class="x-count">(n)</span></summary>
+  <div class="x-figs">
+  <!-- live charts or static images; they render when this block is opened -->
+  </div>
+</details>
+
+<p class="x-links"><a href="reports/xp.html">Full report</a> · <a href="https://github.com/CharlesR-W/DepthEmbedding/blob/experiments-site/xp/analyze_x3.py">Code</a> · <a class="x-top" href="#experiments/x-glance-title">At a glance</a></p>
+</section>

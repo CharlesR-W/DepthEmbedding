@@ -104,8 +104,12 @@ def oos_rows(c_new, ker):
     return w / w.sum(1, keepdims=True)
 
 
-def _cond_rows(d, perp, mask_self):
-    """Per-row Gaussian conditionals on distances d (m, n) with entropy log(perp).  Returns beta, dmin, logZ, logp."""
+def _cond_rows(d, perp, mask_self, renyi=1):
+    """Per-row Gaussian conditionals on distances d (m, n) with effective neighbour count `perp`.
+
+    renyi=1: Shannon perplexity exp(entropy).  renyi=2: participation ratio 1 / sum p^2, which bounds every
+    single weight by 1/sqrt(perp), so a near-duplicate neighbour cannot hold most of a row.
+    Returns beta, dmin, logZ, logp."""
     d = np.array(d, float)
     if mask_self:
         d[np.arange(len(d)), np.arange(len(d))] = np.inf
@@ -119,7 +123,10 @@ def _cond_rows(d, perp, mask_self):
         mx = lg.max(1, keepdims=True)
         logz = mx[:, 0] + np.log(np.exp(lg - mx).sum(1))
         logp = lg - logz[:, None]
-        ent = logz + beta * (np.exp(logp) * fin).sum(1)
+        if renyi == 2:
+            ent = -np.log((np.exp(2 * logp)).sum(1))
+        else:
+            ent = logz + beta * (np.exp(logp) * fin).sum(1)
         return ent, logp, logz
 
     lo, hi = np.zeros(len(d)), np.ones(len(d))
@@ -137,19 +144,23 @@ def _cond_rows(d, perp, mask_self):
     return beta, dmin, logz, logp
 
 
-def ea_kernel(C, perp):
+def ea_kernel(C, perp, renyi=1):
     """The existing 'perplexity' rule (CoherentModes sweep_math.perplexity_logkernel), smooth and adaptive.
 
     Each row gets its own Gaussian width so that its conditional distribution over the other probe images has
     perplexity `perp`; the kernel is the average of the conditional and its transpose, then symmetric Sinkhorn.
+    renyi=2 ('pr<k>'): the effective neighbour count is the participation ratio instead of exp(entropy).
     """
-    beta, dmin, logz, logp = _cond_rows(1 - np.asarray(C, float), perp, True)
+    beta, dmin, logz, logp = _cond_rows(1 - np.asarray(C, float), perp, True, renyi)
     K = (np.exp(logp) + np.exp(logp.T)) / 2
     np.fill_diagonal(K, 0)
     v, err = sinkhorn_sym(K)
     P = v[:, None] * K * v[None, :]
     P = (P + P.T) / 2
-    return dict(P=P, v=v, beta=beta, dmin=dmin, logz=logz, target=float(perp), perp=perplexity(P), err=float(err))
+    out = dict(P=P, v=v, beta=beta, dmin=dmin, logz=logz, target=float(perp), perp=perplexity(P), err=float(err))
+    if renyi != 1:
+        out['renyi'] = renyi
+    return out
 
 
 def ea_oos_rows(c_new, ker):
@@ -157,7 +168,7 @@ def ea_oos_rows(c_new, ker):
     with each probe image's (frozen) conditional towards it, times the probe's Sinkhorn scalings.
     A probe image is replayed exactly by setting its cosine to itself to -inf (masked)."""
     d = 1 - np.asarray(c_new, float)
-    _, _, _, logp_x = _cond_rows(d, float(ker['target']), False)
+    _, _, _, logp_x = _cond_rows(d, float(ker['target']), False, int(ker.get('renyi', 1)))
     with np.errstate(invalid='ignore'):
         logp_j = -ker['beta'][None, :] * (d - ker['dmin'][None, :]) - ker['logz'][None, :]
     logp_j = np.where(np.isfinite(d), logp_j, -np.inf)
@@ -194,11 +205,14 @@ def knn_oos_rows(c_new, ker):
 
 
 def build_kernel(C, name):
-    """'knn<k>', 'ea<perp>' (per-point perplexity rule), 'ds<perp>' (one global width)."""
+    """'knn<k>', 'ea<perp>' (per-point Shannon perplexity), 'pr<k>' (per-point participation ratio),
+    'ds<perp>' (one global width)."""
     if name.startswith('knn'):
         return knn_kernel(C, int(name[3:]))
     if name.startswith('ea'):
         return ea_kernel(C, float(name[2:]))
+    if name.startswith('pr'):
+        return ea_kernel(C, float(name[2:]), renyi=2)
     return ds_kernel(C, perp=float(name[2:]))
 
 

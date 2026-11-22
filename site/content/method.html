@@ -4,8 +4,10 @@ described in full on the <a href="https://charlesr-w.github.io/CoherentModes/#me
 
 <h2 id="setup">Networks, probe images, sites</h2>
 <ul>
-<li><b>Networks.</b> ResNet-20, ResNet-32 and ResNet-56 (two seeds each) and one VGG-16-BN, all trained on CIFAR-10.
-Each is measured at several saved training steps (checkpoints).</li>
+<li><b>Networks.</b> ResNet-20, ResNet-32 and ResNet-56 (two seeds each) and one VGG-16-BN trained on CIFAR-10
+are shown across saved checkpoints. The 14 additional ResNet-20 networks from X1 each have one final checkpoint:
+their own 12-site k-NN 15 operator in relative site units at $t^*$. Images, labels, class counts, normalisation
+and augmentation can differ across those training pipelines.</li>
 <li><b>Probe images.</b> The same $N = 2{,}000$ CIFAR-10 test images, 200 per class, for every network. Class
 labels are used only to colour the plot, never to build an operator.</li>
 <li><b>Sites.</b> The places in a network where activations are read: for the ResNets the stem, each residual
@@ -96,10 +98,75 @@ Procrustes over the matched sites and the same at every depth, so each network's
 </ul>
 <p>The relative residual after the rotation, $\sum \lVert Y_B - Y_{\mathrm{ref}} \rVert^2 / \sum \lVert
 Y_{\mathrm{ref}} \rVert^2$, is shown per network and per reference site; 0 means identical coordinates. It measures how far one network's embedding transfers to
-another's, under these two fits.</p>
+another's, under these two fits. The viewer uses the full chain; its fitted rotation and residual are not the
+<a href="#experiments/x1-data">X1 joint agreement</a> statistic.</p>
 <p>As baselines, the viewer also shows ordinary embeddings computed at each site separately: the leading principal
 coordinates of the centred cosine activations (PCA), and a 2-d UMAP. Nothing links one site's baseline coordinates
 to the next, so they are chained along depth by Procrustes, each site rotated onto the previous rotated one: the
 usual way to animate independent embeddings. Any smoothness of their motion through depth comes from that chaining
-fit. In the through-depth modes, one mode is a single function over all sites.</p>
+fit. In the through-depth modes, one mode is a single function over all sites. The X1 additions do not ship PCA or
+UMAP baselines or k-means label planes. SEBA is computed in the viewer from the shipped modes, so it is still available.</p>
+
+<h2 id="new-images">Coordinates for a new image</h2>
+<p>The probe, kernel and modes stay fixed. At site $l$, flatten the new activation of image $x$, subtract the probe
+mean and divide by its centred norm (floored at $10^{-12}$), just as for each probe image $j$. Write $d_{xj}$ for
+one minus the clipped dot product of those rows (cosine distance when both are unit length). Below, site subscripts
+are omitted in the kernel rules.
+See <code>xp/xlib.py:probe_gram, cross_cos</code> and <code>invert/modal_invert.py:gram</code>.</p>
+
+<h3 id="new-images-rows">One kernel row per site</h3>
+<p>Let $P$ be the fitted non-lazy walk on the probe and $v_j$ the symmetric Sinkhorn scale for probe image $j$.
+Compute weights $w_j$ by one of the rules below; then $p(x,j)=v_j w_j / \sum_i v_i w_i$. There is no new
+Sinkhorn fit. To replay a probe image, mask its self-edge; the resulting row reproduces its row of $P$ up to
+numerical error (and the choice of neighbours at a k-NN boundary tie).</p>
+<ul>
+<li><b>k-NN.</b> Set $w_j=1$ if $j$ is among $x$'s $k$ nearest probe images <em>or</em> $d_{xj}\le r_j$, where
+$r_j$ is $j$'s fitted $k$th-neighbour distance. Otherwise use the floor $10^{-6}$; a masked entry gets zero.
+See <code>invert/dm.py:knn_kernel, knn_oos_rows</code> and <code>xp/xlib.py:knn_rows_t</code>.</li>
+<li><b>Shannon perplexity and participation ratio.</b> Fit $\beta_x$ in the conditional
+$q_x(j)=\exp[-\beta_x(d_{xj}-d_{x,\min})]/Z_x$, with $d_{x,\min}$ the closest unmasked distance and $Z_x$ the
+sum of those unnormalised weights over unmasked probe images. The Shannon rule sets $\exp H(q_x)=\xi$ with
+$H(q)=-\sum_j q(j)\log q(j)$; the participation-ratio rule sets $1/\sum_j q_x(j)^2=\xi$. Here $\xi$ is the
+chosen effective neighbour count, not the count of the final walk row.
+Use the probe's frozen reverse weight and average the two directions:
+<div class="eq">$$
+\begin{aligned}
+\widetilde q_j(x)&=\exp[-\beta_j(d_{xj}-d_{j,\min})]/Z_j,\\
+w_j&=\tfrac12\bigl(q_x(j)+\widetilde q_j(x)\bigr).
+\end{aligned}
+$$</div>
+The reverse weights are not renormalised over $j$ before averaging. The factor $1/2$ cancels when normalising $p$;
+the code sums the two directions and normalises in the log domain. See <code>invert/dm.py:_cond_rows, ea_kernel,
+ea_oos_rows</code>, <code>xp/dm.py:ea_kernel</code> and <code>xp/xlib.py:_cond_rows_t, ea_rows_t</code>.</li>
+</ul>
+
+<h3 id="new-images-depth">From rows to coordinates</h3>
+<p><b>Site-local (Nyström).</b> For a nonconstant eigenpair $P_l\phi_{l,r}=\lambda_{l,r}\phi_{l,r}$ with
+$\lambda_{l,r}\ne 0$, use $z_{l,r}(x)=\sum_j p_l(x,j)\phi_{l,r}(j)/\lambda_{l,r}$. On the probe this gives
+$\phi_{l,r}(x)$. These axes are fitted at each site separately. The <code>xp</code> fit gets the same eigenvectors
+from $M_l=(I+P_l)/2$ and converts each lazy eigenvalue to $\lambda_{l,r}=2\lambda^{\rm lazy}_{l,r}-1$.
+See <code>xp/xlib.py:site_spectra, fit_op, Ext.site</code> and <code>invert/dm.py:site_forward</code>.</p>
+<p><b>Sources and joint coordinates.</b> Let $(\mu_k,f^{(k)})$ be a low eigenpair of the through-depth operator
+above, on slice-mean-zero functions. In relative site units $c_l$ is the mean of the first eight nonconstant
+lazy gaps $1-\lambda^{\rm lazy}_{l,r}$ (smallest first). The depth coupling $t$ is set to $t^*$, where the lowest
+slice-mean-zero eigenvalue meets the first nonconstant depth-only eigenvalue $4t\sin^2(\pi/(2L))$.
+With $A_{\rm path}$ the adjacency matrix between consecutive sites and $\deg=(1,2,\dots,2,1)$ for a chain with
+at least two sites, the solve is</p>
+<div class="eq">$$
+\begin{aligned}
+s_{l,k}(x)&=\sum_j p_l(x,j) f_l^{(k)}(j),\\
+T_k&=\operatorname{diag}_l\!\left(\tfrac{1}{2c_l}+t\deg_l-\mu_k\right)-tA_{\rm path},\\
+T_k y_{\cdot,k}(x)&=\bigl(s_{l,k}(x)/(2c_l)\bigr)_{l=0}^{L-1}.
+\end{aligned}
+$$</div>
+<p>The source only uses the activation at site $l$. Although $T_k$ is tridiagonal, solving with it mixes sources
+across the chain. The exact identity, on and off the probe, is $s_{l,k}(x)=2c_l[T_k y_{\cdot,k}(x)]_l$. For
+probe image $i$, the eigen-equation with $(I-M_l)/c_l=(I-P_l)/(2c_l)$ gives $y_{l,k}(i)=f_l^{(k)}(i)$ and
+$s_{l,k}(i)=(P_l f_l^{(k)})(i)$.</p>
+<p><b>Code.</b> <code>spacetime.py:apply_L, modes, balance_direct</code> defines the spectrum and coupling;
+<code>invert/dm.py:joint_modes, joint_forward</code> uses NumPy, with a condition number per mode, and
+<code>invert/modal_invert.py:joint</code> saves the unscaled source as <code>onestep</code>. <code>xp/xlib.py:Ext</code>
+uses batched Torch rows and solves, with $b=s/(2c)$ as its intermediate instead. The original X3/X4 runs used
+Shannon or k-NN; the current <code>xp</code> code also implements participation ratio. NumPy's
+<code>argpartition</code> and Torch's <code>topk</code> can resolve k-NN ties differently.</p>
 

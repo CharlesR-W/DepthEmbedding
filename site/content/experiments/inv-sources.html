@@ -1,0 +1,51 @@
+<section class="experiment" id="x-inv-sources">
+<h2>Is a joint coordinate at a site a function of that site's activation?</h2>
+<p class="x-scope"><b>Tested:</b> Final CIFAR-10 ResNet-20, seed 0. The attack uses the P2 participation-ratio 300 operator. The filter-weight and patch comparisons also show results for the larger P8 participation-ratio 400 operator.</p>
+<p class="x-answer"><strong>The joint-coordinate formula uses sources from the whole chain; the source-coordinate formula uses only that site's activation.</strong> On P2, the joint displacement at b5 under PGD 2/255 was {{fact:x.inv-sources.attack.joint.b5}}, versus {{fact:x.inv-sources.attack.source.b5}} for the source at b5. Removing the source changes at b7 and later before filtering reduced the b5 joint displacement to {{fact:x.inv-sources.attack.truncated.b5}}.</p>
+
+<figure class="emb-fig" data-emb="assets/x/inv-sources.json#emb_lead">
+  <figcaption><b>Plotted:</b> The P2 PR 300 probe (class colours) and a sample of {{fact:x.inv-sources.attack.shown}} paired clean and PGD 2/255 images. Arrows run from clean to attacked; the arrow control can show the whole sample. Switch between joint and source coordinates and compare b5 with b8 and b9. These are illustrative two-dimensional projections; arrow lengths cannot be compared across views as if the axes were the same. The distance statistics use all 16 dimensions and all {{fact:x.inv-sources.attack.n}} pairs.</figcaption>
+</figure>
+<div class="x-numbers">
+  <div class="x-num"><b>{{fact:x.inv-sources.share.p8.conv_min}}–{{fact:x.inv-sources.share.p8.conv_max}}</b><span>filter weight on own source across convolutional sites</span><small>P8 · PR 400 · K = 16</small></div>
+  <div class="x-num"><b>{{fact:x.inv-sources.share.p2.conv_min}}–{{fact:x.inv-sources.share.p2.conv_max}}</b><span>filter weight on own source across convolutional sites</span><small>P2 · PR 300 · K = 16</small></div>
+  <div class="x-num"><b>{{fact:x.inv-sources.attack.source.b6}} → {{fact:x.inv-sources.attack.source.b8}} → {{fact:x.inv-sources.attack.source.b9}}</b><span>source displacement from b6 to b8 to b9</span><small>P2 · PGD 2/255 · squared spread units</small></div>
+  <div class="x-num"><b>{{fact:x.inv-sources.patch.b5.swap}}</b><span>mean joint progress after a true activation swap at b5</span><small>P8 · PR 400 · K = 16 · patched forward pass</small></div>
+</div>
+
+<h3>What was computed</h3>
+<div class="x-tablewrap"><table class="x-defs">
+<thead><tr><th>Quantity</th><th>Definition</th><th>Symbols and choices</th><th>Code</th></tr></thead>
+<tbody>
+<tr><td>Source coordinate</td><td>$s_{l,k}(x)=\sum_i p_l(x_l,i)f^{(k)}_l(i)$<br>On the probe: $s_{l,k}=P_lf_l^{(k)}$.</td><td>$f^{(k)}$ is one joint mode fit on the probe, $p_l$ the new image's balanced row from its activation $x_l$. Source coordinates use only that row at inference; their basis was fit jointly.</td><td><code>modal_invert.py:joint</code>, <code>stage_rt.py:run</code> (<code>FS</code>)</td></tr>
+<tr><td>Depth filter</td><td>$T_k=\operatorname{diag}((2c_l)^{-1}+t\deg_l-\mu_k)-tA_{\rm path}$<br>$y_{\cdot,k}=T_k^{-1}(s_{\cdot,k}/(2c))$</td><td>$\mu_k$ is the joint eigenvalue, $c_l$ the local scale, $t$ the coupling. $A_{\rm path}$ links consecutive sites, with degrees $(1,2,\ldots,2,1)$. Divide each source by its own $2c_l$ before solving. This filter is fixed by the operator.</td><td><code>dm.py:joint_forward</code></td></tr>
+<tr><td>Own-source share</td><td>$w_{lm,k}=|[T_k^{-1}]_{lm}|/(2c_m)$<br>$\mathrm{share}_{l,k}=w_{ll,k}/\sum_m w_{lm,k}$</td><td>At site $l$, take the diagonal coefficient's share of the absolute row weight. Average ratios over the first $K$ modes. This is not a share of observed variance or a regression coefficient.</td><td><code>stage_rt.py:run</code> (<code>E1|share_ll</code>)</td></tr>
+<tr><td>Source-on-joint slope</td><td>$\hat\beta_{l,k}=\sum_i s_{l,k}(i)y_{l,k}(i)/\sum_i y_{l,k}(i)^2$</td><td>Through-origin fit from joint to source, separately per mode over the first $m$ held-out H images, then averaged across modes. No patch or new forward pass.</td><td><code>stage_rt.py:run</code> (<code>E1|slope</code>)</td></tr>
+<tr><td>Patched-run progress</td><td>$d=(y_b-y_a)/\sigma$, $\mathrm{prog}_D=\langle(y'-y_a)/\sigma,d\rangle/\|d\|^2$</td><td>At the patched site, project the displacement toward target image b, relative to clean held-out per-mode spread $\sigma$. To compute $y'$, use image a's prefix, the edited activation at the patch, and the recomputed suffix, then apply the filter. Average over pairs with different original network predictions.</td><td><code>stage_rt.py:run</code> (<code>FD</code>, <code>progress</code>)</td></tr>
+<tr><td>Attack displacement</td><td>$\operatorname{mean}_{i,k}\big[((u^{\rm adv}_{l,k}(i)-u^{\rm clean}_{l,k}(i))/\sigma_{l,k})^2\big]$</td><td>$u$ is joint or source. Standardise by the clean pairs' spread, separately at each site and mode and for each kind. Two independent draws from the same distribution have expected squared displacement 2 in these units.</td><td><code>adv.py</code>; cutoff check in <code>gen_inv_a.py</code></td></tr>
+</tbody></table></div>
+
+<h3>Supporting figures</h3>
+<figure class="live" data-live="lines" data-src="assets/x/inv-sources.json#share" data-height="236"><div class="live-body"></div><figcaption><b>Plotted:</b> Mean absolute filter-weight share on the site's own source. P2 values were recomputed from the saved operator; P8 values come from the saved round-trip summary. Solid: first 16 modes; dashed: first 64.</figcaption></figure>
+<figure class="live" data-live="lines" data-src="assets/x/inv-sources.json#attack" data-height="236"><div class="live-body"></div><figcaption><b>Plotted:</b> Mean squared displacement from clean to PGD 2/255 on P2 PR 300. Source displacement rises gradually, then jumps at b9. The dashed curve recomputes joint displacement with source changes set to zero from b7 onward, using the original joint scale. This changes only the readout, not the network run.</figcaption></figure>
+<figure class="live" data-live="lines" data-src="assets/x/inv-sources.json#progress" data-height="236"><div class="live-body"></div><figcaption><b>Plotted:</b> Patched joint progress toward b by edit site, on P8 PR 400 with 16 modes. Source match uses b's true sources; the residual edit adds the difference between joint-coordinate decodes. The random comparison is matched only to the residual edit's size. A score of 1 reaches b's projection on the target direction, not necessarily b's full coordinate.</figcaption></figure>
+
+<h3>Caveats</h3>
+<ul>
+<li><b>Audit:</b> The source-on-joint slope uses held-out H, not probe images, and is distinct from progress under a patch. The pilot's swaps with other sources held fixed are also distinct from the plotted patch runs, which recompute the suffix.</li>
+<li><b>Audit:</b> The source-coordinate class readout in the full attack report uses centroids from the second half of H; the joint readout uses probe centroids. No class readout enters the displacement calculation here.</li>
+<li>The late-source cutoff is a calculation in a fixed linear filter. It is not a causal intervention on the network. Joint and source distances use their own normalisations.</li>
+<li>One network, checkpoint and probe draw per size. No uncertainty intervals, and the patch methods are not matched in size.</li>
+</ul>
+<details><summary>Decisions made on the owner's behalf (4)</summary>
+<div class="x-tablewrap"><table class="x-decisions"><thead><tr><th>Decision</th><th>Chosen</th><th>Alternative</th><th>Why</th><th>What it could bias</th><th>How to test</th></tr></thead><tbody>
+<tr><td>Single-site inverse</td><td>Match the source coordinate</td><td>Hold other sources fixed and match the joint coordinate</td><td>The source is a function of one activation.</td><td>Matching a source need not move the patched joint coordinate to the target.</td><td>Compare fixed-source filtering with patched forward passes.</td></tr>
+<tr><td>Attack configuration</td><td>PGD, 20 steps of ε/4</td><td>Use the longer X3 attack</td><td>Limit compute.</td><td>The depth pattern may depend on attack strength.</td><td>Keep the operator and cohort fixed and vary the attack budget.</td></tr>
+<tr><td>Patch comparison</td><td>Natural edit sizes and equal-size isotropic controls for individual edits</td><td>Compare all methods at the same budget</td><td>Measure the edits each method proposes.</td><td>Progress can reflect size as well as direction.</td><td>Compare curves at equal activation-edit norms.</td></tr>
+<tr><td>Probe in figures</td><td>P2 PR 300 for the interactive cloud; P8 PR 400 as an additional numerical check</td><td>Ship the full P8 cloud</td><td>Use the same probe images as the viewer and ship less data.</td><td>The P2 picture does not show P8 coordinates.</td><td>Recompute the metric separately by operator, as for the weight shares.</td></tr>
+</tbody></table></div></details>
+<details><summary>More figures (1)</summary>
+<figure class="live" data-live="lines" data-src="assets/x/inv-sources.json#slope" data-height="225"><div class="live-body"></div><figcaption><b>Plotted:</b> Mean through-origin source-on-joint slope on held-out H, at each site of P8 PR 400. This is a fit to unpatched observations; it measures neither own-source weight nor patched progress.</figcaption></figure>
+</details>
+<p class="x-links"><a href="reports/inversion.html#tab=sources">Full inversion report</a> · <a href="reports/inversion.html#tab=adversarial">Attack results</a> · <a href="#method/new-images">Placing new images</a> · <a href="https://github.com/CharlesR-W/DepthEmbedding/blob/experiments-site/invert/stage_rt.py">Run code</a> · <a class="x-top" href="#experiments/x-glance-title">At a glance</a></p>
+</section>

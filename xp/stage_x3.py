@@ -38,6 +38,7 @@ from pathlib import Path
 import numpy as np
 
 KERNELS = ['ea100', 'knn15']
+PR_SETS = ('clean', 'u2', 'u8', 't8', 'n8', 'natA')
 ALIGNED = ['clean'] + [f'{a}{e}' for a in 'un' for e in (1, 2, 4, 8)] + ['t8'] + [f'p{k}' for k in range(1, 8)]
 
 
@@ -47,6 +48,17 @@ def run(unit, cfg):
     import xlib
     from common import R, SITES, activations, load_net, normalize
     t0 = time.time()
+    replay = cfg.get('replay_baseline', False)
+    kernels = cfg.get('kernels', KERNELS)
+    comparison_fallback = cfg.get('comparison_fallback', False)
+    baseline = Path(R) / 'x3'
+    if replay:
+        if comparison_fallback:
+            if kernels != ['ea100', 'pr100', 'knn15'] or cfg.get('out') not in ('x3_rerun_a10_s', 'x3_rerun_l4_s'):
+                raise ValueError('Separate matched rerun must fit all three kernels and use a fresh output path')
+        elif kernels != ['pr100'] or cfg.get('out') not in ('x3_pr100_s', 'x3_pr100_s_retry', 'x3_pr100_s_l4small'):
+            raise ValueError('Replay run needs pr100 and a fresh stretch output path')
+        (Path(R) / cfg['out']).mkdir(exist_ok=False)
     out = Path(R) / cfg.get('out', 'x3'); out.mkdir(parents=True, exist_ok=True)
     if (out / 'DONE').exists() and not cfg.get('force'):
         return 'cached'
@@ -57,22 +69,35 @@ def run(unit, cfg):
     ty = np.load(Path(R) / 'data/c10/test_y.npy')
     probe_idx, probe_y = pz['c10_idx'], pz['c10_y']
     assert (ty[probe_idx] == probe_y).all()
-    nets = {k: load_net(k) for k in ('c10-s0', 'c10-s1')}
+    nets = {k: load_net(k) for k in (('c10-s0',) if replay else ('c10-s0', 'c10-s1'))}
 
     def logits_of(net, x01):
         model, mean, std = nets[net]
         with torch.inference_mode():
             return torch.cat([model(normalize(x01[i:i + 1000].cuda(), mean, std)) for i in range(0, len(x01), 1000)]).cpu()
 
-    pred = {k: logits_of(k, tx).argmax(1).numpy() for k in nets}
-    info['clean_acc'] = {k: float((pred[k] == ty).mean()) for k in nets}
-    held = np.setdiff1d(np.arange(len(ty)), probe_idx)
-    both = held[(pred['c10-s0'][held] == ty[held]) & (pred['c10-s1'][held] == ty[held])]
-    S = both[:n_src]
-    natA, natB = held[pred['c10-s0'][held] != ty[held]], held[pred['c10-s1'][held] != ty[held]]
-    xs, ys = tx[S].cuda(), torch.from_numpy(ty[S]).cuda()
-    rng = np.random.RandomState(0)
-    target = torch.from_numpy((ty[S] + rng.randint(1, 10, len(S))) % 10).cuda()
+    if replay:
+        with np.load(baseline / 'sets.npz') as saved:
+            S, natA = saved['S'], saved['natA']
+            assert np.array_equal(ty[S], saved['labels']) and np.array_equal(ty[natA], saved['natA_y'])
+            target = torch.from_numpy(saved['target']).cuda()
+        xs, ys = tx[S].cuda(), torch.from_numpy(ty[S]).cuda()
+        info['gpu'] = torch.cuda.get_device_name()
+        info['seed'] = {'u2': 2, 'u8': 8, 't8': 50, 'n8': 108}
+        info['reference'] = {}
+        info['comparison_fallback'] = comparison_fallback
+        info['rounded_pixel_agreement'] = {}
+        info['commit'] = cfg.get('commit')
+    else:
+        pred = {k: logits_of(k, tx).argmax(1).numpy() for k in nets}
+        info['clean_acc'] = {k: float((pred[k] == ty).mean()) for k in nets}
+        held = np.setdiff1d(np.arange(len(ty)), probe_idx)
+        both = held[(pred['c10-s0'][held] == ty[held]) & (pred['c10-s1'][held] == ty[held])]
+        S = both[:n_src]
+        natA, natB = held[pred['c10-s0'][held] != ty[held]], held[pred['c10-s1'][held] != ty[held]]
+        xs, ys = tx[S].cuda(), torch.from_numpy(ty[S]).cuda()
+        rng = np.random.RandomState(0)
+        target = torch.from_numpy((ty[S] + rng.randint(1, 10, len(S))) % 10).cuda()
 
     model, mean, std = nets['c10-s0']
 
@@ -87,19 +112,44 @@ def run(unit, cfg):
             adv = torch.min(torch.max(adv.detach() + 2.5 * eps / steps * gr.sign(), xs - eps), xs + eps).clamp(0, 1)
         return adv.detach()
 
-    sets = {'clean': xs}
-    for e in (1, 2, 4, 8):
-        sets[f'u{e}'] = pgd(e / 255, seed=e)
-        g = torch.Generator(device='cuda').manual_seed(100 + e)
-        sets[f'n{e}'] = (xs + (torch.randint(0, 2, xs.shape, device='cuda', generator=g) * 2 - 1) * e / 255).clamp(0, 1)
-    sets['t8'] = pgd(8 / 255, targeted=True, seed=50)
-    for k in range(1, 8):
-        sets[f'p{k}'] = (xs + k / 8 * (sets['u8'] - xs)).clamp(0, 1)
-    assert float((sets['u8'] - xs).abs().max()) <= 8 / 255 + 1e-6
-    sets['natA'], sets['natB'] = tx[natA].cuda(), tx[natB].cuda()
-    u8 = lambda a: (a * 255).round().clamp(0, 255).byte().cpu().numpy()
-    np.savez(out / 'sets.npz', S=S, labels=ty[S], target=target.cpu().numpy(), natA=natA, natB=natB,
-             natA_y=ty[natA], natB_y=ty[natB], img_clean=u8(xs), img_u8=u8(sets['u8']), img_t8=u8(sets['t8']))
+    if replay:
+        # X3 saves only rounded u8/t8 thumbnails, not the float pixels, cross-Grams or activations.
+        # Recover the float pixels with the original seeds and check against the archived readouts below.
+        g = torch.Generator(device='cuda').manual_seed(108)
+        sets = dict(clean=xs, u2=pgd(2 / 255, seed=2), u8=pgd(8 / 255, seed=8),
+                    t8=pgd(8 / 255, targeted=True, seed=50),
+                    n8=(xs + (torch.randint(0, 2, xs.shape, device='cuda', generator=g) * 2 - 1) * 8 / 255).clamp(0, 1),
+                    natA=tx[natA].cuda())
+        with np.load(baseline / 'sets.npz') as saved:
+            descriptor = dict(saved) if comparison_fallback else None
+            for name in ('clean', 'u8', 't8'):
+                rounded = (sets[name] * 255).round().clamp(0, 255).byte().cpu().numpy()
+                same = rounded == saved[f'img_{name}']
+                info['rounded_pixel_agreement'][name] = float(same.mean())
+                if comparison_fallback:
+                    descriptor[f'img_{name}'] = rounded
+                else:
+                    assert same.all(), f'{name}: rounded pixel mismatch'
+        assert tuple(sets) == PR_SETS
+        if comparison_fallback:
+            np.savez(out / 'sets.npz', **descriptor)
+        else:
+            import shutil
+            shutil.copyfile(baseline / 'sets.npz', out / 'sets.npz')
+    else:
+        sets = {'clean': xs}
+        for e in (1, 2, 4, 8):
+            sets[f'u{e}'] = pgd(e / 255, seed=e)
+            g = torch.Generator(device='cuda').manual_seed(100 + e)
+            sets[f'n{e}'] = (xs + (torch.randint(0, 2, xs.shape, device='cuda', generator=g) * 2 - 1) * e / 255).clamp(0, 1)
+        sets['t8'] = pgd(8 / 255, targeted=True, seed=50)
+        for k in range(1, 8):
+            sets[f'p{k}'] = (xs + k / 8 * (sets['u8'] - xs)).clamp(0, 1)
+        assert float((sets['u8'] - xs).abs().max()) <= 8 / 255 + 1e-6
+        sets['natA'], sets['natB'] = tx[natA].cuda(), tx[natB].cuda()
+        u8 = lambda a: (a * 255).round().clamp(0, 255).byte().cpu().numpy()
+        np.savez(out / 'sets.npz', S=S, labels=ty[S], target=target.cpu().numpy(), natA=natA, natB=natB,
+                 natA_y=ty[natA], natB_y=ty[natB], img_clean=u8(xs), img_u8=u8(sets['u8']), img_t8=u8(sets['t8']))
     info['attack_s'] = time.time() - t0
 
     def acts(net, x01):
@@ -122,7 +172,7 @@ def run(unit, cfg):
             Cs.append(C.cpu().numpy()); mus.append(mu); xns.append(xn); pnorm.append(nrm.median().item())
         del pa
         exts = {}
-        for kname in KERNELS:
+        for kname in kernels:
             kers = xlib.site_kernels(Cs, kname)
             op = xlib.fit_op(kers, xlib.site_spectra(kers), list(range(12)), K=32, R=16)
             exts[kname] = xlib.Ext(op, labels=probe_y)
@@ -136,6 +186,9 @@ def run(unit, cfg):
             del kers
         info[f'{net}_fit_s'] = time.time() - t1
         clean_acts, crosses = None, {}
+        if replay:
+            with np.load(baseline / f'op_{net}_ea100.npz') as saved_op:
+                saved_ext = xlib.Ext(saved_op, labels=probe_y)
         for name, x01 in sets.items():
             if name == 'natA' and net != 'c10-s0' or name == 'natB' and net != 'c10-s1':
                 pass                                             # still embed: the other network's errors are a reference
@@ -161,12 +214,34 @@ def run(unit, cfg):
                     rec[f'{kname}_{k}'] = v[..., :16] if k in ('y', 'site_y') else v
             if name in ('clean', 'u8') and net == 'c10-s0':
                 crosses[name] = cross
-            np.savez(out / f'{net}_{name}.npz', **rec)
+            if replay:
+                with np.load(baseline / f'{net}_{name}.npz') as saved:
+                    # Verify the original cohort and numerics, as well as the unchanged Shannon
+                    # extension on its original signed operator. Do not refit it or align signs.
+                    pred, old_pred = rec['logits'].argmax(1), saved['logits'].argmax(1)
+                    agree = float((pred == old_pred).mean())
+                    if not comparison_fallback:
+                        assert agree == 1., f'{name}: label mismatch ({agree:.1%} agree)'
+                    old = saved_ext.embed(cross)
+                    replica = dict(rec, **{f'ea100_{k}': v[..., :16] if k in ('y', 'site_y') else v for k, v in old.items()})
+                    checks = {k: dict(exact=bool(np.array_equal(v, saved[k])),
+                                      max_abs=float(np.abs(v - saved[k]).max()))
+                              for k, v in replica.items() if k in saved}
+                    info['reference'][name] = dict(label_agreement=agree, arrays=checks)
+                    print('Legacy replay', name, agree, checks, flush=True)
+                    if not comparison_fallback:
+                        for k, v in replica.items():
+                            if not k.startswith('pr100_'):
+                                np.testing.assert_allclose(v, saved[k], rtol=2e-5, atol=1e-6, err_msg=f'{name}/{k}')
+                fn = f'{net}_{name}_pr100.npz'
+            else:
+                fn = f'{net}_{name}.npz'
+            np.savez(out / fn, **rec)
             del a
             if name != 'clean':
                 torch.cuda.empty_cache()
-        if net == 'c10-s0':                                      # logits-only row change
-            ext = exts['ea100']
+        if net == 'c10-s0' and 'u8' in crosses:                 # logits-only row change
+            ext = exts['ea100'] if 'ea100' in exts else next(iter(exts.values()))
             mixed = crosses['clean'][:11] + [crosses['u8'][11]]
             e0, e1, e8 = ext.embed(crosses['clean']), ext.embed(mixed), ext.embed(crosses['u8'])
             local = max(float(np.abs(e1[k][:11] - e0[k][:11]).max()) for k in ('site_y', 'mass', 'cmax', 'perp'))
@@ -176,13 +251,14 @@ def run(unit, cfg):
         del clean_acts, crosses, mus, xns, exts
         torch.cuda.empty_cache()
         info[f'{net}_s'] = time.time() - t1
-    for name in sets:
-        lg = np.load(out / f'c10-s0_{name}.npz')['logits']
-        if name in ALIGNED:
-            info[f'acc_A_{name}'] = float((lg.argmax(1) == ty[S]).mean())
-            info[f'acc_B_{name}'] = float((np.load(out / f'c10-s1_{name}.npz')['logits'].argmax(1) == ty[S]).mean())
-    info['t8_target_hit_A'] = float((np.load(out / 'c10-s0_t8.npz')['logits'].argmax(1) == target.cpu().numpy()).mean())
-    info['n_natA'], info['n_natB'] = int(len(natA)), int(len(natB))
+    if not replay:
+        for name in sets:
+            lg = np.load(out / f'c10-s0_{name}.npz')['logits']
+            if name in ALIGNED:
+                info[f'acc_A_{name}'] = float((lg.argmax(1) == ty[S]).mean())
+                info[f'acc_B_{name}'] = float((np.load(out / f'c10-s1_{name}.npz')['logits'].argmax(1) == ty[S]).mean())
+        info['t8_target_hit_A'] = float((np.load(out / 'c10-s0_t8.npz')['logits'].argmax(1) == target.cpu().numpy()).mean())
+        info['n_natA'], info['n_natB'] = int(len(natA)), int(len(natB))
     info['seconds'] = time.time() - t0
     (out / 'DONE').write_text(json.dumps(info))
     return info

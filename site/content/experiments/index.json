@@ -1,0 +1,11 @@
+[
+  {"id":"x3-adversarial", "group":"probing", "pending":true, "title":"Where along depth does an adversarial image leave its class?"},
+  {"id":"inv-kernel", "group":"inverting", "pending":true, "title":"Which kernel gives modes that reproduce and a smooth row for a new image?"},
+  {"id":"inv-sources", "group":"inverting", "pending":true, "title":"Is a joint coordinate at a site a function of that site's activation?"},
+  {"id":"inv-decode", "group":"inverting", "pending":true, "title":"How much of an activation can K coordinates recover?"},
+  {"id":"inv-ood", "group":"inverting", "pending":true, "title":"Where do other datasets, noisy and adversarial images land?"},
+  {"id":"inv-edits", "group":"inverting", "pending":true, "title":"Can an activation be given another image's source coordinates, and does the output follow?"},
+  {"id":"x1-data", "group":"probing", "pending":true, "title":"Do networks trained on other data embed the same probe alike?"},
+  {"id":"x4-paths", "group":"probing", "pending":true, "title":"Do straight paths between two activations cross sharp transitions downstream?"},
+  {"id":"solver", "group":"engineering", "pending":true, "title":"How far can the joint operator's solver scale?"}
+]

@@ -1,0 +1,111 @@
+<section class="experiment" id="x-x4-paths">
+<h2>Do straight paths between two activations cross sharp transitions downstream?</h2>
+<p class="x-scope"><b>Tested:</b> Final CIFAR-10 ResNet-20, seed 0. The same {{fact:x.x4-paths.pairs.per_kind}} same-class and {{fact:x.x4-paths.pairs.per_kind}} different-class pairs at each start. Endpoints are correctly classified test images outside the {{fact:x.x4-paths.probe.n}}-image probe.</p>
+<p class="x-answer"><strong>The sampled paths rarely concentrated motion in a short interval, but the probe readout could change sharply even where the network was affine.</strong> {{fact:x.x4-paths.pre_logits.n}} of {{fact:x.x4-paths.pre_logits.total}} start–pair combinations put more than a quarter of the angular arc length into the fastest sixteenth at a pre-logit site. Starting at b9 leaves only average pooling and the linear head, yet the probe's class-mass readout still changes steeply.</p>
+<figure class="emb-fig" data-emb="assets/x/x4-paths.json#emb_lead">
+  <figcaption><b>Plotted:</b> The CIFAR-10 probe by class and {{fact:x.x4-paths.pairs.display}} held-out chords, half same-class and half different-class. Colour along a path gives its position $s$ from the circle to the square. Each start has its own Shannon-perplexity-100 suffix operator and axes. Move the site slider or pick a filmstrip frame. Site-local axes differ from one site to the next; the b9 control opens in this view because the pooled joint projection has little spread at b9. These two-dimensional projections illustrate the paths, not their measured speeds.</figcaption>
+</figure>
+<div class="x-numbers">
+  <div class="x-num"><b>{{fact:x.x4-paths.share.pixels.logits}}</b><span>median share of angular arc length in the fastest sixteenth, pixels to logits ({{fact:x.x4-paths.grid.uniform}} if uniform)</span><small>Different-class pairs · activations, no embedding</small></div>
+  <div class="x-num"><b>{{fact:x.x4-paths.slope.b9.b9}}</b><span>median maximum class-mass slope at b9, starting straight at b9</span><small>Different-class pairs · b9 Shannon probe rows</small></div>
+  <div class="x-num"><b>{{fact:x.x4-paths.leaves.b8.n}} of {{fact:x.x4-paths.pairs.per_kind}}</b><span>same-class chords left the class at the logits when started at b8</span><small>Sampled pairs · network predictions</small></div>
+  <div class="x-num"><b>{{fact:x.x4-paths.gain.pixels.angular}} vs {{fact:x.x4-paths.gain.pixels.radius_removed}}</b><span>angular gain–margin correlation before and after removing the output radius factor</span><small>Pixels to logits · CIFAR-10 probe, no embedding</small></div>
+</div>
+
+<h3>What was computed</h3>
+<div class="x-tablewrap">
+<table class="x-defs">
+<thead><tr><th>Quantity</th><th>Equation</th><th>Symbols and choices</th><th>Code</th></tr></thead>
+<tbody>
+<tr><td>Chords and suffix</td><td>$x(s)=(1-s)a+sb$<br>$h_m(s)=F_{l_0\to m}(x(s))$</td>
+<td>Interpolate the actual, uncentred activations at $l_0$ (the network's preprocessed input for pixels), not embeddings. Run each of {{fact:x.x4-paths.grid.points}} equally spaced points through the suffix. Motion and masks use downstream sites $m&gt;l_0$; the coordinate chain includes the start activation except for pixels.</td>
+<td><code>xp/stage_x4.py:site_acts, trace, run_paths</code></td></tr>
+<tr><td>Raw and angular speeds</td><td>$u=(h-\bar h)/\rho$, $\rho=\|h-\bar h\|$<br>$v_{\rm raw}=\|J(b-a)\|$<br>$v_{\rm ang}=\|(I-uu^\top)J(b-a)\|/\rho$</td>
+<td>$\bar h$ is the clean probe mean at the measurement site; $J$ is the raw suffix Jacobian there. The code also computes exact speeds by a Jacobian–vector product on the coarser grid. “Angular” step lengths below are Euclidean chords between unit vectors, not arccos angles.</td>
+<td><code>xp/stage_x4.py:_unit, _steps, run_paths</code></td></tr>
+<tr><td>Fastest window and sharpness</td><td>$d_i=\|q((i+1)/T)-q(i/T)\|$<br>$W=\max_j\sum_{i=j}^{j+15}d_i/\sum_i d_i$<br>$\sigma=\log(m_{64}/m_{256})/\log 4$</td>
+<td>$q=h$ for raw steps or $q=u$ for angular steps. $W$ takes the largest of all contiguous 16-step windows on the 256-step grid. $m_T$ is the largest <em>step length</em> on the $T$-step grid (coarser grid takes every fourth point). Uniform straight-line motion gives $W=1/16$, $\sigma=1$; a single ideal jump gives $W=1$, $\sigma=0$.</td>
+<td><code>xp/stage_x4.py:path_stats, _steps, trace</code></td></tr>
+<tr><td>Suffix operator and path placement</td><td>$H_l=(I-P_l)/(2c_l)$<br>$\mathcal L_t=\operatorname{blockdiag}(H_l)+t D_{\rm path}\otimes I$<br>$z_{l,k}=p_l\phi_{l,k}/\lambda_{l,k}$<br>$T_k y_{\cdot,k}=(p_l f_{l,k}/2c_l)_l$</td>
+<td>At each chain site, use cosines of probe-centred unit activations, calibrate directed rows to Shannon perplexity 100, then symmetrise and balance to get $P_l$. The new row $p_l$ averages the new point's calibrated conditional and the probe's frozen reverse conditionals, applies the frozen balance factors, then normalises. $c_l$ is the mean of the first eight nonconstant lazy-walk gaps; $t$ is the depth-balance value. $f$ are joint modes with zero mean per slice; $\phi,\lambda$ are nonconstant eigenpairs of $P_l$. $T_k=\operatorname{diag}(1/(2c_l)-\mu_k)+tD_{\rm path}$, with joint eigenvalue $\mu_k$. The joint solve uses every suffix row, unlike the site-local extension $z$. Draw {{fact:x.x4-paths.grid.draw}} points from this same chord, on the 64-step grid.</td>
+<td><code>xp/dm.py:ea_kernel</code><br><code>xp/xlib.py:probe_gram, cross_cos, ea_rows_t, fit_op, Ext</code></td></tr>
+<tr><td>Class mass and slope</td><td>$M_l(c,s)=\sum_{j:y_j=c}p_l(s)_j$<br>$\Delta_i=M_l(c_b,s_i)-M_l(c_a,s_i)$<br>$\max_i|\Delta_{i+1}-\Delta_i|/(1/64)$</td>
+<td>Sum the row over probe images of class $c$, then take the largest absolute finite-difference slope of destination minus source mass on each different-class path. This uses the coordinate chain, including b9 itself for b9 starts. It is a probe readout, not the network's class probability or a distance in the modes.</td>
+<td><code>xp/xlib.py:Ext.site</code><br><code>xp/analyze_x4.py:main</code></td></tr>
+<tr><td>Log gain</td><td>$\Lambda_{\rm raw}=\log\sigma_{\max}(J)$<br>$A=(r/\rho)(I-uu^\top)J(I-vv^\top)$<br>$\Lambda_{\rm ang}=\log\sigma_{\max}(A)$</td>
+<td>$v$ and $r$ are the probe-centred input direction and radius; $u$ and $\rho$ are their output counterparts. Angular gain lifts a tangent at fixed input radius $r$ and differentiates output normalisation. For logits, differentiate each logit and diagonalise the small output Gram matrix. For non-logit targets, use 20 power iterations with Jacobian and transpose products and Rayleigh–Ritz extraction. Raw controls: $\log\sigma_{\max}(W)$ from pool and $\log(\sigma_{\max}(W)/8)$ from b9, where $W$ is the head matrix and the mean pool spans $8\times8$.</td>
+<td><code>xp/stage_x4.py:gain_exact, gain_power, _ritz, run_checks</code></td></tr>
+<tr><td>Gain and margin</td><td>$\operatorname{Spearman}(g,\text{top logit}-\text{runner-up})$<br>$g\in\{\Lambda_{\rm raw},\Lambda_{\rm ang},\Lambda_{\rm ang}+\log(\rho/\operatorname{med}_{\rm probe}\rho)\}$</td>
+<td>Across all probe images, not paths. The last version cancels the inverse output radius up to a constant; it retains the output tangent projection and the input-side factors. Gain here is not divided by sites crossed.</td>
+<td><code>xp/stage_x4.py:run_probe_gain</code><br><code>xp/analyze_x4.py:main</code></td></tr>
+<tr><td>Mask changes</td><td>$\operatorname{mean}_j\,[\,\mathbf1_{h_j(s)&gt;0}\ne\mathbf1_{h_j(s')&gt;0}\,]$</td>
+<td>At each downstream ReLU tap (stem and block outputs, where present), compare with $s'=0$ or the preceding sample. The within-block ReLUs are not counted. These are fractions of units with different masks, not counts of linear regions crossed.</td>
+<td><code>xp/stage_x4.py:trace</code><br><code>xp/analyze_x4.py:main</code></td></tr>
+</tbody>
+</table>
+</div>
+
+<h3>Supporting figures</h3>
+  <figure class="live" data-live="lines" data-src="assets/x/x4-paths.json#motion" data-height="230">
+    <div class="live-body"></div>
+    <figcaption><b>Plotted:</b> Median angular window share and median raw sharpness over different-class pairs, measured in downstream activations. A b9-start path moves at constant <em>raw</em> speed; output normalisation can still change its angular speed.</figcaption>
+  </figure>
+<div class="x-figs">
+  <figure class="live" data-live="lines" data-src="assets/x/x4-paths.json#slope" data-height="270">
+    <div class="live-body"></div>
+    <figcaption><b>Plotted:</b> Median per-path maximum slope magnitude for destination minus source class mass. The dashed <b>b9-start affine control</b> already gives {{fact:x.x4-paths.slope.b9.b9}} at the straight chord itself, before applying the suffix. This steep change in probe weight is not a barrier in the network.</figcaption>
+  </figure>
+  <figure class="live" data-live="bars" data-src="assets/x/x4-paths.json#gains" data-height="250">
+    <div class="live-body"></div>
+    <figcaption><b>Plotted:</b> Gain–margin rank correlations across the probe. Removing the centred logit radius factor weakens the angular correlation. The log radius alone has correlation {{fact:x.x4-paths.gain.radius}} with margin. Margin is not distance to a decision boundary.</figcaption>
+  </figure>
+</div>
+
+<h3>Caveats</h3>
+<ul class="x-caveats">
+  <li>One checkpoint and chords between correctly classified images. The minimum raw sharpness index across the six starts was {{fact:x.x4-paths.sharp.min}}. At finer resolution, the largest site-wise median absolute change in angular window share was {{fact:x.x4-paths.refine.max_median}} (1,024 vs 256 steps on 50 paths per start); that is not a bound for individual paths.</li>
+  <li><span class="x-tag">audit</span> The late class-mass slope depends on the distribution of probe images and on the adaptive row weights; final row perplexity decreases late in the suffix. The experiment does not separate these effects or check a matched-width kernel.</li>
+  <li><span class="x-tag">audit</span> Different-class paths can leave the supported parts of the probe cloud, especially at late sites. The report's worst-support comparison takes the minimum over each path, not just its midpoint.</li>
+  <li><span class="x-tag">audit</span> Even on the b9-start affine control, the angular speed peak can align with a class switch. Centred logit radius can be small there, raising angular speed without raising raw speed.</li>
+  <li>Largest two-image squared-norm shares among the retained modes, joint / site-local: pixels {{fact:x.x4-paths.loc.pixels.joint}} / {{fact:x.x4-paths.loc.pixels.site}}, b3 {{fact:x.x4-paths.loc.b3.joint}} / {{fact:x.x4-paths.loc.b3.site}}, b6 {{fact:x.x4-paths.loc.b6.joint}} / {{fact:x.x4-paths.loc.b6.site}}, b9 {{fact:x.x4-paths.loc.b9.joint}} / {{fact:x.x4-paths.loc.b9.site}}. Localised modes may affect the projected paths and embedded path lengths in the full report. The activation, gain and prediction results here use no modes. The class-mass slopes use kernel rows, not modes, but are kernel-dependent.</li>
+</ul>
+
+<details class="x-more">
+  <summary>Decisions made on the owner's behalf <span class="x-count">(6)</span></summary>
+  <div class="x-tablewrap">
+  <table class="x-decisions">
+  <thead><tr><th>Decision</th><th>Chosen</th><th>Alternative</th><th>Why</th><th>What it could bias</th><th>How to test</th></tr></thead>
+  <tbody>
+  <tr><td>Path</td><td>Raw activation chord; reuse endpoint pairs at every start</td><td>Data-manifold path or newly matched pairs per start</td><td>Test the straight-path question while controlling pair identity</td><td>Chords may pass far from realizable activations; endpoint distances can differ by start and class</td><td>Compare to nearest-probe support and within endpoint-distance strata; test a separate manifold path</td></tr>
+  <tr><td>Embedding</td><td>Fit a clean-probe operator for each full suffix; extend path points without refitting</td><td>Truncate the full-chain extension, or fit with path points included</td><td>No prefix activations exist; paths would add near-copies to the probe</td><td>Axes differ by start; joint slices mix sites</td><td>Check masked probe replay and held-out endpoints embedded as real images</td></tr>
+  <tr><td>Concentrated motion</td><td>Fastest 1/16 window; sharpness index secondary</td><td>Largest step alone, or different widths</td><td>The continuous network can concentrate speed without making jumps</td><td>Window choice and grid resolution limit what is detected</td><td>Refine to 1,024 steps, then sweep window widths</td></tr>
+  <tr><td>Class readout</td><td>Shannon perplexity 100, not tuned; sum final row weights by class</td><td>Raw logits or matched final row perplexity</td><td>Available at every coordinate site and tied to the probe</td><td>The final row width changes as class clouds separate</td><td>Sweep kernel width and compare at matched realised perplexity</td></tr>
+  <tr><td>Gain</td><td>Undivided raw and fixed-radius angular log gain</td><td>Normalise by sites crossed</td><td>Read the amplification of a given suffix directly</td><td>Not a per-site growth rate; angular gain includes inverse centred radius</td><td>Compare to affine closed forms; cancel the radius factor and recheck margin association</td></tr>
+  <tr><td>Speed versus switching</td><td>Align to first prediction switch, with a separate single-switch check</td><td>Fresh pairs, or align to every switch</td><td>One event per path for the rank comparison</td><td>Conditioning on a switch selects paths; output normalisation can induce association</td><td>Use fresh pairs and adjust for centred logit radius</td></tr>
+  </tbody>
+  </table>
+  </div>
+  <p>Original setup and amendments: <a href="https://github.com/CharlesR-W/DepthEmbedding/blob/experiments-site/xp/SPEC.md#x4-interpolation-between-real-activations-ftle">specification</a> · <a href="https://github.com/CharlesR-W/DepthEmbedding/blob/experiments-site/xp/FINDINGS.md#x4-interpolation-between-real-activations-log-gain-ftle">audited findings</a></p>
+</details>
+<details class="x-more">
+  <summary>More figures <span class="x-count">(4)</span></summary>
+  <div class="x-figs">
+    <figure class="live" data-live="bars" data-src="assets/x/x4-paths.json#leaves" data-height="240">
+      <div class="live-body"></div>
+      <figcaption><b>Plotted:</b> Same-class pairs whose sampled logits had a different winning class somewhere along the chord. None did from b8 in this sample. At b9 there is a guarantee: both endpoints lie in the same convex argmax region of logit space, and the b9 suffix is affine.</figcaption>
+    </figure>
+    <figure class="emb-fig" data-emb="assets/x/x4-paths.json#emb_gain">
+      <figcaption><b>Plotted:</b> The viewer's ResNet-20 seed 0, k-NN 15 joint embedding of the CIFAR-10 probe. Colour is each image's angular log gain from pixels to logits, not a coordinate. This projection illustrates where high and low values sit in the viewer's cloud; the gain calculation itself does not use the embedding.</figcaption>
+    </figure>
+    <figure class="live" data-live="bars" data-src="assets/x/x4-paths.json#localisation" data-height="240">
+      <div class="live-body"></div>
+      <figcaption><b>Plotted:</b> The largest squared-norm share on two probe images among the first 16 modes of each Shannon suffix operator. For each joint mode, sum energy across sites before ranking images. For each walk mode, rank images within its site and then take the maximum across modes and sites.</figcaption>
+    </figure>
+    <figure class="live" data-live="heatmap" data-src="assets/x/x4-paths.json#local_modes" data-height="340">
+      <div class="live-body"></div>
+      <figcaption><b>Plotted:</b> Two-image shares of the individual joint and site-local modes. Use the start-site slider to change suffix operators. Grey cells have no coordinates for that start. Mode numbers need not identify the same direction across bases.</figcaption>
+    </figure>
+  </div>
+</details>
+<p class="x-links"><a href="reports/xp.html#tab=x4">Full X4 report</a> · <a href="#method/new-images">Placing new images</a> · <a href="https://github.com/CharlesR-W/DepthEmbedding/blob/experiments-site/xp/stage_x4.py">Run code</a> · <a href="https://github.com/CharlesR-W/DepthEmbedding/blob/experiments-site/xp/analyze_x4.py">Analysis code</a></p>
+</section>

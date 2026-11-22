@@ -31,6 +31,8 @@ from pathlib import Path
 import numpy as np
 from PIL import Image
 
+import build_x
+
 HERE = Path(__file__).resolve().parent          # site/
 ROOT = HERE.parent
 DATA = ROOT / "data"
@@ -133,19 +135,33 @@ def st_export_step(z, step, root, variants, sizes, rule=None, fsel=None):
 
 
 class Builder:
-    def __init__(self, tag: str):
+    def __init__(self, tag: str, out: Path = OUT, viewer_from: Path | None = None, strict: bool = False):
+        requested_out = out.absolute()
+        self.out = out.resolve()
+        if (requested_out.is_symlink() or self.out == ROOT or self.out in ROOT.parents or self.out.is_file()
+                or (self.out.is_dir() and any(self.out.iterdir()) and not (self.out / ".nojekyll").is_file())):
+            sys.exit(f"unsafe output directory: {out} (expected an empty directory or a previous site build)")
+        self.strict = strict
+        self.viewer_from = (viewer_from / "d").resolve() if viewer_from is not None else None
+        if self.viewer_from is not None:
+            if self.out == self.viewer_from or self.out in self.viewer_from.parents or self.viewer_from in self.out.parents:
+                sys.exit("--out must not overlap the --viewer-from build's d/ directory")
+            for name in ("meta.json", "labels.bin", "sprite.webp"):
+                if not (self.viewer_from / name).is_file():
+                    sys.exit(f"--viewer-from: missing {self.viewer_from / name}")
         self.tag, self.src = tag, DATA / tag
-        if not (self.src / "meta.json").exists():
-            sys.exit(f"no {self.src}/meta.json")
-        m = self.meta = json.loads((self.src / "meta.json").read_text())
-        self.steps, self.sites, self.modes, self.n = m["steps"], m["sites"], m["modes"], m["n"]
-        self.S = len(self.sites)
-        self.d = OUT / "d"
+        if self.viewer_from is None:
+            if not (self.src / "meta.json").exists():
+                sys.exit(f"no {self.src}/meta.json")
+            m = self.meta = json.loads((self.src / "meta.json").read_text())
+            self.steps, self.sites, self.modes, self.n = m["steps"], m["sites"], m["modes"], m["n"]
+            self.S = len(self.sites)
+        self.d = self.out / "d"
         self.st_meta = self.stn_meta = None
 
     def copy_static(self):
         for name in ["css", "js", "vendor"]:
-            shutil.copytree(HERE / name, OUT / name, dirs_exist_ok=True)
+            shutil.copytree(HERE / name, self.out / name, dirs_exist_ok=True)
         pal = self.palette = json.loads((HERE / "palette.json").read_text())
         lines = [":root {"]
         for group in ("classes", "sets"):
@@ -154,7 +170,7 @@ class Builder:
         lines += [f"  --c-seq-{i}: {c};" for i, c in enumerate(pal["sequential"])]
         lines += [f"  --c-ord-{i}: {c};" for i, c in enumerate(pal["ordinal"])]
         lines += [f"  --{k}: {pal[k]};" for k in ("unassigned", "accent", "bg", "surface", "fg", "mute", "line")]
-        write(OUT / "css" / "tokens.css", ("\n".join(lines) + "\n}\n").encode())
+        write(self.out / "css" / "tokens.css", ("\n".join(lines) + "\n}\n").encode())
 
     def probe(self):
         p = np.load(self.src / "probe.npz")
@@ -283,6 +299,7 @@ class Builder:
                     write(out_b / d.name / f"{step}_base.json.gz", gz); sizes["base"] += len(gz)
             if steps:
                 base[d.name] = {"root": f"d/stb/{d.name}", "steps": steps, "K": STB_K}
+        self.export_x1(probe_idx, out_n, nets, sizes)
         if not nets and not base:
             return
         self.stn_meta = {"nets": nets, "base": base, "gz_bytes": sum(sizes.values()),
@@ -290,6 +307,64 @@ class Builder:
         log(f"depth embedding: {len(nets)} other networks, baselines for {len(base)}: {sum(sizes.values()) / 1e6:.1f} MB gzipped "
             f"({', '.join(f'{k} {v / 1e6:.1f}' for k, v in sizes.items())}) ({time.time() - t0:.0f} s)")
 
+
+    def export_x1(self, probe_idx, out_n, nets, sizes):
+        """Ship the full-chain X1 modes as st-v1 unit slices, with no label planes."""
+        from xsite.validate import Inputs, check_probe, validate_operator
+
+        fetch = DATA / "fetch"
+        if not (fetch / "READY.json").exists() and not self.strict:
+            log("X1 viewer networks not built: no staged data/fetch/READY.json")
+            return
+        inputs = Inputs(fetch)
+        pipelines = {
+            "c100": ("CIFAR-100", "100 fine labels"),
+            "svhn": ("SVHN", "10 digit labels; crops, no flips"),
+            "in32": ("ImageNet-32", "1,000 labels"),
+            "c100c": ("CIFAR-100 coarse", "same CIFAR-100 images, 20 superclass labels"),
+            "anim": ("CIFAR-10 animals", "6 animal classes only"),
+            "veh": ("CIFAR-10 vehicles", "4 vehicle classes only"),
+            "c10x": ("CIFAR-10 (retrained)", "10 labels; X1 trainer control"),
+            "rand": ("CIFAR-10 (shuffled labels)", "10 classes; shuffled training labels, no augmentation; test uses true labels"),
+        }
+        labels = np.fromfile(self.d / "labels.bin", dtype=np.int8)
+        for train_id, (train, detail) in pipelines.items():
+            seeds = (0,) if train_id in {"c10x", "rand"} else (0, 1)
+            for seed in seeds:
+                net = f"{train_id}-s{seed}"
+                op_id = f"x1-{net}-full"
+                op = validate_operator(inputs, op_id)
+                check_probe(op["ids"], op["labels"], probe_idx, labels)
+                if op["chain"] != self.sites:
+                    raise ValueError(f"{op_id}: full chain does not match reference sites")
+                info_key = f"crw-depth-xp-results/nets/{net}/info.json"
+                pin = inputs.manifest["ops"][op_id]["bundle"][info_key]
+                info = json.loads(inputs.file(info_key, pin=pin).read_text())
+                step = info["steps"]
+                final = info["log"][-1]
+                if info["name"] != net or final["step"] != step:
+                    raise ValueError(f"{op_id}: final training step is inconsistent")
+
+                y = op["joint"].transpose(2, 0, 1)  # (K,L,N); each slice has its own int8 scale
+                mx = np.max(np.abs(y), axis=2, keepdims=True)
+                q = np.round(127 * np.divide(y, mx, out=np.zeros_like(y), where=mx != 0)).astype(np.int8)
+                q[(q == 0) & (y != 0)] = np.sign(y[(q == 0) & (y != 0)])
+                weight = np.sum(y ** 2, axis=2)
+                root = out_n / net
+                blob = gzip.compress(q.tobytes(), compresslevel=6, mtime=0)
+                write(root / f"{step}_own.bin.gz", blob)
+                summary = {"step": step, "rule": ST_RULE, "tstar": {"own": op["tstar"], "none": None},
+                           "variants": {"own": {"t": [op["t"]], "vals": [op["vals"].tolist()],
+                                                "weight": [weight.tolist()], "sets": []}}}
+                stats = gzip.compress(json.dumps(summary, separators=(",", ":"), allow_nan=False).encode(), mtime=0)
+                write(root / f"{step}.json.gz", stats)
+                sizes["x1"] = sizes.get("x1", 0) + len(blob) + len(stats)
+                aug = "" if train_id in {"svhn", "rand"} else "; crops and horizontal flips"
+                nets.append({"id": net, "group": "x1", "train": train, "label": f"{train} · ResNet-20 seed {seed}",
+                             "short": f"{train} s{seed}", "root": f"d/stn/{net}", "sites": op["chain"], "steps": [step],
+                             "K": y.shape[0], "acc": final["test_acc"], "nsets": 0, "sets": [],
+                             "training": f"Trained on {train}: {detail}{aug}. Normalised by its own training-set channel statistics.",
+                             "variants": [{"id": "own", "label": "relative site units", "C": 1}], "fidx": list(STN_FSEL)})
 
     # ------------------------------------------------------------------ meta + html
     def write_meta(self):
@@ -307,30 +382,49 @@ class Builder:
         page = (HERE / "index.html").read_text()
         for key, val in (("{{EMBEDDING}}", (HERE / "embedding_tab.html").read_text()),
                          ("{{CONTENT_METHOD}}", (HERE / "content" / "method.html").read_text()),
+                         ("{{CONTENT_EXPERIMENTS}}", build_x.experiments_html(self)),
                          ("{{BUILD_DATE}}", dt.date.today().isoformat())):
             page = page.replace(key, val)
         left = re.findall(r"\{\{[^}]*\}\}", page)
         if left:
             sys.exit(f"index.html: unresolved placeholders {sorted(set(left))}")
-        write(OUT / "index.html", page.encode())
+        build_x.check_local_resources(page, "index.html")
+        write(self.out / "index.html", page.encode())
 
     def run(self):
         t0 = time.time()
-        shutil.rmtree(OUT, ignore_errors=True)
+        if self.out.exists():
+            shutil.rmtree(self.out)
+        self.out.mkdir(parents=True)
+        (self.out / ".nojekyll").write_text("")  # mark this directory as ours, even if a later check fails
         self.copy_static()
-        self.probe()
-        self.spacetime()
-        if not self.st_meta:
-            sys.exit("no through-depth data for the reference network: nothing to show")
-        self.stnets()
-        self.write_meta()
+        if self.viewer_from is not None:
+            shutil.copytree(self.viewer_from, self.d)
+        else:
+            self.probe()
+            self.spacetime()
+            if not self.st_meta:
+                sys.exit("no through-depth data for the reference network: nothing to show")
+            self.stnets()
+            self.write_meta()
+        build_x.build_experiments(self)
+        for folder in ("css", "vendor", "assets"):
+            for css in (self.out / folder).rglob("*.css"):
+                build_x.check_css(css.read_text(encoding="utf-8"), css)
         self.assemble_html()
-        (OUT / ".nojekyll").write_text("")
-        tot = sum(p.stat().st_size for p in OUT.rglob("*") if p.is_file())
-        log(f"wrote {OUT}: {tot / 1e6:.1f} MB in {sum(1 for p in OUT.rglob('*') if p.is_file())} files ({time.time() - t0:.0f} s)")
+        files = [p for p in self.out.rglob("*") if p.is_file()]
+        tot = sum(p.stat().st_size for p in files)
+        log(f"wrote {self.out}: {tot / 1e6:.1f} MB in {len(files)} files ({time.time() - t0:.0f} s)")
 
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--tag", default="r20s0b", help="data tag of the reference network (data/<tag>/)")
-    Builder(ap.parse_args().tag).run()
+    ap.add_argument("--out", type=Path, default=OUT, help="output directory, replaced on each build (default: build/site)")
+    ap.add_argument("--viewer-from", type=Path, help="copy d/ from this existing build instead of exporting")
+    ap.add_argument("--strict", action="store_true", help="fail if any experiment fragment or release input is missing")
+    a = ap.parse_args()
+    try:
+        Builder(a.tag, a.out, a.viewer_from, a.strict).run()
+    except (build_x.BuildError, OSError) as e:
+        ap.exit(1, f"build failed: {e}\n")

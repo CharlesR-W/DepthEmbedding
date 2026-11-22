@@ -1,0 +1,434 @@
+{
+  "pair.c10_c10.stem": {
+    "value": 0.9470553156550077,
+    "text": "0.95",
+    "tier": "R",
+    "source": "data/fetch/crw-depth-xp-results/compare/c10.npz:knn15_trunk_cos replay, upper triangle in nets order, mean of c10|c10 at stem"
+  },
+  "pair.c10_c10.b9": {
+    "value": 0.9532567453862644,
+    "text": "0.95",
+    "tier": "R",
+    "source": "data/fetch/crw-depth-xp-results/compare/c10.npz:knn15_trunk_cos replay, upper triangle in nets order, mean of c10|c10 at b9"
+  },
+  "pair.c10_c100.stem": {
+    "value": 0.9055420235131496,
+    "text": "0.91",
+    "tier": "R",
+    "source": "data/fetch/crw-depth-xp-results/compare/c10.npz:knn15_trunk_cos replay, upper triangle in nets order, mean of c10|c100 at stem"
+  },
+  "pair.c10_c100.b9": {
+    "value": 0.7481106953565558,
+    "text": "0.75",
+    "tier": "R",
+    "source": "data/fetch/crw-depth-xp-results/compare/c10.npz:knn15_trunk_cos replay, upper triangle in nets order, mean of c10|c100 at b9"
+  },
+  "pair.c10_in32.stem": {
+    "value": 0.8808076132956613,
+    "text": "0.88",
+    "tier": "R",
+    "source": "data/fetch/crw-depth-xp-results/compare/c10.npz:knn15_trunk_cos replay, upper triangle in nets order, mean of c10|in32 at stem"
+  },
+  "pair.c10_in32.b9": {
+    "value": 0.7993059870531859,
+    "text": "0.80",
+    "tier": "R",
+    "source": "data/fetch/crw-depth-xp-results/compare/c10.npz:knn15_trunk_cos replay, upper triangle in nets order, mean of c10|in32 at b9"
+  },
+  "pair.c100_in32.stem": {
+    "value": 0.9498787408706897,
+    "text": "0.95",
+    "tier": "R",
+    "source": "data/fetch/crw-depth-xp-results/compare/c10.npz:knn15_trunk_cos replay, upper triangle in nets order, mean of c100|in32 at stem"
+  },
+  "pair.c100_in32.b9": {
+    "value": 0.9071191846304498,
+    "text": "0.91",
+    "tier": "R",
+    "source": "data/fetch/crw-depth-xp-results/compare/c10.npz:knn15_trunk_cos replay, upper triangle in nets order, mean of c100|in32 at b9"
+  },
+  "pair.c10_svhn.stem": {
+    "value": 0.5666454317418769,
+    "text": "0.57",
+    "tier": "R",
+    "source": "data/fetch/crw-depth-xp-results/compare/c10.npz:knn15_trunk_cos replay, upper triangle in nets order, mean of c10|svhn at stem"
+  },
+  "pair.c10_svhn.b9": {
+    "value": 0.3579182529412555,
+    "text": "0.36",
+    "tier": "R",
+    "source": "data/fetch/crw-depth-xp-results/compare/c10.npz:knn15_trunk_cos replay, upper triangle in nets order, mean of c10|svhn at b9"
+  },
+  "pair.c10_init.stem": {
+    "value": 0.5110805888194522,
+    "text": "0.51",
+    "tier": "R",
+    "source": "data/fetch/crw-depth-xp-results/compare/c10.npz:knn15_trunk_cos replay, upper triangle in nets order, mean of c10|init at stem"
+  },
+  "pair.c10_init.b9": {
+    "value": 0.16560643111085768,
+    "text": "0.17",
+    "tier": "R",
+    "source": "data/fetch/crw-depth-xp-results/compare/c10.npz:knn15_trunk_cos replay, upper triangle in nets order, mean of c10|init at b9"
+  },
+  "pair.c10_rand.stem": {
+    "value": 0.5615534686669978,
+    "text": "0.56",
+    "tier": "R",
+    "source": "data/fetch/crw-depth-xp-results/compare/c10.npz:knn15_trunk_cos replay, upper triangle in nets order, mean of c10|rand at stem"
+  },
+  "pair.c10_rand.b9": {
+    "value": 0.23580081563922992,
+    "text": "0.24",
+    "tier": "R",
+    "source": "data/fetch/crw-depth-xp-results/compare/c10.npz:knn15_trunk_cos replay, upper triangle in nets order, mean of c10|rand at b9"
+  },
+  "pair.c100_c100.stem": {
+    "value": 0.9728776208093594,
+    "text": "0.97",
+    "tier": "R",
+    "source": "data/fetch/crw-depth-xp-results/compare/c10.npz:knn15_trunk_cos replay, upper triangle in nets order, mean of c100|c100 at stem"
+  },
+  "pair.c100_c100.b9": {
+    "value": 0.9404320112737674,
+    "text": "0.94",
+    "tier": "R",
+    "source": "data/fetch/crw-depth-xp-results/compare/c10.npz:knn15_trunk_cos replay, upper triangle in nets order, mean of c100|c100 at b9"
+  },
+  "pair.c100c_c100c.stem": {
+    "value": 0.9701339534404994,
+    "text": "0.97",
+    "tier": "R",
+    "source": "data/fetch/crw-depth-xp-results/compare/c10.npz:knn15_trunk_cos replay, upper triangle in nets order, mean of c100c|c100c at stem"
+  },
+  "pair.c100c_c100c.b9": {
+    "value": 0.9371987672936558,
+    "text": "0.94",
+    "tier": "R",
+    "source": "data/fetch/crw-depth-xp-results/compare/c10.npz:knn15_trunk_cos replay, upper triangle in nets order, mean of c100c|c100c at b9"
+  },
+  "pair.c100_c100c.stem": {
+    "value": 0.9682207232733836,
+    "text": "0.97",
+    "tier": "R",
+    "source": "data/fetch/crw-depth-xp-results/compare/c10.npz:knn15_trunk_cos replay, upper triangle in nets order, mean of c100|c100c at stem"
+  },
+  "pair.c100_c100c.b9": {
+    "value": 0.9296271766608412,
+    "text": "0.93",
+    "tier": "R",
+    "source": "data/fetch/crw-depth-xp-results/compare/c10.npz:knn15_trunk_cos replay, upper triangle in nets order, mean of c100|c100c at b9"
+  },
+  "pair.svhn_svhn.stem": {
+    "value": 0.9322306077655345,
+    "text": "0.93",
+    "tier": "R",
+    "source": "data/fetch/crw-depth-xp-results/compare/c10.npz:knn15_trunk_cos replay, upper triangle in nets order, mean of svhn|svhn at stem"
+  },
+  "pair.svhn_svhn.b9": {
+    "value": 0.7586876503419591,
+    "text": "0.76",
+    "tier": "R",
+    "source": "data/fetch/crw-depth-xp-results/compare/c10.npz:knn15_trunk_cos replay, upper triangle in nets order, mean of svhn|svhn at b9"
+  },
+  "pair.in32_in32.stem": {
+    "value": 0.967781514005482,
+    "text": "0.97",
+    "tier": "R",
+    "source": "data/fetch/crw-depth-xp-results/compare/c10.npz:knn15_trunk_cos replay, upper triangle in nets order, mean of in32|in32 at stem"
+  },
+  "pair.in32_in32.b9": {
+    "value": 0.9652560251186663,
+    "text": "0.97",
+    "tier": "R",
+    "source": "data/fetch/crw-depth-xp-results/compare/c10.npz:knn15_trunk_cos replay, upper triangle in nets order, mean of in32|in32 at b9"
+  },
+  "zoo.raw.stem": {
+    "value": 0.9273703768692767,
+    "text": "0.93",
+    "tier": "R",
+    "source": "data/fetch/crw-depth-xp-results/compare/c10.npz:knn15_trunk_cos replay, c10-s0 versus c10-s1 at stem"
+  },
+  "zoo.within.stem": {
+    "value": 0.09897563582585454,
+    "text": "0.10",
+    "tier": "R",
+    "source": "data/fetch/crw-depth-xp-results/compare/c10.npz:knn15_trunk_cos_within replay, c10-s0 versus c10-s1 at stem"
+  },
+  "zoo.raw.b9": {
+    "value": 0.9478029505400886,
+    "text": "0.95",
+    "tier": "R",
+    "source": "data/fetch/crw-depth-xp-results/compare/c10.npz:knn15_trunk_cos replay, c10-s0 versus c10-s1 at b9"
+  },
+  "zoo.within.b9": {
+    "value": 0.8036180619496955,
+    "text": "0.80",
+    "tier": "R",
+    "source": "data/fetch/crw-depth-xp-results/compare/c10.npz:knn15_trunk_cos_within replay, c10-s0 versus c10-s1 at b9"
+  },
+  "replay.raw": {
+    "value": 1.7763568394002505e-15,
+    "text": "1.8e-15",
+    "tier": "R",
+    "source": "data/fetch/crw-depth-xp-results/compare/c10.npz:knn15_trunk_cos, max absolute replay error over 18 reference rotations × 10 sites"
+  },
+  "replay.i8": {
+    "value": 0.00022887060785325986,
+    "text": "0.000229",
+    "tier": "R",
+    "source": "Same comparison with decoded int8 modes, raw rotations retained"
+  },
+  "sample.probe": {
+    "value": 2000,
+    "text": "2,000",
+    "tier": "R",
+    "source": "data/fetch/crw-depth-xp-results/compare/c10.npz:len(labels)"
+  },
+  "sample.half": {
+    "value": 1000,
+    "text": "1,000",
+    "tier": "R",
+    "source": "data/fetch/crw-depth-xp-results/compare/c10.npz:len(labels)//2 following stage_compare.py:run"
+  },
+  "sample.networks": {
+    "value": 18,
+    "text": "18",
+    "tier": "R",
+    "source": "data/fetch/crw-depth-xp-results/compare/c10.npz:len(nets)"
+  },
+  "sample.modes": {
+    "value": 16,
+    "text": "16",
+    "tier": "R",
+    "source": "First 16 from the pinned raw trunk NPZ vecs, as in stage_compare.py:run"
+  },
+  "null.perm.b9": {
+    "value": -0.007684054395570589,
+    "text": "-0.01",
+    "tier": "R",
+    "source": "data/fetch/crw-depth-xp-results/compare/c10.npz:knn15_trunk_cos_perm replay, mean over off-diagonal ordered pairs at b9"
+  },
+  "acc.c10_s0": {
+    "value": 0.9156,
+    "text": "91.56%",
+    "tier": "S",
+    "source": "data/r20s0b/curves.json:checkpoints[-1].val_acc"
+  },
+  "acc.c10_s1": {
+    "value": 0.9151,
+    "text": "91.51%",
+    "tier": "S",
+    "source": "data/stnets/r20s1/info.json:test_acc"
+  },
+  "acc.c10x_s0": {
+    "value": 0.9144,
+    "text": "91.44%",
+    "tier": "S",
+    "source": "xp/out/x1_summary.json:training.c10x-s0.test_acc"
+  },
+  "acc.c100_s0": {
+    "value": 0.665,
+    "text": "66.50%",
+    "tier": "S",
+    "source": "xp/out/x1_summary.json:training.c100-s0.test_acc"
+  },
+  "acc.c100_s1": {
+    "value": 0.6713,
+    "text": "67.13%",
+    "tier": "S",
+    "source": "xp/out/x1_summary.json:training.c100-s1.test_acc"
+  },
+  "acc.svhn_s0": {
+    "value": 0.9634296250768285,
+    "text": "96.34%",
+    "tier": "S",
+    "source": "xp/out/x1_summary.json:training.svhn-s0.test_acc"
+  },
+  "acc.svhn_s1": {
+    "value": 0.9628534111862324,
+    "text": "96.29%",
+    "tier": "S",
+    "source": "xp/out/x1_summary.json:training.svhn-s1.test_acc"
+  },
+  "acc.anim_s0": {
+    "value": 0.9063333333333333,
+    "text": "90.63%",
+    "tier": "S",
+    "source": "xp/out/x1_summary.json:training.anim-s0.test_acc"
+  },
+  "acc.anim_s1": {
+    "value": 0.908,
+    "text": "90.80%",
+    "tier": "S",
+    "source": "xp/out/x1_summary.json:training.anim-s1.test_acc"
+  },
+  "acc.veh_s0": {
+    "value": 0.95975,
+    "text": "95.97%",
+    "tier": "S",
+    "source": "xp/out/x1_summary.json:training.veh-s0.test_acc"
+  },
+  "acc.veh_s1": {
+    "value": 0.9615,
+    "text": "96.15%",
+    "tier": "S",
+    "source": "xp/out/x1_summary.json:training.veh-s1.test_acc"
+  },
+  "acc.rand_s0": {
+    "value": 0.0984,
+    "text": "9.84%",
+    "tier": "S",
+    "source": "xp/out/x1_summary.json:training.rand-s0.test_acc"
+  },
+  "acc.c100c_s0": {
+    "value": 0.7784,
+    "text": "77.84%",
+    "tier": "S",
+    "source": "xp/out/x1_summary.json:training.c100c-s0.test_acc"
+  },
+  "acc.c100c_s1": {
+    "value": 0.7735,
+    "text": "77.35%",
+    "tier": "S",
+    "source": "xp/out/x1_summary.json:training.c100c-s1.test_acc"
+  },
+  "acc.in32_s0": {
+    "value": 0.24254,
+    "text": "24.25%",
+    "tier": "S",
+    "source": "xp/out/x1_summary.json:training.in32-s0.test_acc"
+  },
+  "acc.in32_s1": {
+    "value": 0.2417,
+    "text": "24.17%",
+    "tier": "S",
+    "source": "xp/out/x1_summary.json:training.in32-s1.test_acc"
+  },
+  "probe.svhn.c10_c10": {
+    "value": 0.754,
+    "text": "0.75",
+    "tier": "S",
+    "source": "xp/out/x1_summary.json:measures.svhn.cells.joint_knn15_trunk.c10|c10.mean[9]"
+  },
+  "probe.svhn.svhn_svhn": {
+    "value": 0.9606,
+    "text": "0.96",
+    "tier": "S",
+    "source": "xp/out/x1_summary.json:measures.svhn.cells.joint_knn15_trunk.svhn|svhn.mean[9]"
+  },
+  "probe.svhn.c10_anim": {
+    "value": 0.728,
+    "text": "0.73",
+    "tier": "S",
+    "source": "xp/out/x1_summary.json:measures.svhn.cells.joint_knn15_trunk.c10|anim.mean[9]"
+  },
+  "probe.svhn.c10_veh": {
+    "value": 0.7031,
+    "text": "0.70",
+    "tier": "S",
+    "source": "xp/out/x1_summary.json:measures.svhn.cells.joint_knn15_trunk.c10|veh.mean[9]"
+  },
+  "probe.svhn.c10_in32": {
+    "value": 0.6414,
+    "text": "0.64",
+    "tier": "S",
+    "source": "xp/out/x1_summary.json:measures.svhn.cells.joint_knn15_trunk.c10|in32.mean[9]"
+  },
+  "probe.svhn.c10_svhn": {
+    "value": 0.247,
+    "text": "0.25",
+    "tier": "S",
+    "source": "xp/out/x1_summary.json:measures.svhn.cells.joint_knn15_trunk.c10|svhn.mean[9]"
+  },
+  "probe.svhn.c10_init": {
+    "value": 0.2983,
+    "text": "0.30",
+    "tier": "S",
+    "source": "xp/out/x1_summary.json:measures.svhn.cells.joint_knn15_trunk.c10|init.mean[9]"
+  },
+  "probe.svhn.c10_rand": {
+    "value": 0.444,
+    "text": "0.44",
+    "tier": "S",
+    "source": "xp/out/x1_summary.json:measures.svhn.cells.joint_knn15_trunk.c10|rand.mean[9]"
+  },
+  "probe.in32.c100_in32": {
+    "value": 0.7572,
+    "text": "0.76",
+    "tier": "S",
+    "source": "xp/out/x1_summary.json:measures.in32.cells.joint_knn15_trunk.c100|in32.mean[9]"
+  },
+  "probe.in32.c100_c100": {
+    "value": 0.8913,
+    "text": "0.89",
+    "tier": "S",
+    "source": "xp/out/x1_summary.json:measures.in32.cells.joint_knn15_trunk.c100|c100.mean[9]"
+  },
+  "probe.in32.in32_in32": {
+    "value": 0.924,
+    "text": "0.92",
+    "tier": "S",
+    "source": "xp/out/x1_summary.json:measures.in32.cells.joint_knn15_trunk.in32|in32.mean[9]"
+  },
+  "probe.in32.c100_c100c": {
+    "value": 0.8629,
+    "text": "0.86",
+    "tier": "S",
+    "source": "xp/out/x1_summary.json:measures.in32.cells.joint_knn15_trunk.c100|c100c.mean[9]"
+  },
+  "probe.in32.c100c_c100c": {
+    "value": 0.8668,
+    "text": "0.87",
+    "tier": "S",
+    "source": "xp/out/x1_summary.json:measures.in32.cells.joint_knn15_trunk.c100c|c100c.mean[9]"
+  },
+  "knn15_full.c10_c10.b9": {
+    "value": 0.9624,
+    "text": "0.96",
+    "tier": "S",
+    "source": "xp/out/x1_summary.json:measures.c10.cells.joint_knn15_full.c10|c10.mean[9]"
+  },
+  "ea100_trunk.c10_c10.b9": {
+    "value": 0.9559,
+    "text": "0.96",
+    "tier": "S",
+    "source": "xp/out/x1_summary.json:measures.c10.cells.joint_ea100_trunk.c10|c10.mean[9]"
+  },
+  "knn15_full.c10_c100.b9": {
+    "value": 0.7515,
+    "text": "0.75",
+    "tier": "S",
+    "source": "xp/out/x1_summary.json:measures.c10.cells.joint_knn15_full.c10|c100.mean[9]"
+  },
+  "ea100_trunk.c10_c100.b9": {
+    "value": 0.7515,
+    "text": "0.75",
+    "tier": "S",
+    "source": "xp/out/x1_summary.json:measures.c10.cells.joint_ea100_trunk.c10|c100.mean[9]"
+  },
+  "knn15_full.c10_svhn.b9": {
+    "value": 0.2101,
+    "text": "0.21",
+    "tier": "S",
+    "source": "xp/out/x1_summary.json:measures.c10.cells.joint_knn15_full.c10|svhn.mean[9]"
+  },
+  "ea100_trunk.c10_svhn.b9": {
+    "value": 0.379,
+    "text": "0.38",
+    "tier": "S",
+    "source": "xp/out/x1_summary.json:measures.c10.cells.joint_ea100_trunk.c10|svhn.mean[9]"
+  },
+  "knn15_full.c100_c100c.b9": {
+    "value": 0.8838,
+    "text": "0.88",
+    "tier": "S",
+    "source": "xp/out/x1_summary.json:measures.c10.cells.joint_knn15_full.c100|c100c.mean[9]"
+  },
+  "ea100_trunk.c100_c100c.b9": {
+    "value": 0.9426,
+    "text": "0.94",
+    "tier": "S",
+    "source": "xp/out/x1_summary.json:measures.c10.cells.joint_ea100_trunk.c100|c100c.mean[9]"
+  }
+}

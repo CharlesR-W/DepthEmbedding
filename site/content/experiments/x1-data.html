@@ -1,0 +1,99 @@
+<section class="experiment" id="x-x1-data">
+<h2>Do networks trained on other data embed the same probe alike?</h2>
+<p class="x-scope">X1 · {{fact:x.x1-data.sample.networks}} ResNet-20s, one common probe of {{fact:x.x1-data.sample.probe}} CIFAR-10 test images. Training images, labels, normalisation and augmentation can all differ.</p>
+<p class="x-answer"><strong>Several natural-image pipelines gave similar embeddings on the same CIFAR-10 probe; SVHN was further away, already at the stem.</strong> Some late agreement survives shuffling image identities within class, even as exact neighbour overlap falls.</p>
+<figure class="emb-fig" data-emb="assets/x/x1-data.json#emb_lead">
+  <figcaption><b>Plotted:</b> The same CIFAR-10 probe, coloured by its true classes, in each network’s own stem–b9 k-NN 15 joint operator. Each comparison panel uses one rotation onto the fixed left-hand reference and shows its held-out cosine at the selected site. The two-dimensional projections illustrate the embeddings; the cosine uses all {{fact:x.x1-data.sample.modes}} modes. The full 12-site viewer includes pool and logits, and its Procrustes residual is not X1’s joint agreement.</figcaption>
+</figure>
+<div class="x-numbers">
+  <div class="x-num"><b>{{fact:x.x1-data.pair.c10_c10.b9}}</b><span>CIFAR-10 run pairs</span><small>b9 · CIFAR-10 probe · trunk joint</small></div>
+  <div class="x-num"><b>{{fact:x.x1-data.pair.c10_c100.b9}}</b><span>CIFAR-10 × CIFAR-100</span><small>b9 · CIFAR-10 probe · trunk joint</small></div>
+  <div class="x-num"><b>{{fact:x.x1-data.pair.c10_in32.b9}}</b><span>CIFAR-10 × ImageNet-32</span><small>b9 · CIFAR-10 probe · trunk joint</small></div>
+  <div class="x-num"><b>{{fact:x.x1-data.pair.c10_svhn.b9}}</b><span>CIFAR-10 × SVHN</span><small>b9 · CIFAR-10 probe · trunk joint</small></div>
+</div>
+<h3>What was computed</h3>
+<div class="x-tablewrap"><table class="x-defs">
+  <thead><tr><th>Quantity</th><th>Definition</th><th>Symbols and choices</th><th>Code</th></tr></thead>
+  <tbody>
+    <tr><th>Site walk</th><td>$C_l=\hat X_l\hat X_l^\top,\quad P_l=D_lW_lD_l$</td><td>Flatten activations, centre on the probe mean, and divide each row by its norm (clamped below). Join the union of directed 15-nearest-neighbour edges by cosine; $W_l=1$ on edges, $10^{-6}$ on off-diagonal non-edges, and zero on the diagonal. Symmetric Sinkhorn gives $D_l$ so $P_l$ is doubly stochastic, to numerical tolerance.</td><td><code>xp/xlib.py:probe_gram</code><br><code>xp/dm.py:knn_kernel</code></td></tr>
+    <tr><th>Joint coordinates</th><td>$\mathcal L_t=\operatorname{blockdiag}((I-M_l)/c_l)+tD_{\rm path}\otimes I$</td><td>$M_l=(I+P_l)/2$; $c_l$ is the mean of the first eight nonconstant gaps of $M_l$. $t=t^*$ at the first crossing of the slice-mean-zero spectrum with the lowest nonconstant depth-only eigenvalue. Use the {{fact:x.x1-data.sample.modes}} lowest modes in the slice-mean-zero subspace; a joint coordinate can depend on every trunk site.</td><td><code>xp/xlib.py:fit_op</code><br><code>spacetime.py:balance_direct, modes</code></td></tr>
+    <tr><th>One fit per pair</th><td>$B_T^\top A_T=U\Sigma V^\top,\quad Q=UV^\top$</td><td>Use the same random half $T$ ({{fact:x.x1-data.sample.half}} image identities) at every site, stacking all trunk sites before fitting. No per-site rotation, centring or rescaling in this fit. $Q$ is orthogonal and may include reflections.</td><td><code>xp/stage_compare.py:site_share</code></td></tr>
+    <tr><th>Joint agreement</th><td>$\cos_l=\langle A_{l,H}, B_{l,H}Q\rangle_F/(\|A_{l,H}\|_F\,\|B_{l,H}Q\|_F)$</td><td>Score on the other {{fact:x.x1-data.sample.half}} images $H$ at each site. They are held out of the fit, not out of the operator: both walks were built on the full probe. This is a cosine, not explained variance. Pipeline curves average unordered network pairs in the archive’s A/B order.</td><td><code>xp/stage_compare.py:site_share, run</code></td></tr>
+    <tr><th>Image-identity nulls</th><td>$B_l(i)\mapsto B_l(p(i))$</td><td>Seed 0 draws an unrestricted permutation, shuffles separately within each true probe class (in label order), then permutes the image indices again: first half to fit, second half to score, each sorted back into probe order. The same indexing applies at every site. Refit $Q$ on the same nominal fit indices for each null and score on the same nominal held-out indices.</td><td><code>xp/stage_compare.py:within_class_perm, run</code></td></tr>
+    <tr><th>Neighbour overlap</th><td>$\frac1{15N}\sum_i |N_{A,l}(i)\cap N_{B,l}(i)|$</td><td>Directed cosine-nearest neighbours in centred activations (not in joint coordinates), all probe images. For a null, relabel both endpoints of B’s neighbour edges by $p^{-1}$, so B’s image $p(i)$ plays the role of $i$.</td><td><code>xp/modal_xp.py:embed</code><br><code>xp/stage_compare.py:run</code></td></tr>
+  </tbody>
+</table></div>
+<h3>Supporting figures</h3>
+<div class="x-figs">
+  <figure class="live" data-live="lines" data-src="assets/x/x1-data.json#trend" data-height="235"><div class="live-body"></div>
+    <figcaption><b>Plotted:</b> Mean held-out cosine by site. The dashed line averages the two zoo seeds and the separate X1 retrain in all three distinct pairs; each other line compares CIFAR-10 with the named pipeline. Untrained, shuffled-label and permutation controls are dotted. The untrained and shuffled-label lines are comparisons with actual networks, not permutation nulls. At the stem: CIFAR-10 × CIFAR-100 {{fact:x.x1-data.pair.c10_c100.stem}}, CIFAR-10 × SVHN {{fact:x.x1-data.pair.c10_svhn.stem}}, and untrained versus CIFAR-10 {{fact:x.x1-data.pair.c10_init.stem}}.</figcaption>
+  </figure>
+  <figure class="live" data-live="lines" data-src="assets/x/x1-data.json#coarse" data-height="235"><div class="live-body"></div>
+    <figcaption><b>Plotted:</b> CIFAR-100 fine versus coarse labels, trained on the same images, with each pipeline’s seed pair dashed. At b9 the cross-pair mean is {{fact:x.x1-data.pair.c100_c100c.b9}}, against {{fact:x.x1-data.pair.c100_c100.b9}} (fine) and {{fact:x.x1-data.pair.c100c_c100c.b9}} (coarse). Changing label granularity did not move agreement far outside the seed references in this control.</figcaption>
+  </figure>
+  <figure class="live" data-live="lines" data-src="assets/x/x1-data.json#overlap" data-height="230"><div class="live-body"></div>
+    <figcaption><b>Plotted:</b> Exact neighbour overlap versus joint agreement for the two zoo CIFAR-10 seeds. Each dot is a trunk site; the larger dots mark the stem and b9. Within-class shuffling drops cosine from {{fact:x.x1-data.zoo.raw.stem}} to {{fact:x.x1-data.zoo.within.stem}} at the stem, but only from {{fact:x.x1-data.zoo.raw.b9}} to {{fact:x.x1-data.zoo.within.b9}} at b9. Much of this pair’s late agreement is about class structure, not which individual images are neighbours.</figcaption>
+  </figure>
+</div>
+<h3>Caveats</h3>
+<ul class="x-caveats">
+  <li><b>Audit correction:</b> This compares pipelines, not the effect of changing data alone. Class counts, images, test accuracy, augmentation, training exposure and normalisation can change together. The coarse-label control tests one change of labels on fixed images, not all changes.</li>
+  <li><b>Audit correction:</b> Rankings can change with depth and probe. On SVHN at b9, CIFAR-10 agrees more with the animal and vehicle subsets than with ImageNet-32. See the cross-probe table below.</li>
+  <li>One architecture, usually two runs per pipeline. No probe bootstrap or equivalence test was reported; a seed pair is a reference, not a ceiling.</li>
+  <li>The rotations replay the saved reference-panel cosines to {{fact:x.x1-data.replay.raw}} maximum absolute error on the raw modes. On the shipped int8 coordinates, the same rotations give a maximum error of {{fact:x.x1-data.replay.i8}} before display projection. Headers show the original scores.</li>
+</ul>
+<details class="x-more"><summary>Decisions made on the owner’s behalf (9)</summary>
+<div class="x-tablewrap"><table class="x-decisions">
+<thead><tr><th>Decision</th><th>Chosen</th><th>Alternative</th><th>Why</th><th>What it could bias</th><th>How to test</th></tr></thead>
+<tbody>
+<tr><th>Unit</th><td>Whole training pipelines</td><td>One factor at a time</td><td>Cover different image distributions in one run</td><td>Cannot isolate which change matters</td><td>Coarse-label control run; swap normalisation and match augmentations next</td></tr>
+<tr><th>Operator</th><td>Trunk only</td><td>Full chain</td><td>The logit walker can affect every site; task heads vary in size</td><td>Excludes pool and logits</td><td>Full-chain scores saved</td></tr>
+<tr><th>Kernel</th><td>k-NN 15</td><td>Shannon perplexity 100</td><td>Match the viewer’s walk rule</td><td>Can change agreement and neighbourhood scale</td><td>Shannon trunk scores saved</td></tr>
+<tr><th>Rotation</th><td>One orthogonal fit on half the images</td><td>Fit a rotation independently at each site</td><td>Test a shared basis without fitting the scored matches</td><td>May understate agreement where bases rotate with depth</td><td>Compare with independently fitted, held-out site rotations</td></tr>
+<tr><th>Normalisation</th><td>Each network’s own input statistics on all probes</td><td>Shared statistics</td><td>Compare the full image-to-activation pipelines</td><td>Changes in input scaling contribute to measured differences</td><td>Swap statistics without retraining</td></tr>
+<tr><th>Seeds</th><td>Usually two per pipeline</td><td>More seeds</td><td>Run budget</td><td>Seed references can move with another draw</td><td>Increase seeds and sample probes</td></tr>
+<tr><th>ImageNet-32</th><td>Longer schedule than the other runs</td><td>Match steps, exposure or accuracy</td><td>Larger dataset</td><td>Confounds the image distribution with optimisation</td><td>Sweep exposure and include later checkpoints</td></tr>
+<tr><th>Shuffled labels</th><td>Shuffle training labels once; no augmentation</td><td>Match augmentation</td><td>Permit memorisation</td><td>Not a clean estimate of the effect of random labels</td><td>Compare trained true- and shuffled-label runs without augmentation</td></tr>
+<tr><th>Uncertainty</th><td>Show seed references and controls</td><td>Bootstrap held-out probe images</td><td>No bootstrap in saved outputs</td><td>Small gaps are easy to overread</td><td>Resample probe images and repeat across trained seeds</td></tr>
+</tbody></table></div>
+<p>See the <a href="https://github.com/CharlesR-W/DepthEmbedding/blob/experiments-site/xp/SPEC.md#x1-different-training-sets-same-probe">specification</a> and <a href="https://github.com/CharlesR-W/DepthEmbedding/blob/experiments-site/xp/FINDINGS.md#x1-different-training-pipelines-same-probe">audit-corrected findings</a>.</p>
+</details>
+<details class="x-more"><summary>More figures and training data</summary>
+<figure class="live" data-live="dots" data-src="assets/x/x1-data.json#ladder"><div class="live-body"></div>
+  <figcaption><b>Plotted:</b> Every pipeline pair at the stem and b9. Each row averages its available distinct network pairs. Seed-pair rows and untrained or shuffled-label comparisons are shown alongside unrestricted and within-class permutation scores for each row. Higher is more agreement, not better accuracy. C10 and C100 are CIFAR-10 and CIFAR-100; I32 is ImageNet-32.</figcaption>
+</figure>
+<figure class="live" data-live="lines" data-src="assets/x/x1-data.json#all_pairs" data-height="205"><div class="live-body"></div>
+  <figcaption><b>Plotted:</b> Mean held-out joint agreement by site for all pipeline pairs, grouped by the first named pipeline. Seed pairs are dashed; pipeline controls and the mean permutation reference are dotted.</figcaption>
+</figure>
+<h4>Checks using other probes and operators</h4>
+<p>On the CIFAR-10 probe at b9, CIFAR-100 × ImageNet-32 averaged {{fact:x.x1-data.pair.c100_in32.b9}}, slightly below the seed-pair references of {{fact:x.x1-data.pair.c100_c100.b9}} and {{fact:x.x1-data.pair.in32_in32.b9}}. For comparison, the mean unrestricted-permutation score across distinct networks was {{fact:x.x1-data.null.perm.b9}}.</p>
+<p>On the SVHN test probe at b9, CIFAR-10 versus animals, vehicles and ImageNet-32 gives {{fact:x.x1-data.probe.svhn.c10_anim}}, {{fact:x.x1-data.probe.svhn.c10_veh}} and {{fact:x.x1-data.probe.svhn.c10_in32}}. CIFAR-10 versus SVHN, untrained and shuffled labels gives {{fact:x.x1-data.probe.svhn.c10_svhn}}, {{fact:x.x1-data.probe.svhn.c10_init}} and {{fact:x.x1-data.probe.svhn.c10_rand}}. The CIFAR-10 run-pair mean is {{fact:x.x1-data.probe.svhn.c10_c10}} and the SVHN seed pair is {{fact:x.x1-data.probe.svhn.svhn_svhn}}. The latter is {{fact:x.x1-data.pair.svhn_svhn.b9}} on the CIFAR-10 probe.</p>
+<p>On the ImageNet-32 validation probe at b9, CIFAR-100 × ImageNet-32 falls to {{fact:x.x1-data.probe.in32.c100_in32}}, versus {{fact:x.x1-data.pair.c100_in32.b9}} on the CIFAR-10 probe. The fine/coarse CIFAR-100 control gives {{fact:x.x1-data.probe.in32.c100_c100c}}, versus seed references {{fact:x.x1-data.probe.in32.c100_c100}} (fine) and {{fact:x.x1-data.probe.in32.c100c_c100c}} (coarse); the ImageNet-32 seed pair gives {{fact:x.x1-data.probe.in32.in32_in32}}. These probe comparisons use k-NN 15 trunk operators; no images from the additional probes are shown.</p>
+<div class="x-tablewrap"><table class="x-decisions">
+<thead><tr><th>CIFAR-10 probe at b9</th><th>k-NN trunk</th><th>k-NN full</th><th>Shannon trunk</th></tr></thead>
+<tbody>
+<tr><th>CIFAR-10 run pairs</th><td>{{fact:x.x1-data.pair.c10_c10.b9}}</td><td>{{fact:x.x1-data.knn15_full.c10_c10.b9}}</td><td>{{fact:x.x1-data.ea100_trunk.c10_c10.b9}}</td></tr>
+<tr><th>CIFAR-10 × CIFAR-100</th><td>{{fact:x.x1-data.pair.c10_c100.b9}}</td><td>{{fact:x.x1-data.knn15_full.c10_c100.b9}}</td><td>{{fact:x.x1-data.ea100_trunk.c10_c100.b9}}</td></tr>
+<tr><th>CIFAR-10 × SVHN</th><td>{{fact:x.x1-data.pair.c10_svhn.b9}}</td><td>{{fact:x.x1-data.knn15_full.c10_svhn.b9}}</td><td>{{fact:x.x1-data.ea100_trunk.c10_svhn.b9}}</td></tr>
+<tr><th>CIFAR-100 fine × coarse</th><td>{{fact:x.x1-data.pair.c100_c100c.b9}}</td><td>{{fact:x.x1-data.knn15_full.c100_c100c.b9}}</td><td>{{fact:x.x1-data.ea100_trunk.c100_c100c.b9}}</td></tr>
+</tbody></table></div>
+<p>The gap between the CIFAR-100 and SVHN comparisons persists with the Shannon trunk and the full k-NN operator. The fine/coarse score is lower with the full chain than with either trunk-only operator.</p>
+<h4>Training pipelines</h4>
+<p>Test accuracy is on the network’s own task, not on the common probe. Shuffled labels are used only for training. “Own” means per-channel mean and standard deviation over the selected training images, in pixel units; the zoo checkpoints use fixed CIFAR-10 statistics. Cropping uses 4 pixels of zero padding in the X1 trainer.</p>
+<div class="x-tablewrap"><table class="x-decisions">
+<thead><tr><th>Networks</th><th>Training images</th><th>Labels</th><th>Normalisation</th><th>Augmentation</th><th>Test accuracy (seed 0; seed 1)</th></tr></thead>
+<tbody>
+<tr><th>c10-s0; c10-s1</th><td>CIFAR-10 (zoo)</td><td>10 true classes</td><td>Fixed CIFAR-10</td><td>Crop + flip (zoo)</td><td>{{fact:x.x1-data.acc.c10_s0}}; {{fact:x.x1-data.acc.c10_s1}}</td></tr>
+<tr><th>c10x-s0</th><td>CIFAR-10 (X1 trainer)</td><td>10 true classes</td><td>Own</td><td>Crop + flip</td><td>{{fact:x.x1-data.acc.c10x_s0}}; —</td></tr>
+<tr><th>c100-s0; c100-s1</th><td>CIFAR-100</td><td>100 fine classes</td><td>Own</td><td>Crop + flip</td><td>{{fact:x.x1-data.acc.c100_s0}}; {{fact:x.x1-data.acc.c100_s1}}</td></tr>
+<tr><th>c100c-s0; c100c-s1</th><td>CIFAR-100</td><td>20 coarse classes</td><td>Own</td><td>Crop + flip</td><td>{{fact:x.x1-data.acc.c100c_s0}}; {{fact:x.x1-data.acc.c100c_s1}}</td></tr>
+<tr><th>svhn-s0; svhn-s1</th><td>SVHN train</td><td>10 digits</td><td>Own</td><td>Crop, no flip</td><td>{{fact:x.x1-data.acc.svhn_s0}}; {{fact:x.x1-data.acc.svhn_s1}}</td></tr>
+<tr><th>in32-s0; in32-s1</th><td>ImageNet-32</td><td>1,000 classes</td><td>Own</td><td>Crop + flip</td><td>{{fact:x.x1-data.acc.in32_s0}}; {{fact:x.x1-data.acc.in32_s1}}</td></tr>
+<tr><th>anim-s0; anim-s1</th><td>CIFAR-10 animal subset</td><td>6 animal classes</td><td>Own subset</td><td>Crop + flip</td><td>{{fact:x.x1-data.acc.anim_s0}}; {{fact:x.x1-data.acc.anim_s1}}</td></tr>
+<tr><th>veh-s0; veh-s1</th><td>CIFAR-10 vehicle subset</td><td>4 vehicle classes</td><td>Own subset</td><td>Crop + flip</td><td>{{fact:x.x1-data.acc.veh_s0}}; {{fact:x.x1-data.acc.veh_s1}}</td></tr>
+<tr><th>rand-s0</th><td>CIFAR-10</td><td>10 labels shuffled once</td><td>Own</td><td>None</td><td>{{fact:x.x1-data.acc.rand_s0}}; —</td></tr>
+<tr><th>init-s0; init-s1</th><td>None (zoo step 0)</td><td>10 outputs</td><td>Fixed CIFAR-10 at inference</td><td>None</td><td>Not reported</td></tr>
+</tbody></table></div>
+</details>
+<p class="x-links"><a href="reports/xp.html#tab=x1">Full X1 report</a> · <a href="https://github.com/CharlesR-W/DepthEmbedding/blob/experiments-site/xp/stage_compare.py">Comparison code</a> · <a class="x-top" href="#experiments/x-glance-title">At a glance</a></p>
+</section>

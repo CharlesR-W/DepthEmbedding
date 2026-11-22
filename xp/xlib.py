@@ -13,6 +13,7 @@ import dm
 import spacetime as st
 
 KER_KEYS = {'ea': ('v', 'beta', 'dmin', 'logz', 'target'), 'knn': ('v', 'k', 'floor', 'rk')}
+KER_KEYS['pr'] = (*KER_KEYS['ea'], 'renyi')
 
 
 def site_kernels(Cs, kname):
@@ -42,7 +43,7 @@ def fit_op(kers, eigs, sel, K=32, R=16):
         t = st.balance_direct(ms, c, eigs=(lam, vec))
         vals, vecs = st.modes(ms, c, t, k=K)
         out.update(t=t, vals=vals, vecs=vecs, resid=st.residual(ms, c, t, vals, vecs))
-    kind = 'ea' if 'beta' in kers[0] else 'knn'
+    kind = 'pr' if kers[0].get('renyi') == 2 else ('ea' if 'beta' in kers[0] else 'knn')
     for key in KER_KEYS[kind]:
         out[f'ker_{key}'] = np.stack([np.asarray(kers[i][key], dtype=np.float64) for i in sel])
     out['kind'] = np.array(kind)
@@ -51,7 +52,7 @@ def fit_op(kers, eigs, sel, K=32, R=16):
 
 # ------------------------------------------------------------------ torch side
 
-def _cond_rows_t(d, perp):
+def _cond_rows_t(d, perp, renyi=1):
     """Port of dm._cond_rows (no self-masking: mask by passing inf).  Returns logp (m, n)."""
     import torch
     dmin = d.min(1).values
@@ -63,6 +64,8 @@ def _cond_rows_t(d, perp):
         lg = -beta[:, None] * ds
         logz = torch.logsumexp(lg, 1)
         logp = lg - logz[:, None]
+        if renyi == 2:
+            return -(2 * logp).exp().sum(1).log(), logp
         return logz + beta * (logp.exp() * fin).sum(1), logp
 
     lo, hi = torch.zeros(len(d), dtype=d.dtype, device=d.device), torch.ones(len(d), dtype=d.dtype, device=d.device)
@@ -78,11 +81,12 @@ def _cond_rows_t(d, perp):
     return cond((lo + hi) / 2)[1]
 
 
-def ea_rows_t(c_new, ker):
+def ea_rows_t(c_new, ker, renyi=None):
     """Rows (m, n) of new points for the perplexity rule.  c_new: cosines to the probe; -inf masks an entry."""
     import torch
     d = 1 - c_new
-    logp_x = _cond_rows_t(d, float(ker['target']))
+    renyi = int(ker.get('renyi', 1)) if renyi is None else renyi
+    logp_x = _cond_rows_t(d, float(ker['target']), renyi)
     logp_j = -ker['beta'][None, :] * (d - ker['dmin'][None, :]) - ker['logz'][None, :]
     logp_j = torch.where(torch.isfinite(d), logp_j, torch.full_like(d, -float('inf')))
     lw = torch.logaddexp(logp_x, logp_j) + ker['v'].log()[None, :]
@@ -128,7 +132,9 @@ class Ext:
             self.onehot = torch.nn.functional.one_hot(lab, int(lab.max()) + 1).double()
 
     def rows(self, l, c_new):
-        return ea_rows_t(c_new, self.kers[l]) if self.kind == 'ea' else knn_rows_t(c_new, self.kers[l])
+        if self.kind in ('ea', 'pr'):
+            return ea_rows_t(c_new, self.kers[l], renyi=2 if self.kind == 'pr' else 1)
+        return knn_rows_t(c_new, self.kers[l])
 
     def site(self, l, c_new):
         """Site-local readouts of new points with cosines c_new (m, n) to the probe at chain position l."""

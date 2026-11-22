@@ -1,6 +1,6 @@
 """Exact identities of the kernel rows and the joint out-of-sample map (small synthetic sites).
 
-Run: uv run --with numpy --with scipy --with pytest python -m pytest -q invert/test_dm.py
+Run: uv run --with numpy --with scipy --with pytest python -m pytest -q xp/test_dm.py
 """
 import sys
 from pathlib import Path
@@ -25,7 +25,7 @@ def sites():
     return [cos_gram(base @ rng.standard_normal((12, 30)) + 0.5 * l * rng.standard_normal((160, 30))) for l in range(4)]
 
 
-@pytest.mark.parametrize('name', ['ea20', 'ds20', 'knn8'])
+@pytest.mark.parametrize('name', ['ea20', 'pr20', 'ds20', 'knn8'])
 def test_masked_row_replays_probe_row(sites, name):
     """A probe image, treated as a new point with itself masked out, gets its own row of P."""
     C = sites[0]
@@ -35,7 +35,7 @@ def test_masked_row_replays_probe_row(sites, name):
     assert abs(dm.rows(Cm, ker) - ker['P']).max() < 1e-9
 
 
-@pytest.mark.parametrize('name', ['ea20', 'knn8'])
+@pytest.mark.parametrize('name', ['ea20', 'pr20', 'knn8'])
 def test_joint_forward_replays_modes(sites, name):
     """The tridiagonal system, fed the probe's own rows, returns the modes: it is the eigen-equation."""
     kers = [dm.build_kernel(C, name) for C in sites]
@@ -77,3 +77,30 @@ def test_near_duplicate_query_is_finite(sites):
     r = dm.rows(c, ker)
     assert np.isfinite(r).all() and abs(r.sum(1) - 1).max() < 1e-12
     assert (r.argmax(1) == np.arange(3)).all()
+
+
+@pytest.mark.parametrize('kernel', ['ea20', 'pr20'])
+def test_torch_agrees_on_masked_rows_and_new_points(sites, kernel):
+    torch = pytest.importorskip('torch')
+    import xlib
+
+    C = sites[0]
+    ker = dm.build_kernel(C, kernel)
+    op = xlib.fit_op([ker], xlib.site_spectra([ker]), [0])
+    ext = xlib.Ext(op, device='cpu')
+    masked = C.copy(); np.fill_diagonal(masked, -np.inf)
+    c_new = C[:3].copy()
+    c_new[np.arange(3), np.arange(3)] = 1 - 1e-9
+    c_new[1, 2] = -np.inf
+    cross = np.concatenate([masked, c_new])
+    rows = ext.rows(0, torch.from_numpy(cross)).numpy()
+    np.testing.assert_allclose(rows, dm.rows(cross, ker), rtol=0, atol=1e-12)
+    np.testing.assert_allclose(rows[:len(C)], ker['P'], rtol=0, atol=1e-9)
+    np.testing.assert_array_equal(np.diag(rows[:len(C)]), 0)
+
+
+def test_pr_conditional_has_target_participation_ratio(sites):
+    perp = 20
+    _, _, _, logp = dm._cond_rows(1 - sites[0], perp, True, renyi=2)
+    np.testing.assert_allclose(1 / np.exp(2 * logp).sum(1), perp, rtol=1e-12)
+    assert np.exp(logp).max() <= perp ** -0.5

@@ -1,0 +1,52 @@
+<section class="experiment" id="x-inv-kernel">
+<h2>Which kernel gives modes that reproduce and a smooth row for a new image?</h2>
+<p class="x-scope"><b>Tested:</b> Final CIFAR-10 ResNet-20, seed 0. P2 is the viewer's {{fact:x.inv-kernel.probe.p2}}-image test probe; P8 adds more test images to P2. We vary the within-site kernel and balance the depth coupling separately for each operator.</p>
+<p class="x-answer"><strong>Participation ratio was the best candidate in these runs: it avoided the two-image modes seen with Shannon perplexity and retained a smooth out-of-sample rule away from ties.</strong> It also had stronger half-split scores at the settings shown, but its final walk was wider. The experiment did not isolate the effect of the rule from the effect of width.</p>
+
+<figure class="emb-fig" data-emb="assets/x/inv-kernel.json#emb_lead">
+  <figcaption><b>Plotted:</b> The same P2 images in three separately fitted joint operators, coloured by class. In each panel, rings mark the two images carrying the most squared norm in that operator's most localised mode among the first 16, measured across depth. The projected axes illustrate each cloud; neither distances between panels nor the strength of localisation should be read off the projection.</figcaption>
+</figure>
+<div class="x-numbers">
+  <div class="x-num"><b>{{fact:x.inv-kernel.top2.p2.knn15}} / {{fact:x.inv-kernel.top2.p2.ea300}} / {{fact:x.inv-kernel.top2.p2.pr300}}</b><span>peak two-image share, k-NN / Shannon / participation ratio</span><small>P2 · first 16 joint modes</small></div>
+  <div class="x-num"><b>{{fact:x.inv-kernel.top2.p8.ea400}}</b><span>peak two-image share with Shannon perplexity</span><small>P8 · Shannon 400 · first 16 joint modes</small></div>
+  <div class="x-num"><b>{{fact:x.inv-kernel.hub.raw_max}} → {{fact:x.inv-kernel.hub.pr300_max}}</b><span>highest top-15 occurrence, raw cosine vs balanced PR walk</span><small>P2 · maximum over sites</small></div>
+  <div class="x-num"><b>{{fact:x.inv-kernel.row.pr300_final_max}}</b><span>largest final walk entry with participation ratio</span><small>P2 · PR 300 · after symmetrisation and balancing</small></div>
+</div>
+
+<h3>What was computed</h3>
+<div class="x-tablewrap"><table class="x-defs">
+<thead><tr><th>Quantity</th><th>Definition</th><th>Symbols and choices</th><th>Code</th></tr></thead>
+<tbody>
+<tr><td>Cosine distance</td><td>$d_{ij}=1-\hat x_i^\top\hat x_j$</td><td>At each site, flatten activations, subtract the probe mean and normalise each row. New images use that same mean.</td><td><code>modal_invert.py:gram</code></td></tr>
+<tr><td>Union k-NN</td><td>$W_{ij}=1$ if $j\in\mathrm{NN}_{15}(i)$ or $i\in\mathrm{NN}_{15}(j)$; $10^{-6}$ otherwise, except $W_{ii}=0$.</td><td>Neighbours by cosine distance. The hard inclusion threshold can change the row abruptly.</td><td><code>dm.py:knn_kernel</code></td></tr>
+<tr><td>Per-image widths</td><td>$q_{ij}\propto\exp[-\beta_i(d_{ij}-d_{i,\min})]$, $q_{ii}=0$.<br>Shannon: $-\sum_j q_{ij}\log q_{ij}=\log 300$.<br>Rényi-2: $1/\sum_j q_{ij}^2=300$.</td><td>Bracket each inverse width $\beta_i$ by doubling, then bisect. Set $W=(q+q^\top)/2$. PR gives $q_{ij}\le 1/\sqrt{300}$ before balancing (the average of two such probe conditionals also obeys it). It does not bound the final walk or a new image's final row.</td><td><code>dm.py:_cond_rows</code>, <code>ea_kernel</code></td></tr>
+<tr><td>Balanced walk and width</td><td>$v_i(Wv)_i=1$, $P=\operatorname{diag}(v)W\operatorname{diag}(v)$<br>$\text{width}=\exp[-N^{-1}\sum_{ij}P_{ij}\log P_{ij}]$</td><td>Symmetric Sinkhorn, then average $P$ with its transpose. Width is the geometric mean of row Shannon perplexities after balancing (with $0\log0=0$), not the width parameter.</td><td><code>dm.py:sinkhorn_sym</code>, <code>perplexity</code></td></tr>
+<tr><td>Row for a new image</td><td>$p_j(x)\propto v_j\,{\tilde W}(x,j)$</td><td>For k-NN, a unit edge if $j$ is among $x$'s 15 nearest or $d(x,j)$ is no more than $j$'s stored 15th distance; otherwise the floor. For per-image widths, average $x$'s recalibrated conditional and $j$'s frozen formula (including its old normaliser), then normalise in the log domain. Mask a probe image's own entry to replay its row (for k-NN, assuming no ties at the cutoff).</td><td><code>dm.py:knn_oos_rows</code>, <code>ea_oos_rows</code></td></tr>
+<tr><td>Joint modes</td><td>$M_l=(I+P_l)/2$, $c_l=\frac18\sum_{r=1}^{8}(1-\lambda_r(M_l))$, $H_l=(I-M_l)/c_l$<br>$\mathcal L_t=\operatorname{blockdiag}(H_l)+tD_{\rm path}\otimes I$</td><td>$\lambda_0=1$ is the constant; $D_{\rm path}$ is the path Laplacian over sites. Take the lowest eigenpairs on functions with zero mean at every site; normalise over all sites and images. Use the first $t=t^*$ for which $\mathcal L_t-t\,4\sin^2(\pi/2L)I$ is singular on that subspace. The lowest slice-mean-zero eigenvalue then meets the first nonconstant slice-constant one.</td><td><code>dm.py:joint_modes</code>; <code>spacetime.py:balance_direct</code>, <code>modes</code></td></tr>
+<tr><td>Two-image share</td><td>$w_i=\sum_l f_l(i)^2$, $\text{share}=(w_{(1)}+w_{(2)})/\sum_i w_i$</td><td>$w_{(1)},w_{(2)}$ are the largest image weights of one joint mode.</td><td><code>modeloc.py</code></td></tr>
+<tr><td>Half-split reproducibility</td><td>$e=\operatorname{unit}(\operatorname{centre}(P_{B\leftarrow A}\phi_{A,k}))$<br>$\dfrac{\|\Phi_{B,1:m}^\top e\|^2-m/(|B|-1)}{1-m/(|B|-1)}$</td><td>Fit a walk on each disjoint half and use one out-of-sample step from A. Project into B's first $m=2k+10$ nonconstant walk modes ($k=16$ here). This is a site-local subspace score, not a joint-mode score or a mode-to-mode cosine.</td><td><code>p0_kernel.py:stability</code></td></tr>
+</tbody></table></div>
+
+<h3>Supporting figures</h3>
+<figure class="live" data-live="lines" data-src="assets/x/inv-kernel.json#top2" data-height="215"><div class="live-body"></div><figcaption><b>Plotted:</b> Two-image share by joint mode at N = 2,000 and N = 8,000. The square norms use all sites. At N = 8,000, the two adaptive rules use target 400, not 300.</figcaption></figure>
+<figure class="live" data-live="lines" data-src="assets/x/inv-kernel.json#stability" data-height="215"><div class="live-body"></div><figcaption><b>Plotted:</b> Chance-corrected half-split reproducibility of walk mode 16 by site on P2, using one split for each kernel (the same split across rules).</figcaption></figure>
+<figure class="live" data-live="lines" data-src="assets/x/inv-kernel.json#width" data-height="215"><div class="live-body"></div><figcaption><b>Plotted:</b> The same scores against the final width of the corresponding full P2 walk. Each point is one site. PR 300 and Shannon 300 do not produce equally wide walks.</figcaption></figure>
+
+<h3>Caveats</h3>
+<ul>
+<li>In the larger Shannon run, {{fact:x.inv-kernel.top2.p8.ea400_count}} of the first 64 joint modes exceeded 10% two-image share. The two images in a localised mode are not necessarily duplicates; the experiment did not establish the mechanism.</li>
+<li><b>Audit:</b> The PR bound applies before symmetrisation and Sinkhorn. The zero diagonal makes masked probe replay exact up to numerical error, but a near-copy of a probe image can receive a large weight on that image.</li>
+<li>One network, one checkpoint and one probe draw at each size. No matched-width sweep, repeated splits or uncertainty intervals. Increasing N also changed the adaptive width target.</li>
+</ul>
+<details><summary>Decisions made on the owner's behalf (4)</summary>
+<div class="x-tablewrap"><table class="x-decisions"><thead><tr><th>Decision</th><th>Chosen</th><th>Alternative</th><th>Why</th><th>What it could bias</th><th>How to test</th></tr></thead><tbody>
+<tr><td>Kernel rule</td><td>Participation ratio for inversion</td><td>Shannon, hard k-NN, global width</td><td>Limits concentration of each calibrated conditional without a hard neighbour threshold.</td><td>Observed stability could be due to width.</td><td>Match final walk widths, then repeat stability and localisation tests.</td></tr>
+<tr><td>Width target</td><td>PR 300 on P2, PR 400 on P8 as primary settings</td><td>Dense width sweep</td><td>Only a few settings were run within the budget.</td><td>Conclusions may be specific to the chosen widths.</td><td>Vary width at both probe sizes.</td></tr>
+<tr><td>Diagonal</td><td>Zero</td><td>Include self loops in kernel fitting</td><td>Match the masked probe and new-image conventions.</td><td>Near-identical held-out points can overshoot.</td><td>Stratify by the largest out-of-sample row weight.</td></tr>
+<tr><td>Coupling and uncertainty</td><td>Balance coupling for each fitted walk; one split</td><td>Vary coupling and repeat across splits and probe draws</td><td>Use the existing balance rule; time limited repeats.</td><td>Localisation could depend on coupling; stability has unknown draw-to-draw variance.</td><td>Repeat the comparison across splits, coupling values and seeds.</td></tr>
+</tbody></table></div></details>
+<details><summary>More figures (1)</summary>
+<figure class="live" data-live="lines" data-src="assets/x/inv-kernel.json#hubs" data-height="215"><div class="live-body"></div><figcaption><b>Plotted:</b> At each P2 site, the largest number of times one image occurred among another image's top 15, excluding self. Raw cosine ranged from {{fact:x.inv-kernel.hub.raw_min}} to {{fact:x.inv-kernel.hub.raw_max}}; peak counts across sites were {{fact:x.inv-kernel.hub.knn15_max}} for the k-NN walk, {{fact:x.inv-kernel.hub.ea300_max}} for Shannon 300, {{fact:x.inv-kernel.hub.pr300_max}} for PR 300 and {{fact:x.inv-kernel.hub.ds500_max}} for the global-width 500 comparison (not drawn).</figcaption></figure>
+</details>
+<p class="x-links"><a href="reports/inversion.html#tab=kernel">Full inversion report</a> · <a href="#method/new-images">Placing new images</a> · <a href="https://github.com/CharlesR-W/DepthEmbedding/blob/experiments-site/invert/dm.py">Run code</a> · <a class="x-top" href="#experiments/x-glance-title">At a glance</a></p>
+</section>

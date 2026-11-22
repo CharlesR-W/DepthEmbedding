@@ -1,0 +1,86 @@
+{
+  "b4.residual": {
+    "value": 0.41764914989471436,
+    "text": "42%",
+    "tier": "S",
+    "source": "data/invert/results.json:rt/P8__pr400__L12/b4__K64/E4|resid|p_b"
+  },
+  "b4.match": {
+    "value": 0.4300782382488251,
+    "text": "43%",
+    "tier": "S",
+    "source": "data/invert/results.json:rt/P8__pr400__L12/b4__K64/E4|resid+match|p_b"
+  },
+  "b4.random": {
+    "value": 0.011025904677808285,
+    "text": "1%",
+    "tier": "S",
+    "source": "data/invert/results.json:rt/P8__pr400__L12/b4__K64/E4|rand~resid|p_b"
+  },
+  "b4.swap": {
+    "value": 0.9703961610794067,
+    "text": "97%",
+    "tier": "S",
+    "source": "data/invert/results.json:rt/P8__pr400__L12/b4__K64/E4|swap|p_b"
+  },
+  "b4.miss_before": {
+    "value": 0.15256813168525696,
+    "text": "0.15",
+    "tier": "S",
+    "source": "data/invert/results.json:rt/P8__pr400__L12/b4__K64/E4|resid|miss_S"
+  },
+  "b4.miss_after": {
+    "value": 4.5870262965763686e-07,
+    "text": "0.0000005",
+    "tier": "S",
+    "source": "data/invert/results.json:rt/P8__pr400__L12/b4__K64/E4|resid+match|miss_S"
+  },
+  "replay.b4.residual": {
+    "value": 0.16855971546776666,
+    "text": "16.9%",
+    "tier": "P",
+    "source": "data/stretch/rt_points/P2__pr300__L12/b4__K16.npz:p_b[methods.index(resid),pair_ok]; mean"
+  },
+  "replay.b4.residual_miss": {
+    "value": 0.18309608052119347,
+    "text": "0.18",
+    "tier": "R",
+    "source": "data/stretch/rt_points/P2__pr300__L12/b4__K16.npz:s_edit[methods.index(resid),pair_ok] vs swap, scaled by sample std of first 256 H onestep rows; mean square"
+  },
+  "replay.b4.match": {
+    "value": 0.170659103770645,
+    "text": "17.1%",
+    "tier": "P",
+    "source": "data/stretch/rt_points/P2__pr300__L12/b4__K16.npz:p_b[methods.index(resid+match),pair_ok]; mean"
+  },
+  "replay.b4.match_miss": {
+    "value": 7.355938395236087e-09,
+    "text": "0.000000007",
+    "tier": "R",
+    "source": "data/stretch/rt_points/P2__pr300__L12/b4__K16.npz:s_edit[methods.index(resid+match),pair_ok] vs swap, scaled by sample std of first 256 H onestep rows; mean square"
+  },
+  "replay.b6.residual": {
+    "value": 0.4174218305765269,
+    "text": "41.7%",
+    "tier": "P",
+    "source": "data/stretch/rt_points/P2__pr300__L12/b6__K16.npz:p_b[methods.index(resid),pair_ok]; mean"
+  },
+  "replay.b6.residual_miss": {
+    "value": 0.2665138561778952,
+    "text": "0.27",
+    "tier": "R",
+    "source": "data/stretch/rt_points/P2__pr300__L12/b6__K16.npz:s_edit[methods.index(resid),pair_ok] vs swap, scaled by sample std of first 256 H onestep rows; mean square"
+  },
+  "replay.b6.match": {
+    "value": 0.3684917347221922,
+    "text": "36.8%",
+    "tier": "P",
+    "source": "data/stretch/rt_points/P2__pr300__L12/b6__K16.npz:p_b[methods.index(resid+match),pair_ok]; mean"
+  },
+  "replay.b6.match_miss": {
+    "value": 1.000435457113485e-08,
+    "text": "0.000000010",
+    "tier": "R",
+    "source": "data/stretch/rt_points/P2__pr300__L12/b6__K16.npz:s_edit[methods.index(resid+match),pair_ok] vs swap, scaled by sample std of first 256 H onestep rows; mean square"
+  }
+}

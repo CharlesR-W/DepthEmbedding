@@ -1,0 +1,308 @@
+{
+  "leaves.pixels.n": {
+    "value": 34,
+    "text": "34",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_pixels.npz:pred, labels, kind; same-class pairs with any argmax unequal to label"
+  },
+  "leaves.pixels.share": {
+    "value": 0.22666666666666666,
+    "text": "23%",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_pixels.npz:pred, labels, kind; same-class fraction with any argmax unequal to label"
+  },
+  "share.pixels.logits": {
+    "value": 0.14872699975967407,
+    "text": "14.9%",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_pixels.npz:share_unit, kind, sites; median different-class logits value"
+  },
+  "slope.pixels.b9": {
+    "value": 12.453580856323242,
+    "text": "12.5",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_pixels.npz:emb_mass, s64, labels, kind, chain; b9 median different-class max absolute slope"
+  },
+  "loc.pixels.joint": {
+    "value": 0.14283897102210807,
+    "text": "14.3%",
+    "tier": "R",
+    "source": "crw-depth-xp-results/x4/paths_pixels.npz:probe_y; max top-two-image squared-norm share over all saved modes, pooling across sites before ranking"
+  },
+  "loc.pixels.site": {
+    "value": 0.8284569913949903,
+    "text": "82.8%",
+    "tier": "R",
+    "source": "crw-depth-xp-results/x4/paths_pixels.npz:probe_site_y; max top-two-image squared-norm share over all saved modes and sites"
+  },
+  "grid.points": {
+    "value": 257,
+    "text": "257",
+    "tier": "R",
+    "source": "crw-depth-xp-results/x4/paths_pixels.npz:s256 length"
+  },
+  "grid.draw": {
+    "value": 65,
+    "text": "65",
+    "tier": "R",
+    "source": "crw-depth-xp-results/x4/paths_pixels.npz:s64 length"
+  },
+  "grid.uniform": {
+    "value": 0.0625,
+    "text": "6.25%",
+    "tier": "R",
+    "source": "crw-depth-xp-results/x4/paths_pixels.npz:s256; window is one sixteenth of steps"
+  },
+  "leaves.stem.n": {
+    "value": 35,
+    "text": "35",
+    "tier": "P",
+    "source": "xp/out/x4/paths_stem.npz:pred, labels, kind; same-class pairs with any argmax unequal to label"
+  },
+  "leaves.stem.share": {
+    "value": 0.23333333333333334,
+    "text": "23%",
+    "tier": "P",
+    "source": "xp/out/x4/paths_stem.npz:pred, labels, kind; same-class fraction with any argmax unequal to label"
+  },
+  "leaves.b3.n": {
+    "value": 40,
+    "text": "40",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b3.npz:pred, labels, kind; same-class pairs with any argmax unequal to label"
+  },
+  "leaves.b3.share": {
+    "value": 0.26666666666666666,
+    "text": "27%",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b3.npz:pred, labels, kind; same-class fraction with any argmax unequal to label"
+  },
+  "share.b3.logits": {
+    "value": 0.13775503635406494,
+    "text": "13.8%",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b3.npz:share_unit, kind, sites; median different-class logits value"
+  },
+  "slope.b3.b9": {
+    "value": 10.931268215179443,
+    "text": "10.9",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b3.npz:emb_mass, s64, labels, kind, chain; b9 median different-class max absolute slope"
+  },
+  "loc.b3.joint": {
+    "value": 0.07947746519810256,
+    "text": "7.9%",
+    "tier": "R",
+    "source": "crw-depth-xp-results/x4/paths_b3.npz:probe_y; max top-two-image squared-norm share over all saved modes, pooling across sites before ranking"
+  },
+  "loc.b3.site": {
+    "value": 0.8284569913949903,
+    "text": "82.8%",
+    "tier": "R",
+    "source": "crw-depth-xp-results/x4/paths_b3.npz:probe_site_y; max top-two-image squared-norm share over all saved modes and sites"
+  },
+  "leaves.b6.n": {
+    "value": 13,
+    "text": "13",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b6.npz:pred, labels, kind; same-class pairs with any argmax unequal to label"
+  },
+  "leaves.b6.share": {
+    "value": 0.08666666666666667,
+    "text": "9%",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b6.npz:pred, labels, kind; same-class fraction with any argmax unequal to label"
+  },
+  "share.b6.logits": {
+    "value": 0.13248543441295624,
+    "text": "13.2%",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b6.npz:share_unit, kind, sites; median different-class logits value"
+  },
+  "slope.b6.b9": {
+    "value": 11.150688648223877,
+    "text": "11.2",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b6.npz:emb_mass, s64, labels, kind, chain; b9 median different-class max absolute slope"
+  },
+  "loc.b6.joint": {
+    "value": 0.027978722630756448,
+    "text": "2.8%",
+    "tier": "R",
+    "source": "crw-depth-xp-results/x4/paths_b6.npz:probe_y; max top-two-image squared-norm share over all saved modes, pooling across sites before ranking"
+  },
+  "loc.b6.site": {
+    "value": 0.5556984570618559,
+    "text": "55.6%",
+    "tier": "R",
+    "source": "crw-depth-xp-results/x4/paths_b6.npz:probe_site_y; max top-two-image squared-norm share over all saved modes and sites"
+  },
+  "leaves.b8.n": {
+    "value": 0,
+    "text": "0",
+    "tier": "P",
+    "source": "xp/out/x4/paths_b8.npz:pred, labels, kind; same-class pairs with any argmax unequal to label"
+  },
+  "leaves.b8.share": {
+    "value": 0.0,
+    "text": "0%",
+    "tier": "P",
+    "source": "xp/out/x4/paths_b8.npz:pred, labels, kind; same-class fraction with any argmax unequal to label"
+  },
+  "leaves.b9.n": {
+    "value": 0,
+    "text": "0",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b9.npz:pred, labels, kind; same-class pairs with any argmax unequal to label"
+  },
+  "leaves.b9.share": {
+    "value": 0.0,
+    "text": "0%",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b9.npz:pred, labels, kind; same-class fraction with any argmax unequal to label"
+  },
+  "share.b9.logits": {
+    "value": 0.09226613491773605,
+    "text": "9.2%",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b9.npz:share_unit, kind, sites; median different-class logits value"
+  },
+  "slope.b9.b9": {
+    "value": 9.705348014831543,
+    "text": "9.7",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b9.npz:emb_mass, s64, labels, kind, chain; b9 median different-class max absolute slope"
+  },
+  "loc.b9.joint": {
+    "value": 0.01004012423583299,
+    "text": "1.0%",
+    "tier": "R",
+    "source": "crw-depth-xp-results/x4/paths_b9.npz:probe_y; max top-two-image squared-norm share over all saved modes, pooling across sites before ranking"
+  },
+  "loc.b9.site": {
+    "value": 0.2869440803036267,
+    "text": "28.7%",
+    "tier": "R",
+    "source": "crw-depth-xp-results/x4/paths_b9.npz:probe_site_y; max top-two-image squared-norm share over all saved modes and sites"
+  },
+  "pairs.per_kind": {
+    "value": 150,
+    "text": "150",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/pairs.npz:kind; count per stratum"
+  },
+  "pairs.display": {
+    "value": 24,
+    "text": "24",
+    "tier": "R",
+    "source": "site/xsite/ops_x4.py:sample_pairs; 2 * PER_KIND"
+  },
+  "probe.n": {
+    "value": 2000,
+    "text": "2,000",
+    "tier": "R",
+    "source": "crw-depth-xp-results/x4/paths_pixels.npz:probe_idx length"
+  },
+  "pre_logits.n": {
+    "value": 1,
+    "text": "1",
+    "tier": "P",
+    "source": "paths_<start>.npz:share_unit, sites; count start–pair combinations exceeding 25% anywhere before logits"
+  },
+  "pre_logits.total": {
+    "value": 1800,
+    "text": "1,800",
+    "tier": "P",
+    "source": "paths_<start>.npz:kind; number of pairs across all starts, counting repeats"
+  },
+  "sharp.min": {
+    "value": 0.8931425213813782,
+    "text": "0.89",
+    "tier": "P",
+    "source": "paths_<start>.npz:sigma_raw; minimum across all six starts, sites and pairs"
+  },
+  "refine.max_median": {
+    "value": 6.746873259544373e-05,
+    "text": "0.0001",
+    "tier": "P",
+    "source": "paths_<start>.npz:share1024_unit - share_unit[ref_rows]; largest per-site median absolute difference"
+  },
+  "gain.pixels.raw": {
+    "value": -0.17035132258783064,
+    "text": "-0.17",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/probe_gain.npz:gain_raw, margin; Spearman, pixels to logits"
+  },
+  "gain.stem.raw": {
+    "value": -0.16683978420994605,
+    "text": "-0.17",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/probe_gain.npz:gain_raw, margin; Spearman, stem to logits"
+  },
+  "gain.b3.raw": {
+    "value": -0.1347636089914386,
+    "text": "-0.13",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/probe_gain.npz:gain_raw, margin; Spearman, b3 to logits"
+  },
+  "gain.b6.raw": {
+    "value": -0.0730191332547833,
+    "text": "-0.07",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/probe_gain.npz:gain_raw, margin; Spearman, b6 to logits"
+  },
+  "gain.pixels.angular": {
+    "value": -0.6536665694166423,
+    "text": "-0.65",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/probe_gain.npz:gain_ang, margin; Spearman, pixels to logits"
+  },
+  "gain.stem.angular": {
+    "value": -0.7238635669873407,
+    "text": "-0.72",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/probe_gain.npz:gain_ang, margin; Spearman, stem to logits"
+  },
+  "gain.b3.angular": {
+    "value": -0.7555621599238758,
+    "text": "-0.76",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/probe_gain.npz:gain_ang, margin; Spearman, b3 to logits"
+  },
+  "gain.b6.angular": {
+    "value": -0.7642255175563794,
+    "text": "-0.76",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/probe_gain.npz:gain_ang, margin; Spearman, b6 to logits"
+  },
+  "gain.pixels.radius_removed": {
+    "value": -0.28854093174343576,
+    "text": "-0.29",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/probe_gain.npz:gain_ang + log(rad_out), margin; Spearman, pixels to logits"
+  },
+  "gain.stem.radius_removed": {
+    "value": -0.3371528837882209,
+    "text": "-0.34",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/probe_gain.npz:gain_ang + log(rad_out), margin; Spearman, stem to logits"
+  },
+  "gain.b3.radius_removed": {
+    "value": -0.335934491983623,
+    "text": "-0.34",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/probe_gain.npz:gain_ang + log(rad_out), margin; Spearman, b3 to logits"
+  },
+  "gain.b6.radius_removed": {
+    "value": -0.2954932804841301,
+    "text": "-0.30",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/probe_gain.npz:gain_ang + log(rad_out), margin; Spearman, b6 to logits"
+  },
+  "gain.radius": {
+    "value": 0.757604635901159,
+    "text": "0.76",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/probe_gain.npz:log(rad_out) vs margin; Spearman, pixels to logits"
+  }
+}

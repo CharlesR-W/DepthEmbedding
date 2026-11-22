@@ -26,6 +26,7 @@ Experiments (m held-out images of H):
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import time
 from pathlib import Path
@@ -127,12 +128,20 @@ def run(unit: dict, cfg: dict, mi):
     pset, kname, site, K = unit['pset'], unit['kname'], unit['site'], unit.get('K', 16)
     m = unit.get('m', 256)
     tag = f'{pset.replace("/", "_")}__{kname}__L12'
-    out = R / 'rt' / tag; out.mkdir(parents=True, exist_ok=True)
+    save_points = cfg.get('save_points', False)
+    out = R / (cfg.get('points_dir', 'rt_points') if save_points else 'rt') / tag
+    out.mkdir(parents=True, exist_ok=True)
     fout = out / f'{site}__K{K}.npz'
-    if fout.exists() and not cfg.get('force'):
+    if fout.exists() and (save_points or not cfg.get('force')):
         return 'cached'
     sp = dict(np.load(R / 'splits.npz'))
-    z = np.load(R / 'joint' / tag / 'modes.npz')
+    modefile = R / 'joint' / tag / 'modes.npz'
+    if save_points:
+        with modefile.open('rb') as f:
+            modes_sha256 = hashlib.file_digest(f, 'sha256').hexdigest()
+        if modes_sha256 != cfg['modes_sha256']:
+            raise ValueError(f'Modes hash mismatch: {modes_sha256} != {cfg["modes_sha256"]}')
+    z = np.load(modefile)
     sites = [str(s) for s in z['sites']]
     L, li = len(sites), sites.index(site)
     vals, c, t = z['vals'][:K], z['c'], float(z['t'])
@@ -291,40 +300,41 @@ def run(unit: dict, cfg: dict, mi):
         return S[li].mu + Wd(y, kind).float() @ S[li].Xc
 
     print(f'[rt {site} K{K}] decoders ready {time.time() - t0:.0f}s', flush=True)
-    # E1: sources against joint coordinates, and the source target computed from a joint coordinate
-    put('E1|slope', (src * psi).sum(0) / (psi * psi).sum(0))
-    put('E1|corr', ((src - src.mean(0)) * (psi - psi.mean(0))).mean(0) / (ssd * sdv))
-    wts = (Tinv[:, li, :] / c2[None, :]).abs()                              # (K, L) weight of each site's source in y_l
-    put('E1|share_ll', wts[:, li] / wts.sum(1))
-    for kind in ('krr', 'linear'):
-        put(f'E1|{kind}|srel', srel(Wd(psi, kind) @ s_probe, src))
-
     x_true = X[li]
-    # E2/E3: decode own coordinates, re-encode, match to the true sources
-    for kind in ('krr', 'linear'):
-        xh = D(psi, kind)
-        put(f'E2|{kind}|cos', cosc(xh, x_true))
-        with torch.no_grad():
-            put(f'E2|{kind}|srel', srel(FS(xh), src))
-        yD, lpD = FD(xh, ar)
-        put(f'E2|{kind}|relerr_D', relerr(yD[li], psi)); put(f'E2|{kind}|kl', kl(logp_clean, lpD))
-        for j in range(li + 1, L):
-            put(f'E2|{kind}|relerr_D@{sites[j]}', (((yD[j] - Y[j]) / Y[j].std(0)) ** 2).mean(1))
-        if kind == 'krr':
-            # E3: oracle target (the image's true sources: a solver control) and the inferred target s'(psi)
-            for nm, tgt in (('E3', src), ('E3n', Wd(psi) @ s_probe)):
-                xm, tg = match(xh, tgt)
-                put(f'{nm}|cos', cosc(xm, x_true)); put(f'{nm}|tang', tg)
-                with torch.no_grad():
-                    sm = FS(xm)
-                put(f'{nm}|miss', srel(sm, tgt)); put(f'{nm}|srel', srel(sm, src))
-                yD, lpD = FD(xm, ar)
-                put(f'{nm}|relerr_D', relerr(yD[li], psi)); put(f'{nm}|kl', kl(logp_clean, lpD))
-                put(f'{nm}|move', (xm - xh).norm(dim=1) / (x_true - S[li].mu).norm(dim=1))
-                for j in range(li + 1, L):
-                    put(f'{nm}|relerr_D@{sites[j]}', (((yD[j] - Y[j]) / Y[j].std(0)) ** 2).mean(1))
+    if not save_points:
+        # E1: sources against joint coordinates, and the source target computed from a joint coordinate
+        put('E1|slope', (src * psi).sum(0) / (psi * psi).sum(0))
+        put('E1|corr', ((src - src.mean(0)) * (psi - psi.mean(0))).mean(0) / (ssd * sdv))
+        wts = (Tinv[:, li, :] / c2[None, :]).abs()                              # (K, L) weight of each site's source in y_l
+        put('E1|share_ll', wts[:, li] / wts.sum(1))
+        for kind in ('krr', 'linear'):
+            put(f'E1|{kind}|srel', srel(Wd(psi, kind) @ s_probe, src))
 
-    print(f'[rt {site} K{K}] E2/E3 done {time.time() - t0:.0f}s', flush=True)
+        # E2/E3: decode own coordinates, re-encode, match to the true sources
+        for kind in ('krr', 'linear'):
+            xh = D(psi, kind)
+            put(f'E2|{kind}|cos', cosc(xh, x_true))
+            with torch.no_grad():
+                put(f'E2|{kind}|srel', srel(FS(xh), src))
+            yD, lpD = FD(xh, ar)
+            put(f'E2|{kind}|relerr_D', relerr(yD[li], psi)); put(f'E2|{kind}|kl', kl(logp_clean, lpD))
+            for j in range(li + 1, L):
+                put(f'E2|{kind}|relerr_D@{sites[j]}', (((yD[j] - Y[j]) / Y[j].std(0)) ** 2).mean(1))
+            if kind == 'krr':
+                # E3: oracle target (the image's true sources: a solver control) and the inferred target s'(psi)
+                for nm, tgt in (('E3', src), ('E3n', Wd(psi) @ s_probe)):
+                    xm, tg = match(xh, tgt)
+                    put(f'{nm}|cos', cosc(xm, x_true)); put(f'{nm}|tang', tg)
+                    with torch.no_grad():
+                        sm = FS(xm)
+                    put(f'{nm}|miss', srel(sm, tgt)); put(f'{nm}|srel', srel(sm, src))
+                    yD, lpD = FD(xm, ar)
+                    put(f'{nm}|relerr_D', relerr(yD[li], psi)); put(f'{nm}|kl', kl(logp_clean, lpD))
+                    put(f'{nm}|move', (xm - xh).norm(dim=1) / (x_true - S[li].mu).norm(dim=1))
+                    for j in range(li + 1, L):
+                        put(f'{nm}|relerr_D@{sites[j]}', (((yD[j] - Y[j]) / Y[j].std(0)) ** 2).mean(1))
+
+        print(f'[rt {site} K{K}] E2/E3 done {time.time() - t0:.0f}s', flush=True)
     # E4: edits a -> b
     order = torch.arange(m, device=dev)
     bidx = torch.roll(order, 1)
@@ -357,6 +367,10 @@ def run(unit: dict, cfg: dict, mi):
         dlt = (y1 - y0) / sc
         return (((y - y0) / sc) * dlt).sum(1) / (dlt * dlt).sum(1)
 
+    n_points = int(cfg.get('n_points', 64)) if save_points else 0
+    if save_points and not 0 < n_points <= m:
+        raise ValueError(f'n_points must be 1..{m}, got {n_points}')
+    s_edit, y_patched = [], []
     for name, xp in edits.items():
         put(f'E4|{name}|size', (xp - xa).norm(dim=1) / dab)
         put(f'E4|{name}|cos_b', cosc(xp, xb)); put(f'E4|{name}|cos_a', cosc(xp, xa))
@@ -367,8 +381,29 @@ def run(unit: dict, cfg: dict, mi):
         put(f'E4|{name}|prog_D', progress(yD[li], ya, yb, sdv)); put(f'E4|{name}|miss_D', relerr(yD[li], yb))
         put(f'E4|{name}|p_b', lp.exp()[ar, pred[bidx]]); put(f'E4|{name}|p_a', lp.exp()[ar, pred])
         put(f'E4|{name}|kl_b', kl(logp_clean[bidx], lp))
+        if save_points:
+            s_edit.append(sp_[:n_points].detach().cpu().numpy())
+            y_patched.append(yD[:, :n_points].detach().cpu().numpy())
         for j in range(li + 1, L):
             put(f'E4|{name}|prog_D@{sites[j]}', progress(yD[j], Y[j], Y[j][bidx], Y[j].std(0)))
+
+    if save_points:
+        # Keep the original m-image pairing, trust-region scale and shape of RNG draws. Slicing
+        # before constructing pairs or running the edits would not be the same E4 experiment.
+        ia = ar[:n_points].cpu().numpy()
+        ib = bidx[:n_points].cpu().numpy()
+        methods = list(edits)
+        meta = dict(seed=0, commit=cfg['commit'], stage_rt_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+                    modes_sha256=modes_sha256, vals=vals.tolist(), sites=sites, edit_site=site, tag=tag, m_full=m,
+                    E0=float(res['E0|maxdiff_rel']), jac=float(res['E0|jac_fd_rel']),
+                    gpu=torch.cuda.get_device_name(), seconds=time.time() - t0)
+        with fout.open('xb') as f:
+            np.savez(f, pair_pos=np.column_stack((ia, ib)), pair_ok=res['E4|pair_ok'][:n_points],
+                     methods=np.array(methods), s_edit=np.stack(s_edit), y_patched=np.stack(y_patched),
+                     y_a=Y[:, ia].cpu().numpy(), y_b=Y[:, ib].cpu().numpy(),
+                     p_b=np.stack([res[f'E4|{nm}|p_b'][:n_points] for nm in methods]),
+                     size=np.stack([res[f'E4|{nm}|size'][:n_points] for nm in methods]), meta=np.array(json.dumps(meta)))
+        return meta
 
     print(f'[rt {site} K{K}] E4 done {time.time() - t0:.0f}s', flush=True)
     # E5: requests with no known pre-image

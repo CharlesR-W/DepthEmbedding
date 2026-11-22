@@ -22,7 +22,7 @@ const fmt = x => x == null || !isFinite(x) ? "–" : Math.abs(x) >= 100 ? x.toFi
 const fmtFactor = f => f >= 1 ? String(f) : `1/${Math.round(1 / f)}`;
 
 // one marker shape per network in the overlay (path only; the caller fills or strokes)
-function mark(g, k, x, y, r) {
+export function mark(g, k, x, y, r) {
   g.beginPath();
   switch (k % 7) {
     case 0: g.arc(x, y, r, 0, 7); break;
@@ -60,7 +60,7 @@ export function eigSym(Ain, n) {
   return { vals: idx.map(j => A[j * n + j]), V: W };
 }
 // A^T B for row-major (N x K) arrays -> K x K
-function crossTN(A, B, N, K) {
+export function crossTN(A, B, N, K) {
   const C = new Float64Array(K * K);
   for (let i = 0; i < N; i++) { const o = i * K; for (let a = 0; a < K; a++) { const x = A[o + a]; if (!x) continue; for (let b = 0; b < K; b++) C[a * K + b] += x * B[o + b]; } }
   return C;
@@ -212,7 +212,7 @@ export function netList(m) {
   const S = m.spacetime, out = [];
   if (S) out.push({ id: "r20s0", label: "ResNet-20 seed 0", short: "R20 s0", root: "d/st", sites: m.sites, steps: S.steps, variants: S.variants, K: S.K, fidx: S.factors.map((_, i) => i),
                     acc: m.val_acc?.[m.val_acc.length - 1] ?? null, sets: S.sets });
-  for (const n of m.stnets?.nets || []) out.push({ sets: S?.sets, ...n });
+  for (const n of m.stnets?.nets || []) out.push({ ...n, sets: n.nsets === 0 ? [] : n.sets ?? S?.sets });
   for (const n of out) n.base = m.stnets?.base?.[n.id] || null;
   return out;
 }
@@ -246,18 +246,35 @@ export class DepthEmbedding {
   // ------------------------------------------------ controls
   buildControls() {
     const accTxt = n => n.acc != null ? ` (${(100 * n.acc).toFixed(1)}%)` : "";
-    const box = $("emb-nets"); box.innerHTML = "";
+    const box = $("emb-nets"), ref = $("emb-ref"), x1 = document.createElement("details"), group = document.createElement("optgroup");
+    const title = "Trained on other data (X1) · final checkpoint only";
+    const list = document.createElement("div"); list.className = "emb-nets";
+    const summary = document.createElement("summary"); summary.textContent = title; summary.className = "emb-hint";
+    x1.append(summary, list); group.label = title;
+    box.replaceChildren(); ref.replaceChildren();
     for (const n of this.nets) {
+      const isX1 = n.group === "x1";
       const l = document.createElement("label"); l.className = "emb-check"; l.dataset.net = n.id;
       const c = document.createElement("input"); c.type = "checkbox"; c.value = n.id; c.dataset.net = n.id;
       const acc = Object.assign(document.createElement("span"), { className: "emb-hint", textContent: accTxt(n) });
+      if (isX1) { l.title = n.training; acc.title = "Test accuracy on its own task"; }
       l.append(c, ` ${n.label}`, acc);
-      box.append(l);
+      (isX1 ? list : box).append(l);
+      const opt = new Option(`${n.label}${accTxt(n)}`, n.id);
+      if (isX1) opt.title = `${n.training} Test accuracy on its own task in brackets.`;
+      (isX1 ? group : ref).append(opt);
     }
-    $("emb-ref").replaceChildren(...this.nets.map(n => new Option(`${n.label}${accTxt(n)}`, n.id)));
-    $("emb-ref").title = "final validation accuracy in brackets";
+    if (list.childElementCount) { box.append(x1); ref.append(group); }
+    ref.title = list.childElementCount ? "Original networks: final validation accuracy. X1: test accuracy on its own task." : "final validation accuracy in brackets";
   }
   ref() { return this.byId[this.st.ref]; }
+  stepFor(n) {
+    const { step } = this.st;
+    return n.steps.includes(step) ? step : step === this.ref().steps.at(-1) ? n.steps.at(-1) : null;
+  }
+  noSetPlanes() {
+    return this.st.method === "modes" && this.shown().some(n => n.nsets === 0 && this.stepFor(n) !== null && n.variants.some(v => v.id === this.st.variant));
+  }
   shown() { const s = this.st.nets.filter(id => this.byId[id]); if (!s.includes(this.st.ref)) s.unshift(this.st.ref); return s.map(id => this.byId[id]); }
   // the options under "More options", and whether any differs from its default (then the section opens and says so)
   advancedChanged() {
@@ -292,10 +309,12 @@ export class DepthEmbedding {
     $("emb-reset3d").disabled = !st.three; $("emb-3dhint").hidden = !st.three;
     $("emb-mousehint").textContent = st.three ? "Plot: hover a dot to see its image. Keys: ← → step a site (when the plot is not focused), Space plays."
       : "Plot: hover a dot to see its image; drag a box to select images and follow them through depth. Keys: ← → step a site, Space plays.";
-    this.root.querySelectorAll("input[name=emb-method]").forEach(r => { r.checked = r.value === st.method; });
-    const base = st.method !== "modes";
+    this.root.querySelectorAll("input[name=emb-method]").forEach(r => {
+      r.checked = r.value === st.method; r.disabled = ref.group === "x1" && r.value !== "modes";
+    });
+    const base = st.method !== "modes", noSets = this.noSetPlanes();
     $("emb-variant").disabled = base; $("emb-coup").disabled = base || V.C === 1; $("emb-K").disabled = st.method === "umap"; $("emb-three").disabled = st.method === "umap";
-    [...$("emb-color").options].forEach(o => { o.disabled = base && (o.value.startsWith("set") || o.value === "seba"); });
+    [...$("emb-color").options].forEach(o => { o.disabled = o.value === "seba" ? base : noSets || base ? o.value.startsWith("set") : false; });
     $("emb-r-row").hidden = st.color !== "seba"; $("emb-r").value = st.r;
     $("emb-anchor-row").hidden = st.color !== "pos"; $("emb-anchor2-row").hidden = st.basis !== "anchor";      // UMAP's 2-d coordinates are rotated by this basis too
     $("emb-color-hint").textContent = ({
@@ -304,6 +323,7 @@ export class DepthEmbedding {
       seba: "A post-hoc readout: SEBA run once on the stacked modes. Each network runs its own; colours are matched to the reference by overlap.",
     })[st.color] || (st.color.startsWith("set") ? "A post-hoc readout: k-means sets of the rank-8 readout, computed per network and per site." : "");
     if (base) $("emb-color-hint").textContent += " (The set colourings need the through-depth modes.)";
+    if (noSets) $("emb-color-hint").textContent += " K-means colourings are unavailable here: they were not computed for networks trained on other data. SEBA uses the modes and is still available.";
     this.root.querySelectorAll("input[name=emb-layout]").forEach(r => { r.checked = r.value === st.layout; });
     $("emb-ocol").value = st.ocol; $("emb-show").value = st.show; $("emb-links").checked = st.links;
     $("emb-ov-opts").hidden = st.layout !== "overlay";
@@ -390,8 +410,13 @@ export class DepthEmbedding {
   }
   clamp() {
     const st = this.st, ref = this.ref();
+    if (ref.group === "x1") st.method = "modes";
     if (!ref.steps.includes(st.step)) st.step = ref.steps.reduce((a, b) => Math.abs(b - st.step) < Math.abs(a - st.step) ? b : a);
     if (!ref.variants.some(v => v.id === st.variant)) st.variant = ref.variants[0].id;
+    const base = st.method !== "modes";
+    if (st.color === "seba" ? base : st.color.startsWith("set") && (base || this.noSetPlanes())) {
+      st.color = "class"; this.hidden.clear();
+    }
     st.c = Math.max(0, Math.min(st.c, this.m.spacetime.factors.length - 1));
     if (ref.fidx && !ref.fidx.includes(st.c)) st.c = ref.fidx.reduce((b, x) => Math.abs(x - st.c) < Math.abs(b - st.c) ? x : b, ref.fidx[0]);
     st.anchor = Math.max(0, st.anchor | 0); st.depth = Math.max(0, +st.depth || 0);
@@ -453,13 +478,15 @@ export class DepthEmbedding {
     this.loading = true;
     $("emb-status").textContent = `loading step ${st.step.toLocaleString("en")}…`;
     const got = await Promise.all(nets.map(async n => {
+      const step = this.stepFor(n);
+      if (step === null) return { net: n, missing: true, reason: n.group === "x1" ? "only its final checkpoint is available; choose the reference's final step" : null };
       if (st.method !== "modes") {
-        if (!n.base || !n.base.steps.includes(st.step)) return { net: n, missing: true };
-        try { return { net: n, base: await loadBase(this.m, n, st.step, st.method) }; }
+        if (!n.base || !n.base.steps.includes(step)) return { net: n, missing: true, reason: n.group === "x1" ? "no PCA or UMAP baseline is shipped" : null };
+        try { return { net: n, step, base: await loadBase(this.m, n, step, st.method) }; }
         catch (e) { console.error(e); return { net: n, missing: true, error: e.message }; }
       }
-      if (!n.steps.includes(st.step) || !n.variants.some(v => v.id === st.variant)) return { net: n, missing: true };
-      try { const [unit, summ] = await Promise.all([loadUnit(this.m, n, st.step, st.variant), loadSummary(n, st.step)]); return { net: n, unit, summ }; }
+      if (!n.variants.some(v => v.id === st.variant)) return { net: n, missing: true, reason: n.group === "x1" ? "only the relative site units variant is shipped" : null };
+      try { const [unit, summ] = await Promise.all([loadUnit(this.m, n, step, st.variant), loadSummary(n, step)]); return { net: n, step, unit, summ }; }
       catch (e) { console.error(e); return { net: n, missing: true, error: e.message }; }
     }));
     if (token !== this.loadToken) return;      // superseded by a newer request
@@ -792,7 +819,7 @@ export class DepthEmbedding {
       const fig = document.createElement("figure"); fig.className = "emb-panel";
       const cap = document.createElement("figcaption"), cv = document.createElement("canvas");
       fig.append(cap, cv); wrap.append(fig); d.fig = fig; d.cap = cap; d.cv = cv;
-      if (d.missing) { cv.hidden = true; cap.textContent = `${d.net.label}: ${d.error ? "failed to load" : "no data at this checkpoint or variant"}; no comparison fit was run`; continue; }
+      if (d.missing) { cv.hidden = true; cap.textContent = `${d.net.label}: ${d.error ? "failed to load" : d.reason || "no data at this checkpoint or variant"}; no comparison fit was run`; continue; }
       this.bindPlot(d);
     }
     const single = n === 1;
@@ -897,9 +924,9 @@ export class DepthEmbedding {
     const site = near ? d.net.sites[Math.round(b)] : `${d.net.sites[Math.floor(b)]} → ${d.net.sites[Math.min(L - 1, Math.floor(b) + 1)]}`;
     const extra = d === this.refD ? (this.panels.length > 1 ? " · reference" : "") : d.resid != null ? ` · residual vs reference ${d.resid.toFixed(2)}${st.align ? "" : " (no rotation)"}${d.svMin != null && d.svMin < 0.05 ? " (weak fit)" : ""}` : "";
     const coup = d.unit && st.variant !== "paper" && d.net.fidx ? ` · t/t* = ${fmtFactor(this.m.spacetime.factors[d.net.fidx[this.cIdx(d)]])}` : "";
-    const acc = d.net.acc != null ? `final acc ${(100 * d.net.acc).toFixed(1)}%` : "";
-    const cap = `<b>${d.net.label}</b> · ${site}<br><span class="emb-hint">${acc}${coup}${extra}</span>`;
-    d.cap.title = `${d.net.label} · ${site} · ${acc}${coup}${extra}`;
+    const acc = this.accuracy(d.net), step = this.panelStep(d);
+    const cap = `<b>${d.net.label}</b> · ${site}${step}<br><span class="emb-hint">${acc}${coup}${extra}</span>`;
+    d.cap.title = `${d.net.label} · ${site}${step} · ${acc}${coup}${extra}${d.net.training ? ` · ${d.net.training}` : ""}`;
     if (d.capHtml !== cap) { d.cap.innerHTML = cap; d.capHtml = cap; }
   }
   drawBox(g, d) { if (d.box) { g.strokeStyle = css("--accent"); g.setLineDash([4, 3]); g.strokeRect(Math.min(d.box.x0, d.box.x1), Math.min(d.box.y0, d.box.y1), Math.abs(d.box.x1 - d.box.x0), Math.abs(d.box.y1 - d.box.y0)); g.setLineDash([]); } }
@@ -966,8 +993,8 @@ export class DepthEmbedding {
       }
     }
     this.drawBox(g, ov);
-    const sites = mem.map(({ d }) => `${d.net.short || d.net.label} ${this.siteName(d)}`).join(" · ");
-    const missing = this.panels.filter(d => d.missing).map(d => d.net.short || d.net.label);
+    const sites = mem.map(({ d }) => `${d.net.short || d.net.label} ${this.siteName(d)}${this.panelStep(d)}`).join(" · ");
+    const missing = this.panels.filter(d => d.missing).map(d => `${d.net.short || d.net.label}${d.reason ? ` (${d.reason})` : ""}`);
     ov.cap.title = `${this.describe().overlayTitle}: ${sites}`;
     const D = this.describe();
     const cap = `<b>${D.overlayTitle}</b> <span class="emb-hint">(${D.overlaySub})</span><br><span class="emb-hint">${sites}${missing.length ? ` · no data: ${missing.join(", ")}` : ""}</span>`;
@@ -1139,6 +1166,9 @@ export class DepthEmbedding {
     const missing = this.panels.filter(x => x.missing).map(nm), why = st.method !== "modes" ? "this checkpoint" : "this checkpoint and variant";
     const dm = st.dmode === "dtw" ? "DTW on subspace distance" : "fractional depth";
     const base = st.method !== "modes", bname = st.method === "pca" ? "PCA" : "UMAP";
+    const mixedSteps = others.some(x => x.step !== d.step);
+    const stepNote = mixedSteps ? " (reference); other networks at their final checkpoints" : "";
+    const checkpoint = `training step ${d.step.toLocaleString("en")}${stepNote}`;
     const kind = base ? `${bname} baseline: each site separately, chained along depth by Procrustes (a fit)` : `Through-depth modes (the construction), first ${st.K}`;
     const noData = missing.length ? `no data at ${why} for ${missing.join(", ")}, so no fit was run for ${missing.length > 1 ? "them" : "it"}` : "";
     const fits = !multi ? null : (st.align
@@ -1152,7 +1182,8 @@ export class DepthEmbedding {
       (!multi && missing.length ? `None of the networks chosen for comparison has data at ${why}, so no depth matching or rotation was run.`
         : st.align ? "To show them together, depths are matched and each network is rotated onto the one chosen under Network (the reference). Both are post-hoc fits."
         : "Depths are matched (a post-hoc fit). Rotation is off, so each network keeps its own coordinates and their positions cannot be compared directly.") +
-      (base ? ` The ${bname} baseline is also chained along depth by Procrustes within each network (a fit).` : "");
+      (base ? ` The ${bname} baseline is also chained along depth by Procrustes within each network (a fit).` : "") +
+      (this.panels.some(x => x.net.group === "x1") ? " X1 compares training pipelines: images, labels, class counts, normalisation and augmentation can differ. The viewer's Procrustes rotation and residual are post-hoc comparisons, not X1's joint agreement statistic." : "");
     const ov = this.overlayOn(), sets = st.color.match(/^set(5|10)([as])$/);
     let colour = ov && st.show === "centroids" ? "class centroids and their paths; colour = CIFAR class (labels used for display only); shape = network"
       : ov && st.ocol === "net" ? "network (one colour and shape each)"
@@ -1164,14 +1195,18 @@ export class DepthEmbedding {
     if (this.hidden.size) colour += `; ${this.hidden.size} colour group${this.hidden.size > 1 ? "s" : ""} hidden`;
     const hiddenNets = ov ? this.panels.filter(x => !x.missing && this.hiddenNets.has(x.net.id)).map(x => x.net.short || x.net.label) : [];
     if (hiddenNets.length) colour += `; hidden: ${hiddenNets.join(", ")}`;
-    return { kind, fits, noFit, fitsBadge: st.align ? "Post-hoc fits" : "Post-hoc fit", overlayTitle, overlaySub, help, colour };
+    return { kind, fits, noFit, checkpoint, mixedSteps, fitsBadge: st.align ? "Post-hoc fits" : "Post-hoc fit", overlayTitle, overlaySub, help, colour };
   }
+  panelStep(d) {
+    return d.step !== this.st.step || this.panels.some(p => !p.missing && p.net.group === "x1") ? ` · step ${d.step.toLocaleString("en")}` : "";
+  }
+  accuracy(n) { return n.acc == null ? "" : `${n.group === "x1" ? "Test accuracy on its own task:" : "final acc"} ${(100 * n.acc).toFixed(1)}%`; }
   otherLoaded() { return this.refD ? this.panels.filter(x => !x.missing && x !== this.refD) : []; }
   // what is plotted (prominent, above the plots; names every post-hoc fit in use) and the details line under them
   status() {
     if (!this.refD) return;
     const st = this.st, d = this.refD, multi = this.panels.length > 1, ref = d.net.label;
-    const who = multi ? `reference ${ref}` : `${ref}${d.net.acc != null ? ` (final acc ${(100 * d.net.acc).toFixed(1)}%)` : ""}`;
+    const who = multi ? `reference ${ref}` : `${ref}${d.net.acc != null ? ` (${this.accuracy(d.net)})` : ""}`;
     const D = this.describe();
     const fits = D.fits ? `<div class="emb-whatfit"><span class="emb-badge fit">${D.fitsBadge}</span> ${D.fits}</div>`
       : D.noFit ? `<div class="emb-whatfit"><span class="emb-badge">No comparison fit</span> ${D.noFit}</div>` : "";
@@ -1179,8 +1214,9 @@ export class DepthEmbedding {
     $("emb-selinfo").textContent = this.nSel ? `${this.nSel} selected` : "";
     if (d.base) {
       $("emb-tlabel").textContent = "(not used by the baselines)";
-      $("emb-what").innerHTML = `<div><span class="emb-badge base">Baseline</span> <b>${st.method === "pca" ? "PCA" : "UMAP"} at each site separately</b>, chained along depth by Procrustes (a fit) · ${who} · training step ${st.step.toLocaleString("en")}</div>${fits}`;
+      $("emb-what").innerHTML = `<div><span class="emb-badge base">Baseline</span> <b>${st.method === "pca" ? "PCA" : "UMAP"} at each site separately</b>, chained along depth by Procrustes (a fit) · ${who} · ${D.checkpoint}</div>${fits}`;
       $("emb-status").textContent = st.method === "pca" ? `PCA: first ${st.K} principal coordinates of the centred cosine activations, at each site independently.` : "UMAP (15 neighbours, min_dist 0.1) on the cosine distance, at each site independently.";
+      if (D.mixedSteps) $("emb-status").textContent += ` · ${D.checkpoint}`;
       return;
     }
     const V = d.net.variants.find(v => v.id === st.variant), rec = d.summ.variants[st.variant], c = this.cIdx(d);
@@ -1189,8 +1225,9 @@ export class DepthEmbedding {
     const off = this.panels.filter(x => !x.missing && x.unit && x.net.fidx && x.net.fidx[this.cIdx(x)] !== st.c && st.variant !== "paper").map(x => x.net.short || x.net.label);
     $("emb-tlabel").textContent = paper ? "(not used by this variant)" : `t/t* = ${fmtFactor(S.factors[fi])} (${d.net.short || d.net.label}: t = ${fmt(t)})`;
     const vals = rec.vals[c].slice(0, st.K).map(x => fmt(x)).join(", ");
-    $("emb-what").innerHTML = `<div><span class="emb-badge">The construction</span> <b>Through-depth modes</b>, first ${st.K} · ${who} · training step ${st.step.toLocaleString("en")}</div>${fits}`;
+    $("emb-what").innerHTML = `<div><span class="emb-badge">The construction</span> <b>Through-depth modes</b>, first ${st.K} · ${who} · ${D.checkpoint}</div>${fits}`;
     $("emb-status").textContent = `${V.label} · ${coup} · ${d.net.label} eigenvalues 1–${st.K}: ${vals}` +
+      (D.mixedSteps ? ` · ${D.checkpoint}` : "") +
       (off.length ? ` · ${off.join(", ")}: only t/t* = 1 is shipped, shown instead` : "") +
       (this.flatPooled ? " · raw scale: the pooled spectrum is flat, so the axes are the raw modes" : "");
   }
@@ -1236,6 +1273,7 @@ export class DepthEmbedding {
       const out = document.createElement("canvas"), g = out.getContext("2d", { willReadFrequently: true });
       const small = "11px system-ui, sans-serif", tw = W - 2 * gap;
       const notes = [...wrap(small, D.kind + ".", tw),
+        ...(D.mixedSteps ? wrap(small, `${D.checkpoint}. ${this.otherLoaded().map(d => `${d.net.short || d.net.label}: ${d.step.toLocaleString("en")}`).join("; ")}.`, tw) : []),
         ...(D.fits ? wrap(small, `${D.fitsBadge}: ${D.fits}.`, tw) : []),
         ...(D.noFit ? wrap(small, `No comparison fit: ${D.noFit}.`, tw) : []),
         ...wrap(small, `Colour: ${D.colour}.`, tw)];
@@ -1253,7 +1291,7 @@ export class DepthEmbedding {
         // header: reference site and a depth track
         const ref = this.refD.net, lc = Math.round(st.depth);
         g.fillStyle = "#16161a"; g.font = "600 15px system-ui, sans-serif"; g.textAlign = "left";
-        g.fillText(`${this.st.method === "modes" ? "Through-depth modes" : (this.st.method === "pca" ? "PCA" : "UMAP") + " baseline"} · step ${st.step.toLocaleString("en")} · ${multi ? "reference " : ""}${ref.label}: ${ref.sites[lc]}`, gap, 18, tw);
+        g.fillText(`${this.st.method === "modes" ? "Through-depth modes" : (this.st.method === "pca" ? "PCA" : "UMAP") + " baseline"} · ${multi ? "reference " : ""}step ${this.refD.step.toLocaleString("en")} · ${ref.label}: ${ref.sites[lc]}`, gap, 18, tw);
         g.font = small; g.fillStyle = "#4a4a50"; notes.forEach((t, k) => g.fillText(t, gap, 18 + 6 + 14 * (k + 1) - 3));
         const x0 = gap + 4, x1 = W - gap - 4, y = trackY; g.strokeStyle = "#d4d4d4"; g.lineWidth = 2; g.beginPath(); g.moveTo(x0, y); g.lineTo(x1, y); g.stroke();
         g.font = "10px system-ui, sans-serif"; g.textAlign = "center";
@@ -1265,7 +1303,7 @@ export class DepthEmbedding {
         cvs.forEach((c, j) => {
           const cx = gap + (j % cols) * (cellW + gap), cy = headH + Math.floor(j / cols) * (cellH + capH + gap);
           g.fillStyle = "#16161a"; g.font = "600 12px system-ui, sans-serif";
-          g.fillText(c.d ? `${c.d.net.label}${multi && c.d === this.refD ? " (reference)" : ""} · ${this.siteName(c.d)}` : c.title, cx, cy + 12, cellW);
+          g.fillText(c.d ? `${c.d.net.label}${multi && c.d === this.refD ? " (reference)" : ""} · ${this.siteName(c.d)}${this.panelStep(c.d)}` : c.title, cx, cy + 12, cellW);
           g.drawImage(c.cv, cx, cy + capH, cellW, cellH);
         });
         // legend
@@ -1296,7 +1334,7 @@ export class DepthEmbedding {
       check();
       gif.finish();
       const blob = new Blob([gif.bytes()], { type: "image/gif" }), a = document.createElement("a");
-      a.href = URL.createObjectURL(blob); a.download = `depth-embedding_${this.st.method}_${this.refD.net.id}_${st.step}${this.ov ? "_overlay" : ""}.gif`;
+      a.href = URL.createObjectURL(blob); a.download = `depth-embedding_${this.st.method}_${this.refD.net.id}_${this.refD.step}${D.mixedSteps ? "_ref_other-final-checkpoints" : ""}${this.ov ? "_overlay" : ""}.gif`;
       document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 60000);
       info.textContent = `saved ${a.download} (${(blob.size / 1e6).toFixed(1)} MB, ${frames.length} frames)`;
     } catch (e) { if (e.message.startsWith("cancelled")) info.textContent = `GIF export ${e.message}.`; else { console.error(e); info.textContent = "GIF export failed: " + e.message; } }

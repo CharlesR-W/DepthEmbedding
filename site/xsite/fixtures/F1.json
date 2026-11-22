@@ -1,0 +1,44 @@
+{
+  "type": "emb",
+  "schema": 1,
+  "panels": [
+    {
+      "op": "r20s0-c10-ea100",
+      "label": "r20s0-c10-ea100",
+      "R": null,
+      "stat": null
+    }
+  ],
+  "kinds": [
+    "site",
+    "source",
+    "joint"
+  ],
+  "kind": "site",
+  "site": "b6",
+  "K": 16,
+  "dims": 2,
+  "axes": "pooled:0",
+  "norm": "site",
+  "colour": {
+    "by": "class"
+  },
+  "height": 420,
+  "overlays": [
+    {
+      "set": "u8",
+      "draw": "arrows",
+      "from": "clean"
+    },
+    {
+      "set": "n8",
+      "draw": "arrows",
+      "from": "clean",
+      "style": "control"
+    }
+  ],
+  "overlayMenu": [
+    "u8",
+    "n8"
+  ]
+}

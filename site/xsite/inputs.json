@@ -1,0 +1,2337 @@
+{
+  "schema": 1,
+  "stretch": {
+    "inv_edits": {
+      "op": "r20s0-p2-pr300",
+      "producer": "invert/stage_rt.py:run (O1 bounded edit endpoints, A10 rerun)",
+      "files": {
+        "b4": {
+          "file": "data/stretch/rt_points/P2__pr300__L12/b4__K16.npz",
+          "sha256": "d69f9a7f129f56072f056254c6835913f58e22f3fd87631e4d8e84d78c05ce7d"
+        },
+        "b6": {
+          "file": "data/stretch/rt_points/P2__pr300__L12/b6__K16.npz",
+          "sha256": "32ad4504708fa69dcfcdc5e44c6fa5805f928d6c400014340c25374035f3a773"
+        }
+      }
+    }
+  },
+  "ops": {
+    "r20s0-c10-ea100": {
+      "file": "crw-depth-xp-results/x3/op_c10-s0_ea100.npz",
+      "volume": "crw-depth-xp-results:x3/op_c10-s0_ea100.npz",
+      "producer": "xp/stage_x3.py:run",
+      "net": "c10-s0",
+      "kernel": {
+        "rule": "ea",
+        "param": 100,
+        "label": "Shannon perplexity 100"
+      },
+      "chain": "full",
+      "sites": [
+        "stem",
+        "b1",
+        "b2",
+        "b3",
+        "b4",
+        "b5",
+        "b6",
+        "b7",
+        "b8",
+        "b9",
+        "pool",
+        "logits"
+      ],
+      "K": 16,
+      "probe": {
+        "id": "c10",
+        "dataset": "cifar10-test",
+        "ids_from": "crw-depth-xp-results/probes.npz:c10_idx",
+        "labels_from": "op:probe_labels",
+        "viewer": "local/data/r20s0b/probe.npz"
+      },
+      "checks": {
+        "stage_replay": "crw-depth-xp-results/x3/DONE:c10-s0_ea100_replay",
+        "max": 1e-06,
+        "logits_from": "crw-depth-xp-results/embed/c10-s0/c10/meta.npz:logits"
+      },
+      "bundle": {
+        "crw-depth-xp-results/x3/op_c10-s0_ea100.npz": "a9af0757ac8bbbf30315a5856503134b371f8dcfab201908ec05fcdede7b8b3f",
+        "local/data/r20s0b/probe.npz": "4819448905f04a5e02dcecb709b7e479007bcb0941085935652735674b7d18a0",
+        "crw-depth-xp-results/probes.npz": "d23262ab73be388b83f12936660247caf5672815054f9ac0d1661183820b44f3",
+        "crw-depth-xp-results/x3/DONE": "82016083ca027c3b32e200414791cb002f2a2da85f2c3967677d984a574467bd",
+        "crw-depth-xp-results/x3/sets.npz": "3e98c866e04c1ba3a6775fb3e36bfaf7641f43db4598dfc5908591c856b60d63",
+        "crw-depth-xp-results/embed/c10-s0/c10/meta.npz": "8148d2fe6ef9160638d1c579888c24277c379676a0c64f28075eacec5641c9ef",
+        "crw-depth-xp-results/x3/c10-s0_clean.npz": "50a15ed2f2f7fcd64339abfdf72b0cfc87db2c839ee2c97850c46cb86d28b86b",
+        "crw-depth-xp-results/x3/c10-s0_u2.npz": "008a7c5860cf7c1dc499594f747fdbaccb6df54ed9641b7feeec031df81b4b13",
+        "crw-depth-xp-results/x3/c10-s0_u8.npz": "4051a2ab38d9eb2ff5a6b0d1239fef5a7374717cff9629bab110dfcf428d15cc",
+        "crw-depth-xp-results/x3/c10-s0_t8.npz": "154a695bb347e036eae809826c9dbd0456611e2b99349324c174e6d95aced2a3",
+        "crw-depth-xp-results/x3/c10-s0_n8.npz": "1b2b7edb354b1a4c883a1148446821f40a70cad4d1efb62900f8bd915cfe1718"
+      }
+    },
+    "r20s0-c10-knn15": {
+      "file": "crw-depth-xp-results/x3/op_c10-s0_knn15.npz",
+      "volume": "crw-depth-xp-results:x3/op_c10-s0_knn15.npz",
+      "producer": "xp/stage_x3.py:run",
+      "net": "c10-s0",
+      "kernel": {
+        "rule": "knn",
+        "param": 15,
+        "label": "k-NN 15"
+      },
+      "chain": "full",
+      "sites": [
+        "stem",
+        "b1",
+        "b2",
+        "b3",
+        "b4",
+        "b5",
+        "b6",
+        "b7",
+        "b8",
+        "b9",
+        "pool",
+        "logits"
+      ],
+      "K": 16,
+      "probe": {
+        "id": "c10",
+        "dataset": "cifar10-test",
+        "ids_from": "crw-depth-xp-results/probes.npz:c10_idx",
+        "labels_from": "op:probe_labels",
+        "viewer": "local/data/r20s0b/probe.npz"
+      },
+      "checks": {
+        "stage_replay": "crw-depth-xp-results/x3/DONE:c10-s0_knn15_replay",
+        "max": 1e-06,
+        "logits_from": "crw-depth-xp-results/embed/c10-s0/c10/meta.npz:logits",
+        "viewer_modes": "local/data/r20s0b/spacetime/st_64000_0.npz"
+      },
+      "bundle": {
+        "crw-depth-xp-results/x3/op_c10-s0_knn15.npz": "860bae23f7921aee2fe995da5fc4e30913a47e0ed265a90a8254cceb01b5478c",
+        "local/data/r20s0b/probe.npz": "4819448905f04a5e02dcecb709b7e479007bcb0941085935652735674b7d18a0",
+        "crw-depth-xp-results/probes.npz": "d23262ab73be388b83f12936660247caf5672815054f9ac0d1661183820b44f3",
+        "crw-depth-xp-results/x3/DONE": "82016083ca027c3b32e200414791cb002f2a2da85f2c3967677d984a574467bd",
+        "crw-depth-xp-results/x3/sets.npz": "3e98c866e04c1ba3a6775fb3e36bfaf7641f43db4598dfc5908591c856b60d63",
+        "crw-depth-xp-results/embed/c10-s0/c10/meta.npz": "8148d2fe6ef9160638d1c579888c24277c379676a0c64f28075eacec5641c9ef",
+        "local/data/r20s0b/spacetime/st_64000_0.npz": "7e9e9b6f6448e454b58337f58c53cd12a146e043bf323007bb87d7bedffb487a",
+        "crw-depth-xp-results/x3/c10-s0_clean.npz": "50a15ed2f2f7fcd64339abfdf72b0cfc87db2c839ee2c97850c46cb86d28b86b",
+        "crw-depth-xp-results/x3/c10-s0_u2.npz": "008a7c5860cf7c1dc499594f747fdbaccb6df54ed9641b7feeec031df81b4b13",
+        "crw-depth-xp-results/x3/c10-s0_u8.npz": "4051a2ab38d9eb2ff5a6b0d1239fef5a7374717cff9629bab110dfcf428d15cc",
+        "crw-depth-xp-results/x3/c10-s0_t8.npz": "154a695bb347e036eae809826c9dbd0456611e2b99349324c174e6d95aced2a3",
+        "crw-depth-xp-results/x3/c10-s0_n8.npz": "1b2b7edb354b1a4c883a1148446821f40a70cad4d1efb62900f8bd915cfe1718"
+      }
+    },
+    "r20s0-p2-pr300": {
+      "file": "crw-depth-invert-results/joint/P2__pr300__L12/modes.npz",
+      "volume": "crw-depth-invert-results:joint/P2__pr300__L12/modes.npz",
+      "producer": "invert/modal_invert.py:joint",
+      "net": "c10-s0",
+      "kernel": {
+        "rule": "pr",
+        "param": 300,
+        "label": "Participation ratio 300"
+      },
+      "chain": "full",
+      "sites": [
+        "stem",
+        "b1",
+        "b2",
+        "b3",
+        "b4",
+        "b5",
+        "b6",
+        "b7",
+        "b8",
+        "b9",
+        "pool",
+        "logits"
+      ],
+      "K": 16,
+      "probe": {
+        "id": "P2",
+        "dataset": "cifar10-test",
+        "ids_from": "crw-depth-invert-results/splits.npz:P2",
+        "labels_from": "crw-depth-invert-results/splits.npz:labels[P2]",
+        "viewer": "local/data/r20s0b/probe.npz"
+      },
+      "checks": {},
+      "bundle": {
+        "crw-depth-invert-results/joint/P2__pr300__L12/modes.npz": "81baff9b1a01ac5c3e355457c1d662858b79aa153930b6c5875909ea57b870ae",
+        "local/data/r20s0b/probe.npz": "4819448905f04a5e02dcecb709b7e479007bcb0941085935652735674b7d18a0",
+        "crw-depth-invert-results/splits.npz": "c50a4ffb2a302e6076f98b87660264486f72d5497378225c9fd8c28d9d23b68f",
+        "crw-depth-invert-results/decode/P2__pr300__L12/stem__stem.npz": "b87d9a09e213f898bf01c483c3d132a5be3d3c86460918bc7b976d417eea4c4e",
+        "crw-depth-invert-results/decode/P2__pr300__L12/b1__b1.npz": "7eb7ebb402cb8522b9badece4e383544eb366ff69f4c050cfbe5d808e2163b63",
+        "crw-depth-invert-results/decode/P2__pr300__L12/b2__b2.npz": "8bede0d4dab767cbceb8d627dfcab1d00f9803554d1e93720ec1f413fd0dfcb8",
+        "crw-depth-invert-results/decode/P2__pr300__L12/b3__b3.npz": "b7c8487abf0c405fa4bb12ad43d627f8adb8c7ce589aa563ed4e7b42b69ce1d7",
+        "crw-depth-invert-results/decode/P2__pr300__L12/b4__b4.npz": "c447b2c7fb84836c0870daf92fb269343615ee99f7367a3d0ae26ed7edcfaa7a",
+        "crw-depth-invert-results/decode/P2__pr300__L12/b5__b5.npz": "a956529fbc5f52fc6b9ef43b79c9b7f83ecb76e3306e094ace507cf0a684dc19",
+        "crw-depth-invert-results/decode/P2__pr300__L12/b6__b6.npz": "937e3a54b91f93d1696c0adcd145a0e921324b09e5aadb3a0391da46a91d7115",
+        "crw-depth-invert-results/decode/P2__pr300__L12/b7__b7.npz": "a57732be73ad683b2ba7f97e96a794f2ab50205324684080ccbf03bd4349cb1d",
+        "crw-depth-invert-results/decode/P2__pr300__L12/b8__b8.npz": "09f36745800b4800d69e19c9c9dc9e4656567a8ca02bbc40bacac9b7d80cf3d0",
+        "crw-depth-invert-results/decode/P2__pr300__L12/b9__b9.npz": "93b829bd61df9edb882c03426aad6e1cad486b49b01e7dd6d610160a4dd1b853",
+        "crw-depth-invert-results/decode/P2__pr300__L12/pool__pool.npz": "f6c6a751be16061b6d1615e33b8f8114a4e76ce10c95e190407882dedc004d75",
+        "crw-depth-invert-results/decode/P2__pr300__L12/logits__logits.npz": "fc56366f808551147ff14792d731892baa3f49d934008fe28dcac624745d8efd",
+        "crw-depth-invert-results/joint/P2__pr300__L12/coords_H.npz": "605287657b2dd7a5be539d03f1c4506cc67bd4498c439c4f247b8669300c7020",
+        "crw-depth-invert-results/acts/c10/meta.npz": "352a987c41d08a70ed6244ff93ba0a9d21ca72ead81af552b7c0a3b7307a66e8",
+        "crw-depth-invert-results/joint/P2__pr300__L12/coords_c100.npz": "375d91a627adc0414f6fcc7f42c58d894f1071674cc71acce406c0596d176e42",
+        "crw-depth-invert-results/acts/c100/meta.npz": "6149c0919acae96fddc8b2b96613398e558d2d587596ed11909121dc93c2bf50",
+        "crw-depth-invert-results/joint/P2__pr300__L12/coords_svhn.npz": "41c43834067dc23c67191faf5c6fc2a115b8a5f12dd1aef4120828a557886f38",
+        "crw-depth-invert-results/acts/svhn/meta.npz": "b0a34b96b5b7ec2df8dfcacbb5320bcad4aa59370b697c649fd7a1723289adc9",
+        "crw-depth-invert-results/joint/P2__pr300__L12/coords_noise20.npz": "f5572784f377bee8ba80d4bf4ac5ab9bde1c5d24c93da50b82b8f94094afc6a3",
+        "crw-depth-invert-results/acts/noise20/meta.npz": "ff892ac633a905194db566c49033a96ebc3a2cae1c88253a5db6e3b83638783e",
+        "crw-depth-invert-results/joint/P2__pr300__L12/coords_pgd2.npz": "2466701f9e18fa8cfc4f1e6a234c26d994853a44532fd1f78c23515abc9e3808",
+        "crw-depth-invert-results/acts/pgd2/meta.npz": "466ae83682141532ebc0e4956825e8d6c9178fdc2271d6a61489492213c869ea",
+        "crw-depth-invert-results/joint/P2__pr300__L12/coords_pgd8.npz": "224c75dd314b484113c13de2555f75194cf3ae8a66d061cebb3cf8bbc990e8af",
+        "crw-depth-invert-results/acts/pgd8/meta.npz": "42f8cba67c9af66f3abf8afa4fe39f9296a7693eebaac024825c0b760f97e75b"
+      }
+    },
+    "r20s0-p2-ea300": {
+      "file": "crw-depth-invert-results/joint/P2__ea300__L12/modes.npz",
+      "volume": "crw-depth-invert-results:joint/P2__ea300__L12/modes.npz",
+      "producer": "invert/modal_invert.py:joint",
+      "net": "c10-s0",
+      "kernel": {
+        "rule": "ea",
+        "param": 300,
+        "label": "Shannon perplexity 300"
+      },
+      "chain": "full",
+      "sites": [
+        "stem",
+        "b1",
+        "b2",
+        "b3",
+        "b4",
+        "b5",
+        "b6",
+        "b7",
+        "b8",
+        "b9",
+        "pool",
+        "logits"
+      ],
+      "K": 16,
+      "probe": {
+        "id": "P2",
+        "dataset": "cifar10-test",
+        "ids_from": "crw-depth-invert-results/splits.npz:P2",
+        "labels_from": "crw-depth-invert-results/splits.npz:labels[P2]",
+        "viewer": "local/data/r20s0b/probe.npz"
+      },
+      "checks": {},
+      "bundle": {
+        "crw-depth-invert-results/joint/P2__ea300__L12/modes.npz": "238992248f00eb9e5f3280070f9cb24a3e3b119dec5505d30831a6627089f0a7",
+        "local/data/r20s0b/probe.npz": "4819448905f04a5e02dcecb709b7e479007bcb0941085935652735674b7d18a0",
+        "crw-depth-invert-results/splits.npz": "c50a4ffb2a302e6076f98b87660264486f72d5497378225c9fd8c28d9d23b68f"
+      }
+    },
+    "x1-anim-s0-trunk": {
+      "file": "crw-depth-xp-results/embed/anim-s0/c10/op_knn15_trunk.npz",
+      "volume": "crw-depth-xp-results:embed/anim-s0/c10/op_knn15_trunk.npz",
+      "producer": "xp/modal_xp.py:embed",
+      "net": "anim-s0",
+      "kernel": {
+        "rule": "knn",
+        "param": 15,
+        "label": "k-NN 15"
+      },
+      "chain": "trunk",
+      "sites": [
+        "stem",
+        "b1",
+        "b2",
+        "b3",
+        "b4",
+        "b5",
+        "b6",
+        "b7",
+        "b8",
+        "b9"
+      ],
+      "K": 16,
+      "probe": {
+        "id": "c10",
+        "dataset": "cifar10-test",
+        "ids_from": "crw-depth-xp-results/probes.npz:c10_idx",
+        "labels_from": "crw-depth-xp-results/embed/anim-s0/c10/meta.npz:labels",
+        "viewer": "local/data/r20s0b/probe.npz"
+      },
+      "checks": {
+        "compare": "crw-depth-xp-results/compare/c10.npz",
+        "stage_done": "crw-depth-xp-results/embed/anim-s0/c10/DONE"
+      },
+      "bundle": {
+        "crw-depth-xp-results/embed/anim-s0/c10/op_knn15_trunk.npz": "512c870560c373f7dd71907c0c36808dfd72cd9cd7ff4ab35126cc89988ade13",
+        "local/data/r20s0b/probe.npz": "4819448905f04a5e02dcecb709b7e479007bcb0941085935652735674b7d18a0",
+        "crw-depth-xp-results/probes.npz": "d23262ab73be388b83f12936660247caf5672815054f9ac0d1661183820b44f3",
+        "crw-depth-xp-results/embed/anim-s0/c10/meta.npz": "c8a8aa45a7204ed8d8ee4935de6d7385160732eb33e263a7ba871a6271987f46",
+        "crw-depth-xp-results/compare/c10.npz": "c1a5bdd8d204c999c7cd766480ff7031e3549ec24f93e3180224bb6b0976800f",
+        "crw-depth-xp-results/nets/anim-s0/info.json": "26d113549f1125de5c774080458ecc50a9d2116c2f0d86f6a50b58877fbe57d3",
+        "crw-depth-xp-results/embed/anim-s0/c10/DONE": "2527a4c82673e348cea013268b239e74d70c340cedd2057271aed5b613050c50"
+      }
+    },
+    "x1-anim-s0-full": {
+      "file": "crw-depth-xp-results/embed/anim-s0/c10/op_knn15_full.npz",
+      "volume": "crw-depth-xp-results:embed/anim-s0/c10/op_knn15_full.npz",
+      "producer": "xp/modal_xp.py:embed",
+      "net": "anim-s0",
+      "kernel": {
+        "rule": "knn",
+        "param": 15,
+        "label": "k-NN 15"
+      },
+      "chain": "full",
+      "sites": [
+        "stem",
+        "b1",
+        "b2",
+        "b3",
+        "b4",
+        "b5",
+        "b6",
+        "b7",
+        "b8",
+        "b9",
+        "pool",
+        "logits"
+      ],
+      "K": 16,
+      "probe": {
+        "id": "c10",
+        "dataset": "cifar10-test",
+        "ids_from": "crw-depth-xp-results/probes.npz:c10_idx",
+        "labels_from": "crw-depth-xp-results/embed/anim-s0/c10/meta.npz:labels",
+        "viewer": "local/data/r20s0b/probe.npz"
+      },
+      "checks": {
+        "compare": "crw-depth-xp-results/compare/c10.npz",
+        "stage_done": "crw-depth-xp-results/embed/anim-s0/c10/DONE"
+      },
+      "bundle": {
+        "crw-depth-xp-results/embed/anim-s0/c10/op_knn15_full.npz": "5febb1b2aa27a766cf9f6ecf4b919b43728a0deda16e80b685b0e9eadcd7e3aa",
+        "local/data/r20s0b/probe.npz": "4819448905f04a5e02dcecb709b7e479007bcb0941085935652735674b7d18a0",
+        "crw-depth-xp-results/probes.npz": "d23262ab73be388b83f12936660247caf5672815054f9ac0d1661183820b44f3",
+        "crw-depth-xp-results/embed/anim-s0/c10/meta.npz": "c8a8aa45a7204ed8d8ee4935de6d7385160732eb33e263a7ba871a6271987f46",
+        "crw-depth-xp-results/compare/c10.npz": "c1a5bdd8d204c999c7cd766480ff7031e3549ec24f93e3180224bb6b0976800f",
+        "crw-depth-xp-results/nets/anim-s0/info.json": "26d113549f1125de5c774080458ecc50a9d2116c2f0d86f6a50b58877fbe57d3",
+        "crw-depth-xp-results/embed/anim-s0/c10/DONE": "2527a4c82673e348cea013268b239e74d70c340cedd2057271aed5b613050c50"
+      }
+    },
+    "x1-anim-s1-trunk": {
+      "file": "crw-depth-xp-results/embed/anim-s1/c10/op_knn15_trunk.npz",
+      "volume": "crw-depth-xp-results:embed/anim-s1/c10/op_knn15_trunk.npz",
+      "producer": "xp/modal_xp.py:embed",
+      "net": "anim-s1",
+      "kernel": {
+        "rule": "knn",
+        "param": 15,
+        "label": "k-NN 15"
+      },
+      "chain": "trunk",
+      "sites": [
+        "stem",
+        "b1",
+        "b2",
+        "b3",
+        "b4",
+        "b5",
+        "b6",
+        "b7",
+        "b8",
+        "b9"
+      ],
+      "K": 16,
+      "probe": {
+        "id": "c10",
+        "dataset": "cifar10-test",
+        "ids_from": "crw-depth-xp-results/probes.npz:c10_idx",
+        "labels_from": "crw-depth-xp-results/embed/anim-s1/c10/meta.npz:labels",
+        "viewer": "local/data/r20s0b/probe.npz"
+      },
+      "checks": {
+        "compare": "crw-depth-xp-results/compare/c10.npz",
+        "stage_done": "crw-depth-xp-results/embed/anim-s1/c10/DONE"
+      },
+      "bundle": {
+        "crw-depth-xp-results/embed/anim-s1/c10/op_knn15_trunk.npz": "8082b95b2619c28871aa8d92866dcb8d6c522a1a2aff798cd6b7fafd0e755f17",
+        "local/data/r20s0b/probe.npz": "4819448905f04a5e02dcecb709b7e479007bcb0941085935652735674b7d18a0",
+        "crw-depth-xp-results/probes.npz": "d23262ab73be388b83f12936660247caf5672815054f9ac0d1661183820b44f3",
+        "crw-depth-xp-results/embed/anim-s1/c10/meta.npz": "4c5dc29caf427010e0bae5d9909ebd451c2b5a02918014e0367a7afb2c098036",
+        "crw-depth-xp-results/compare/c10.npz": "c1a5bdd8d204c999c7cd766480ff7031e3549ec24f93e3180224bb6b0976800f",
+        "crw-depth-xp-results/nets/anim-s1/info.json": "541a1fed5d55efe113d8f09902033d460b501cf73032c81ab7443ba632d67ae6",
+        "crw-depth-xp-results/embed/anim-s1/c10/DONE": "bbca1ceb054be4e7deba98baf9988ecd5800c27c7e0fbf6f91b6bad28f66757e"
+      }
+    },
+    "x1-anim-s1-full": {
+      "file": "crw-depth-xp-results/embed/anim-s1/c10/op_knn15_full.npz",
+      "volume": "crw-depth-xp-results:embed/anim-s1/c10/op_knn15_full.npz",
+      "producer": "xp/modal_xp.py:embed",
+      "net": "anim-s1",
+      "kernel": {
+        "rule": "knn",
+        "param": 15,
+        "label": "k-NN 15"
+      },
+      "chain": "full",
+      "sites": [
+        "stem",
+        "b1",
+        "b2",
+        "b3",
+        "b4",
+        "b5",
+        "b6",
+        "b7",
+        "b8",
+        "b9",
+        "pool",
+        "logits"
+      ],
+      "K": 16,
+      "probe": {
+        "id": "c10",
+        "dataset": "cifar10-test",
+        "ids_from": "crw-depth-xp-results/probes.npz:c10_idx",
+        "labels_from": "crw-depth-xp-results/embed/anim-s1/c10/meta.npz:labels",
+        "viewer": "local/data/r20s0b/probe.npz"
+      },
+      "checks": {
+        "compare": "crw-depth-xp-results/compare/c10.npz",
+        "stage_done": "crw-depth-xp-results/embed/anim-s1/c10/DONE"
+      },
+      "bundle": {
+        "crw-depth-xp-results/embed/anim-s1/c10/op_knn15_full.npz": "72c60087956bff3354220eb20a29f08b1deeae7f2acf42a76fa4dc1347dd7e07",
+        "local/data/r20s0b/probe.npz": "4819448905f04a5e02dcecb709b7e479007bcb0941085935652735674b7d18a0",
+        "crw-depth-xp-results/probes.npz": "d23262ab73be388b83f12936660247caf5672815054f9ac0d1661183820b44f3",
+        "crw-depth-xp-results/embed/anim-s1/c10/meta.npz": "4c5dc29caf427010e0bae5d9909ebd451c2b5a02918014e0367a7afb2c098036",
+        "crw-depth-xp-results/compare/c10.npz": "c1a5bdd8d204c999c7cd766480ff7031e3549ec24f93e3180224bb6b0976800f",
+        "crw-depth-xp-results/nets/anim-s1/info.json": "541a1fed5d55efe113d8f09902033d460b501cf73032c81ab7443ba632d67ae6",
+        "crw-depth-xp-results/embed/anim-s1/c10/DONE": "bbca1ceb054be4e7deba98baf9988ecd5800c27c7e0fbf6f91b6bad28f66757e"
+      }
+    },
+    "x1-c10-s0-trunk": {
+      "file": "crw-depth-xp-results/embed/c10-s0/c10/op_knn15_trunk.npz",
+      "volume": "crw-depth-xp-results:embed/c10-s0/c10/op_knn15_trunk.npz",
+      "producer": "xp/modal_xp.py:embed",
+      "net": "c10-s0",
+      "kernel": {
+        "rule": "knn",
+        "param": 15,
+        "label": "k-NN 15"
+      },
+      "chain": "trunk",
+      "sites": [
+        "stem",
+        "b1",
+        "b2",
+        "b3",
+        "b4",
+        "b5",
+        "b6",
+        "b7",
+        "b8",
+        "b9"
+      ],
+      "K": 16,
+      "probe": {
+        "id": "c10",
+        "dataset": "cifar10-test",
+        "ids_from": "crw-depth-xp-results/probes.npz:c10_idx",
+        "labels_from": "crw-depth-xp-results/embed/c10-s0/c10/meta.npz:labels",
+        "viewer": "local/data/r20s0b/probe.npz"
+      },
+      "checks": {
+        "compare": "crw-depth-xp-results/compare/c10.npz",
+        "stage_done": "crw-depth-xp-results/embed/c10-s0/c10/DONE"
+      },
+      "bundle": {
+        "crw-depth-xp-results/embed/c10-s0/c10/op_knn15_trunk.npz": "96574d0355f2dbb71ef9a7f881b671dac22799b4f6e4f5409fbfa25714ff8acd",
+        "local/data/r20s0b/probe.npz": "4819448905f04a5e02dcecb709b7e479007bcb0941085935652735674b7d18a0",
+        "crw-depth-xp-results/probes.npz": "d23262ab73be388b83f12936660247caf5672815054f9ac0d1661183820b44f3",
+        "crw-depth-xp-results/embed/c10-s0/c10/meta.npz": "8148d2fe6ef9160638d1c579888c24277c379676a0c64f28075eacec5641c9ef",
+        "crw-depth-xp-results/compare/c10.npz": "c1a5bdd8d204c999c7cd766480ff7031e3549ec24f93e3180224bb6b0976800f",
+        "local/data/r20s0b/spacetime/st_64000_0.npz": "7e9e9b6f6448e454b58337f58c53cd12a146e043bf323007bb87d7bedffb487a",
+        "crw-depth-xp-results/embed/c10-s0/c10/DONE": "ad52f0d5cf1c279ae6809d1da9147da8f0485ecd32d7c4daf031fb2d3d8ba5f5"
+      }
+    },
+    "x1-c10-s0-full": {
+      "file": "crw-depth-xp-results/embed/c10-s0/c10/op_knn15_full.npz",
+      "volume": "crw-depth-xp-results:embed/c10-s0/c10/op_knn15_full.npz",
+      "producer": "xp/modal_xp.py:embed",
+      "net": "c10-s0",
+      "kernel": {
+        "rule": "knn",
+        "param": 15,
+        "label": "k-NN 15"
+      },
+      "chain": "full",
+      "sites": [
+        "stem",
+        "b1",
+        "b2",
+        "b3",
+        "b4",
+        "b5",
+        "b6",
+        "b7",
+        "b8",
+        "b9",
+        "pool",
+        "logits"
+      ],
+      "K": 16,
+      "probe": {
+        "id": "c10",
+        "dataset": "cifar10-test",
+        "ids_from": "crw-depth-xp-results/probes.npz:c10_idx",
+        "labels_from": "crw-depth-xp-results/embed/c10-s0/c10/meta.npz:labels",
+        "viewer": "local/data/r20s0b/probe.npz"
+      },
+      "checks": {
+        "compare": "crw-depth-xp-results/compare/c10.npz",
+        "viewer_modes": "local/data/r20s0b/spacetime/st_64000_0.npz",
+        "stage_done": "crw-depth-xp-results/embed/c10-s0/c10/DONE"
+      },
+      "bundle": {
+        "crw-depth-xp-results/embed/c10-s0/c10/op_knn15_full.npz": "19f2deee9466c245332dd7641c1bae93b7c3e91b05ae3319ffdde1507ca4fab4",
+        "local/data/r20s0b/probe.npz": "4819448905f04a5e02dcecb709b7e479007bcb0941085935652735674b7d18a0",
+        "crw-depth-xp-results/probes.npz": "d23262ab73be388b83f12936660247caf5672815054f9ac0d1661183820b44f3",
+        "crw-depth-xp-results/embed/c10-s0/c10/meta.npz": "8148d2fe6ef9160638d1c579888c24277c379676a0c64f28075eacec5641c9ef",
+        "crw-depth-xp-results/compare/c10.npz": "c1a5bdd8d204c999c7cd766480ff7031e3549ec24f93e3180224bb6b0976800f",
+        "local/data/r20s0b/spacetime/st_64000_0.npz": "7e9e9b6f6448e454b58337f58c53cd12a146e043bf323007bb87d7bedffb487a",
+        "crw-depth-xp-results/embed/c10-s0/c10/DONE": "ad52f0d5cf1c279ae6809d1da9147da8f0485ecd32d7c4daf031fb2d3d8ba5f5"
+      }
+    },
+    "x1-c10-s1-trunk": {
+      "file": "crw-depth-xp-results/embed/c10-s1/c10/op_knn15_trunk.npz",
+      "volume": "crw-depth-xp-results:embed/c10-s1/c10/op_knn15_trunk.npz",
+      "producer": "xp/modal_xp.py:embed",
+      "net": "c10-s1",
+      "kernel": {
+        "rule": "knn",
+        "param": 15,
+        "label": "k-NN 15"
+      },
+      "chain": "trunk",
+      "sites": [
+        "stem",
+        "b1",
+        "b2",
+        "b3",
+        "b4",
+        "b5",
+        "b6",
+        "b7",
+        "b8",
+        "b9"
+      ],
+      "K": 16,
+      "probe": {
+        "id": "c10",
+        "dataset": "cifar10-test",
+        "ids_from": "crw-depth-xp-results/probes.npz:c10_idx",
+        "labels_from": "crw-depth-xp-results/embed/c10-s1/c10/meta.npz:labels",
+        "viewer": "local/data/r20s0b/probe.npz"
+      },
+      "checks": {
+        "compare": "crw-depth-xp-results/compare/c10.npz",
+        "stage_done": "crw-depth-xp-results/embed/c10-s1/c10/DONE"
+      },
+      "bundle": {
+        "crw-depth-xp-results/embed/c10-s1/c10/op_knn15_trunk.npz": "345b549ee3a4b15b310ba25a7bbe794d0802106f2c2c0f908094489ef33e14bf",
+        "local/data/r20s0b/probe.npz": "4819448905f04a5e02dcecb709b7e479007bcb0941085935652735674b7d18a0",
+        "crw-depth-xp-results/probes.npz": "d23262ab73be388b83f12936660247caf5672815054f9ac0d1661183820b44f3",
+        "crw-depth-xp-results/embed/c10-s1/c10/meta.npz": "c98b61de9cd4d1c1ec3e1b8e5e074c3af48ba3f7f5c9ec7af78962b36c32f871",
+        "crw-depth-xp-results/compare/c10.npz": "c1a5bdd8d204c999c7cd766480ff7031e3549ec24f93e3180224bb6b0976800f",
+        "crw-depth-xp-results/embed/c10-s1/c10/DONE": "5d7f205f891a4a22a047285dd4f8bb8542dd1a636eed0a6a510e560fc0301087"
+      }
+    },
+    "x1-c10-s1-full": {
+      "file": "crw-depth-xp-results/embed/c10-s1/c10/op_knn15_full.npz",
+      "volume": "crw-depth-xp-results:embed/c10-s1/c10/op_knn15_full.npz",
+      "producer": "xp/modal_xp.py:embed",
+      "net": "c10-s1",
+      "kernel": {
+        "rule": "knn",
+        "param": 15,
+        "label": "k-NN 15"
+      },
+      "chain": "full",
+      "sites": [
+        "stem",
+        "b1",
+        "b2",
+        "b3",
+        "b4",
+        "b5",
+        "b6",
+        "b7",
+        "b8",
+        "b9",
+        "pool",
+        "logits"
+      ],
+      "K": 16,
+      "probe": {
+        "id": "c10",
+        "dataset": "cifar10-test",
+        "ids_from": "crw-depth-xp-results/probes.npz:c10_idx",
+        "labels_from": "crw-depth-xp-results/embed/c10-s1/c10/meta.npz:labels",
+        "viewer": "local/data/r20s0b/probe.npz"
+      },
+      "checks": {
+        "compare": "crw-depth-xp-results/compare/c10.npz",
+        "stage_done": "crw-depth-xp-results/embed/c10-s1/c10/DONE"
+      },
+      "bundle": {
+        "crw-depth-xp-results/embed/c10-s1/c10/op_knn15_full.npz": "c38164e54d76cc9f71963490619b430b19a0e25f1474679dacf8fd0138b1962e",
+        "local/data/r20s0b/probe.npz": "4819448905f04a5e02dcecb709b7e479007bcb0941085935652735674b7d18a0",
+        "crw-depth-xp-results/probes.npz": "d23262ab73be388b83f12936660247caf5672815054f9ac0d1661183820b44f3",
+        "crw-depth-xp-results/embed/c10-s1/c10/meta.npz": "c98b61de9cd4d1c1ec3e1b8e5e074c3af48ba3f7f5c9ec7af78962b36c32f871",
+        "crw-depth-xp-results/compare/c10.npz": "c1a5bdd8d204c999c7cd766480ff7031e3549ec24f93e3180224bb6b0976800f",
+        "crw-depth-xp-results/embed/c10-s1/c10/DONE": "5d7f205f891a4a22a047285dd4f8bb8542dd1a636eed0a6a510e560fc0301087"
+      }
+    },
+    "x1-c100-s0-trunk": {
+      "file": "crw-depth-xp-results/embed/c100-s0/c10/op_knn15_trunk.npz",
+      "volume": "crw-depth-xp-results:embed/c100-s0/c10/op_knn15_trunk.npz",
+      "producer": "xp/modal_xp.py:embed",
+      "net": "c100-s0",
+      "kernel": {
+        "rule": "knn",
+        "param": 15,
+        "label": "k-NN 15"
+      },
+      "chain": "trunk",
+      "sites": [
+        "stem",
+        "b1",
+        "b2",
+        "b3",
+        "b4",
+        "b5",
+        "b6",
+        "b7",
+        "b8",
+        "b9"
+      ],
+      "K": 16,
+      "probe": {
+        "id": "c10",
+        "dataset": "cifar10-test",
+        "ids_from": "crw-depth-xp-results/probes.npz:c10_idx",
+        "labels_from": "crw-depth-xp-results/embed/c100-s0/c10/meta.npz:labels",
+        "viewer": "local/data/r20s0b/probe.npz"
+      },
+      "checks": {
+        "compare": "crw-depth-xp-results/compare/c10.npz",
+        "stage_done": "crw-depth-xp-results/embed/c100-s0/c10/DONE"
+      },
+      "bundle": {
+        "crw-depth-xp-results/embed/c100-s0/c10/op_knn15_trunk.npz": "abea7e4b02ec72cec5a1f8f3d89c7b74eedd1f6e3e203895454e8bba8ba014cb",
+        "local/data/r20s0b/probe.npz": "4819448905f04a5e02dcecb709b7e479007bcb0941085935652735674b7d18a0",
+        "crw-depth-xp-results/probes.npz": "d23262ab73be388b83f12936660247caf5672815054f9ac0d1661183820b44f3",
+        "crw-depth-xp-results/embed/c100-s0/c10/meta.npz": "4102fb3e59fe4f31b3e5e8b4bec72d8d30e5ea9a69bc550cb55c96e5f76e2a55",
+        "crw-depth-xp-results/compare/c10.npz": "c1a5bdd8d204c999c7cd766480ff7031e3549ec24f93e3180224bb6b0976800f",
+        "crw-depth-xp-results/nets/c100-s0/info.json": "e548eb37db9a0fd81e57ec8073174561eae0a6e7c62e82f1cdfb526b4ad579bb",
+        "crw-depth-xp-results/embed/c100-s0/c10/DONE": "9c95704b8bb017f7463471a3c8b0ebe80e76f58cd0c1a87d99c2f7160e8060fd"
+      }
+    },
+    "x1-c100-s0-full": {
+      "file": "crw-depth-xp-results/embed/c100-s0/c10/op_knn15_full.npz",
+      "volume": "crw-depth-xp-results:embed/c100-s0/c10/op_knn15_full.npz",
+      "producer": "xp/modal_xp.py:embed",
+      "net": "c100-s0",
+      "kernel": {
+        "rule": "knn",
+        "param": 15,
+        "label": "k-NN 15"
+      },
+      "chain": "full",
+      "sites": [
+        "stem",
+        "b1",
+        "b2",
+        "b3",
+        "b4",
+        "b5",
+        "b6",
+        "b7",
+        "b8",
+        "b9",
+        "pool",
+        "logits"
+      ],
+      "K": 16,
+      "probe": {
+        "id": "c10",
+        "dataset": "cifar10-test",
+        "ids_from": "crw-depth-xp-results/probes.npz:c10_idx",
+        "labels_from": "crw-depth-xp-results/embed/c100-s0/c10/meta.npz:labels",
+        "viewer": "local/data/r20s0b/probe.npz"
+      },
+      "checks": {
+        "compare": "crw-depth-xp-results/compare/c10.npz",
+        "stage_done": "crw-depth-xp-results/embed/c100-s0/c10/DONE"
+      },
+      "bundle": {
+        "crw-depth-xp-results/embed/c100-s0/c10/op_knn15_full.npz": "192222f47c0420c7e42df25572b0ae91bfba9336e42ceefef42de6dd98058bb9",
+        "local/data/r20s0b/probe.npz": "4819448905f04a5e02dcecb709b7e479007bcb0941085935652735674b7d18a0",
+        "crw-depth-xp-results/probes.npz": "d23262ab73be388b83f12936660247caf5672815054f9ac0d1661183820b44f3",
+        "crw-depth-xp-results/embed/c100-s0/c10/meta.npz": "4102fb3e59fe4f31b3e5e8b4bec72d8d30e5ea9a69bc550cb55c96e5f76e2a55",
+        "crw-depth-xp-results/compare/c10.npz": "c1a5bdd8d204c999c7cd766480ff7031e3549ec24f93e3180224bb6b0976800f",
+        "crw-depth-xp-results/nets/c100-s0/info.json": "e548eb37db9a0fd81e57ec8073174561eae0a6e7c62e82f1cdfb526b4ad579bb",
+        "crw-depth-xp-results/embed/c100-s0/c10/DONE": "9c95704b8bb017f7463471a3c8b0ebe80e76f58cd0c1a87d99c2f7160e8060fd"
+      }
+    },
+    "x1-c100-s1-trunk": {
+      "file": "crw-depth-xp-results/embed/c100-s1/c10/op_knn15_trunk.npz",
+      "volume": "crw-depth-xp-results:embed/c100-s1/c10/op_knn15_trunk.npz",
+      "producer": "xp/modal_xp.py:embed",
+      "net": "c100-s1",
+      "kernel": {
+        "rule": "knn",
+        "param": 15,
+        "label": "k-NN 15"
+      },
+      "chain": "trunk",
+      "sites": [
+        "stem",
+        "b1",
+        "b2",
+        "b3",
+        "b4",
+        "b5",
+        "b6",
+        "b7",
+        "b8",
+        "b9"
+      ],
+      "K": 16,
+      "probe": {
+        "id": "c10",
+        "dataset": "cifar10-test",
+        "ids_from": "crw-depth-xp-results/probes.npz:c10_idx",
+        "labels_from": "crw-depth-xp-results/embed/c100-s1/c10/meta.npz:labels",
+        "viewer": "local/data/r20s0b/probe.npz"
+      },
+      "checks": {
+        "compare": "crw-depth-xp-results/compare/c10.npz",
+        "stage_done": "crw-depth-xp-results/embed/c100-s1/c10/DONE"
+      },
+      "bundle": {
+        "crw-depth-xp-results/embed/c100-s1/c10/op_knn15_trunk.npz": "c421069e3a11f781c5decb30d6e475cecd6ab959c477f1b59df4f7390f4285c6",
+        "local/data/r20s0b/probe.npz": "4819448905f04a5e02dcecb709b7e479007bcb0941085935652735674b7d18a0",
+        "crw-depth-xp-results/probes.npz": "d23262ab73be388b83f12936660247caf5672815054f9ac0d1661183820b44f3",
+        "crw-depth-xp-results/embed/c100-s1/c10/meta.npz": "f9d0eec7696832060fbb37fccbe5858c6a1f41e4406aa01585ad4611b3602bac",
+        "crw-depth-xp-results/compare/c10.npz": "c1a5bdd8d204c999c7cd766480ff7031e3549ec24f93e3180224bb6b0976800f",
+        "crw-depth-xp-results/nets/c100-s1/info.json": "194fa16b48c82930665f19c5c01c43779ae7dae2bd8d38718e764a574470d1e8",
+        "crw-depth-xp-results/embed/c100-s1/c10/DONE": "1d7a66512fca58cfd23eb7516059fd4dcd930762e0620efb654b9811ae189ef0"
+      }
+    },
+    "x1-c100-s1-full": {
+      "file": "crw-depth-xp-results/embed/c100-s1/c10/op_knn15_full.npz",
+      "volume": "crw-depth-xp-results:embed/c100-s1/c10/op_knn15_full.npz",
+      "producer": "xp/modal_xp.py:embed",
+      "net": "c100-s1",
+      "kernel": {
+        "rule": "knn",
+        "param": 15,
+        "label": "k-NN 15"
+      },
+      "chain": "full",
+      "sites": [
+        "stem",
+        "b1",
+        "b2",
+        "b3",
+        "b4",
+        "b5",
+        "b6",
+        "b7",
+        "b8",
+        "b9",
+        "pool",
+        "logits"
+      ],
+      "K": 16,
+      "probe": {
+        "id": "c10",
+        "dataset": "cifar10-test",
+        "ids_from": "crw-depth-xp-results/probes.npz:c10_idx",
+        "labels_from": "crw-depth-xp-results/embed/c100-s1/c10/meta.npz:labels",
+        "viewer": "local/data/r20s0b/probe.npz"
+      },
+      "checks": {
+        "compare": "crw-depth-xp-results/compare/c10.npz",
+        "stage_done": "crw-depth-xp-results/embed/c100-s1/c10/DONE"
+      },
+      "bundle": {
+        "crw-depth-xp-results/embed/c100-s1/c10/op_knn15_full.npz": "11f89ea5eda4a19cabbefaef470f1ed4f7cfc1e4604ec7ccce4f925464f9d6d4",
+        "local/data/r20s0b/probe.npz": "4819448905f04a5e02dcecb709b7e479007bcb0941085935652735674b7d18a0",
+        "crw-depth-xp-results/probes.npz": "d23262ab73be388b83f12936660247caf5672815054f9ac0d1661183820b44f3",
+        "crw-depth-xp-results/embed/c100-s1/c10/meta.npz": "f9d0eec7696832060fbb37fccbe5858c6a1f41e4406aa01585ad4611b3602bac",
+        "crw-depth-xp-results/compare/c10.npz": "c1a5bdd8d204c999c7cd766480ff7031e3549ec24f93e3180224bb6b0976800f",
+        "crw-depth-xp-results/nets/c100-s1/info.json": "194fa16b48c82930665f19c5c01c43779ae7dae2bd8d38718e764a574470d1e8",
+        "crw-depth-xp-results/embed/c100-s1/c10/DONE": "1d7a66512fca58cfd23eb7516059fd4dcd930762e0620efb654b9811ae189ef0"
+      }
+    },
+    "x1-c100c-s0-trunk": {
+      "file": "crw-depth-xp-results/embed/c100c-s0/c10/op_knn15_trunk.npz",
+      "volume": "crw-depth-xp-results:embed/c100c-s0/c10/op_knn15_trunk.npz",
+      "producer": "xp/modal_xp.py:embed",
+      "net": "c100c-s0",
+      "kernel": {
+        "rule": "knn",
+        "param": 15,
+        "label": "k-NN 15"
+      },
+      "chain": "trunk",
+      "sites": [
+        "stem",
+        "b1",
+        "b2",
+        "b3",
+        "b4",
+        "b5",
+        "b6",
+        "b7",
+        "b8",
+        "b9"
+      ],
+      "K": 16,
+      "probe": {
+        "id": "c10",
+        "dataset": "cifar10-test",
+        "ids_from": "crw-depth-xp-results/probes.npz:c10_idx",
+        "labels_from": "crw-depth-xp-results/embed/c100c-s0/c10/meta.npz:labels",
+        "viewer": "local/data/r20s0b/probe.npz"
+      },
+      "checks": {
+        "compare": "crw-depth-xp-results/compare/c10.npz",
+        "stage_done": "crw-depth-xp-results/embed/c100c-s0/c10/DONE"
+      },
+      "bundle": {
+        "crw-depth-xp-results/embed/c100c-s0/c10/op_knn15_trunk.npz": "46894d7accf89b9dd84209975b3b5398c5024efc082232ea43d57429ba6b8b8d",
+        "local/data/r20s0b/probe.npz": "4819448905f04a5e02dcecb709b7e479007bcb0941085935652735674b7d18a0",
+        "crw-depth-xp-results/probes.npz": "d23262ab73be388b83f12936660247caf5672815054f9ac0d1661183820b44f3",
+        "crw-depth-xp-results/embed/c100c-s0/c10/meta.npz": "bad4769e3157a1bd226713584948b7cf3b042abdc9fcc8ec86245878caace6ce",
+        "crw-depth-xp-results/compare/c10.npz": "c1a5bdd8d204c999c7cd766480ff7031e3549ec24f93e3180224bb6b0976800f",
+        "crw-depth-xp-results/nets/c100c-s0/info.json": "a8db181f1968935f3b3906796124771ad2e65b90d8a5c56f5aea90d8f4cb603b",
+        "crw-depth-xp-results/embed/c100c-s0/c10/DONE": "ff18b18eba0776dd5ed59d0f1802b1cfaf6ececc7ecc145d3d78a9c613c63ced"
+      }
+    },
+    "x1-c100c-s0-full": {
+      "file": "crw-depth-xp-results/embed/c100c-s0/c10/op_knn15_full.npz",
+      "volume": "crw-depth-xp-results:embed/c100c-s0/c10/op_knn15_full.npz",
+      "producer": "xp/modal_xp.py:embed",
+      "net": "c100c-s0",
+      "kernel": {
+        "rule": "knn",
+        "param": 15,
+        "label": "k-NN 15"
+      },
+      "chain": "full",
+      "sites": [
+        "stem",
+        "b1",
+        "b2",
+        "b3",
+        "b4",
+        "b5",
+        "b6",
+        "b7",
+        "b8",
+        "b9",
+        "pool",
+        "logits"
+      ],
+      "K": 16,
+      "probe": {
+        "id": "c10",
+        "dataset": "cifar10-test",
+        "ids_from": "crw-depth-xp-results/probes.npz:c10_idx",
+        "labels_from": "crw-depth-xp-results/embed/c100c-s0/c10/meta.npz:labels",
+        "viewer": "local/data/r20s0b/probe.npz"
+      },
+      "checks": {
+        "compare": "crw-depth-xp-results/compare/c10.npz",
+        "stage_done": "crw-depth-xp-results/embed/c100c-s0/c10/DONE"
+      },
+      "bundle": {
+        "crw-depth-xp-results/embed/c100c-s0/c10/op_knn15_full.npz": "382ef3da03d0eb8a8963415e112d7b5d426c177ba7d67f810e4f651179e609de",
+        "local/data/r20s0b/probe.npz": "4819448905f04a5e02dcecb709b7e479007bcb0941085935652735674b7d18a0",
+        "crw-depth-xp-results/probes.npz": "d23262ab73be388b83f12936660247caf5672815054f9ac0d1661183820b44f3",
+        "crw-depth-xp-results/embed/c100c-s0/c10/meta.npz": "bad4769e3157a1bd226713584948b7cf3b042abdc9fcc8ec86245878caace6ce",
+        "crw-depth-xp-results/compare/c10.npz": "c1a5bdd8d204c999c7cd766480ff7031e3549ec24f93e3180224bb6b0976800f",
+        "crw-depth-xp-results/nets/c100c-s0/info.json": "a8db181f1968935f3b3906796124771ad2e65b90d8a5c56f5aea90d8f4cb603b",
+        "crw-depth-xp-results/embed/c100c-s0/c10/DONE": "ff18b18eba0776dd5ed59d0f1802b1cfaf6ececc7ecc145d3d78a9c613c63ced"
+      }
+    },
+    "x1-c100c-s1-trunk": {
+      "file": "crw-depth-xp-results/embed/c100c-s1/c10/op_knn15_trunk.npz",
+      "volume": "crw-depth-xp-results:embed/c100c-s1/c10/op_knn15_trunk.npz",
+      "producer": "xp/modal_xp.py:embed",
+      "net": "c100c-s1",
+      "kernel": {
+        "rule": "knn",
+        "param": 15,
+        "label": "k-NN 15"
+      },
+      "chain": "trunk",
+      "sites": [
+        "stem",
+        "b1",
+        "b2",
+        "b3",
+        "b4",
+        "b5",
+        "b6",
+        "b7",
+        "b8",
+        "b9"
+      ],
+      "K": 16,
+      "probe": {
+        "id": "c10",
+        "dataset": "cifar10-test",
+        "ids_from": "crw-depth-xp-results/probes.npz:c10_idx",
+        "labels_from": "crw-depth-xp-results/embed/c100c-s1/c10/meta.npz:labels",
+        "viewer": "local/data/r20s0b/probe.npz"
+      },
+      "checks": {
+        "compare": "crw-depth-xp-results/compare/c10.npz",
+        "stage_done": "crw-depth-xp-results/embed/c100c-s1/c10/DONE"
+      },
+      "bundle": {
+        "crw-depth-xp-results/embed/c100c-s1/c10/op_knn15_trunk.npz": "217bdd4e908fcfb0dc05beb207ee085e3cc9843ae8ad2f5d01eaba50b14aff5d",
+        "local/data/r20s0b/probe.npz": "4819448905f04a5e02dcecb709b7e479007bcb0941085935652735674b7d18a0",
+        "crw-depth-xp-results/probes.npz": "d23262ab73be388b83f12936660247caf5672815054f9ac0d1661183820b44f3",
+        "crw-depth-xp-results/embed/c100c-s1/c10/meta.npz": "711960048062dce028f9304b0a7ba426810494e2ca639d93d14dac8126247341",
+        "crw-depth-xp-results/compare/c10.npz": "c1a5bdd8d204c999c7cd766480ff7031e3549ec24f93e3180224bb6b0976800f",
+        "crw-depth-xp-results/nets/c100c-s1/info.json": "d87632ce2736501e6c1d480271e98c7b53467e27480ded8e3d89499ac74806ea",
+        "crw-depth-xp-results/embed/c100c-s1/c10/DONE": "e3b6f0ba7b9d70aab52e5bc600515dc1147382798d5ce61327f23ff0a1cd2e82"
+      }
+    },
+    "x1-c100c-s1-full": {
+      "file": "crw-depth-xp-results/embed/c100c-s1/c10/op_knn15_full.npz",
+      "volume": "crw-depth-xp-results:embed/c100c-s1/c10/op_knn15_full.npz",
+      "producer": "xp/modal_xp.py:embed",
+      "net": "c100c-s1",
+      "kernel": {
+        "rule": "knn",
+        "param": 15,
+        "label": "k-NN 15"
+      },
+      "chain": "full",
+      "sites": [
+        "stem",
+        "b1",
+        "b2",
+        "b3",
+        "b4",
+        "b5",
+        "b6",
+        "b7",
+        "b8",
+        "b9",
+        "pool",
+        "logits"
+      ],
+      "K": 16,
+      "probe": {
+        "id": "c10",
+        "dataset": "cifar10-test",
+        "ids_from": "crw-depth-xp-results/probes.npz:c10_idx",
+        "labels_from": "crw-depth-xp-results/embed/c100c-s1/c10/meta.npz:labels",
+        "viewer": "local/data/r20s0b/probe.npz"
+      },
+      "checks": {
+        "compare": "crw-depth-xp-results/compare/c10.npz",
+        "stage_done": "crw-depth-xp-results/embed/c100c-s1/c10/DONE"
+      },
+      "bundle": {
+        "crw-depth-xp-results/embed/c100c-s1/c10/op_knn15_full.npz": "cfac896f8bdd9cb083466f38146f249193ac626f716d6585d7165a4292cb473e",
+        "local/data/r20s0b/probe.npz": "4819448905f04a5e02dcecb709b7e479007bcb0941085935652735674b7d18a0",
+        "crw-depth-xp-results/probes.npz": "d23262ab73be388b83f12936660247caf5672815054f9ac0d1661183820b44f3",
+        "crw-depth-xp-results/embed/c100c-s1/c10/meta.npz": "711960048062dce028f9304b0a7ba426810494e2ca639d93d14dac8126247341",
+        "crw-depth-xp-results/compare/c10.npz": "c1a5bdd8d204c999c7cd766480ff7031e3549ec24f93e3180224bb6b0976800f",
+        "crw-depth-xp-results/nets/c100c-s1/info.json": "d87632ce2736501e6c1d480271e98c7b53467e27480ded8e3d89499ac74806ea",
+        "crw-depth-xp-results/embed/c100c-s1/c10/DONE": "e3b6f0ba7b9d70aab52e5bc600515dc1147382798d5ce61327f23ff0a1cd2e82"
+      }
+    },
+    "x1-c10x-s0-trunk": {
+      "file": "crw-depth-xp-results/embed/c10x-s0/c10/op_knn15_trunk.npz",
+      "volume": "crw-depth-xp-results:embed/c10x-s0/c10/op_knn15_trunk.npz",
+      "producer": "xp/modal_xp.py:embed",
+      "net": "c10x-s0",
+      "kernel": {
+        "rule": "knn",
+        "param": 15,
+        "label": "k-NN 15"
+      },
+      "chain": "trunk",
+      "sites": [
+        "stem",
+        "b1",
+        "b2",
+        "b3",
+        "b4",
+        "b5",
+        "b6",
+        "b7",
+        "b8",
+        "b9"
+      ],
+      "K": 16,
+      "probe": {
+        "id": "c10",
+        "dataset": "cifar10-test",
+        "ids_from": "crw-depth-xp-results/probes.npz:c10_idx",
+        "labels_from": "crw-depth-xp-results/embed/c10x-s0/c10/meta.npz:labels",
+        "viewer": "local/data/r20s0b/probe.npz"
+      },
+      "checks": {
+        "compare": "crw-depth-xp-results/compare/c10.npz",
+        "stage_done": "crw-depth-xp-results/embed/c10x-s0/c10/DONE"
+      },
+      "bundle": {
+        "crw-depth-xp-results/embed/c10x-s0/c10/op_knn15_trunk.npz": "5cebc3450a41c99c822bdb5ae8b54ffcfea42f4acb54a10c8e34bd9fdcbe8505",
+        "local/data/r20s0b/probe.npz": "4819448905f04a5e02dcecb709b7e479007bcb0941085935652735674b7d18a0",
+        "crw-depth-xp-results/probes.npz": "d23262ab73be388b83f12936660247caf5672815054f9ac0d1661183820b44f3",
+        "crw-depth-xp-results/embed/c10x-s0/c10/meta.npz": "2d2100b151c7cd3b64b02a440f010db6732d33f379329530b530317205a6aacd",
+        "crw-depth-xp-results/compare/c10.npz": "c1a5bdd8d204c999c7cd766480ff7031e3549ec24f93e3180224bb6b0976800f",
+        "crw-depth-xp-results/nets/c10x-s0/info.json": "65020e034fd395f5ffdae98d038b3fa4c8e9bba72b7519d4eacb792039665e1a",
+        "crw-depth-xp-results/embed/c10x-s0/c10/DONE": "056919855f48b11df56e9aab9be12314809b64c6f7c394859308a5d73c55cf4f"
+      }
+    },
+    "x1-c10x-s0-full": {
+      "file": "crw-depth-xp-results/embed/c10x-s0/c10/op_knn15_full.npz",
+      "volume": "crw-depth-xp-results:embed/c10x-s0/c10/op_knn15_full.npz",
+      "producer": "xp/modal_xp.py:embed",
+      "net": "c10x-s0",
+      "kernel": {
+        "rule": "knn",
+        "param": 15,
+        "label": "k-NN 15"
+      },
+      "chain": "full",
+      "sites": [
+        "stem",
+        "b1",
+        "b2",
+        "b3",
+        "b4",
+        "b5",
+        "b6",
+        "b7",
+        "b8",
+        "b9",
+        "pool",
+        "logits"
+      ],
+      "K": 16,
+      "probe": {
+        "id": "c10",
+        "dataset": "cifar10-test",
+        "ids_from": "crw-depth-xp-results/probes.npz:c10_idx",
+        "labels_from": "crw-depth-xp-results/embed/c10x-s0/c10/meta.npz:labels",
+        "viewer": "local/data/r20s0b/probe.npz"
+      },
+      "checks": {
+        "compare": "crw-depth-xp-results/compare/c10.npz",
+        "stage_done": "crw-depth-xp-results/embed/c10x-s0/c10/DONE"
+      },
+      "bundle": {
+        "crw-depth-xp-results/embed/c10x-s0/c10/op_knn15_full.npz": "c3636aeb2887936c41a3370b661e3b6c42505be277154ffecc5811bc383b1509",
+        "local/data/r20s0b/probe.npz": "4819448905f04a5e02dcecb709b7e479007bcb0941085935652735674b7d18a0",
+        "crw-depth-xp-results/probes.npz": "d23262ab73be388b83f12936660247caf5672815054f9ac0d1661183820b44f3",
+        "crw-depth-xp-results/embed/c10x-s0/c10/meta.npz": "2d2100b151c7cd3b64b02a440f010db6732d33f379329530b530317205a6aacd",
+        "crw-depth-xp-results/compare/c10.npz": "c1a5bdd8d204c999c7cd766480ff7031e3549ec24f93e3180224bb6b0976800f",
+        "crw-depth-xp-results/nets/c10x-s0/info.json": "65020e034fd395f5ffdae98d038b3fa4c8e9bba72b7519d4eacb792039665e1a",
+        "crw-depth-xp-results/embed/c10x-s0/c10/DONE": "056919855f48b11df56e9aab9be12314809b64c6f7c394859308a5d73c55cf4f"
+      }
+    },
+    "x1-in32-s0-trunk": {
+      "file": "crw-depth-xp-results/embed/in32-s0/c10/op_knn15_trunk.npz",
+      "volume": "crw-depth-xp-results:embed/in32-s0/c10/op_knn15_trunk.npz",
+      "producer": "xp/modal_xp.py:embed",
+      "net": "in32-s0",
+      "kernel": {
+        "rule": "knn",
+        "param": 15,
+        "label": "k-NN 15"
+      },
+      "chain": "trunk",
+      "sites": [
+        "stem",
+        "b1",
+        "b2",
+        "b3",
+        "b4",
+        "b5",
+        "b6",
+        "b7",
+        "b8",
+        "b9"
+      ],
+      "K": 16,
+      "probe": {
+        "id": "c10",
+        "dataset": "cifar10-test",
+        "ids_from": "crw-depth-xp-results/probes.npz:c10_idx",
+        "labels_from": "crw-depth-xp-results/embed/in32-s0/c10/meta.npz:labels",
+        "viewer": "local/data/r20s0b/probe.npz"
+      },
+      "checks": {
+        "compare": "crw-depth-xp-results/compare/c10.npz",
+        "stage_done": "crw-depth-xp-results/embed/in32-s0/c10/DONE"
+      },
+      "bundle": {
+        "crw-depth-xp-results/embed/in32-s0/c10/op_knn15_trunk.npz": "e82841d3935f974afea535cc6cad2caf1fc02eb706a3598c5283ba592681014e",
+        "local/data/r20s0b/probe.npz": "4819448905f04a5e02dcecb709b7e479007bcb0941085935652735674b7d18a0",
+        "crw-depth-xp-results/probes.npz": "d23262ab73be388b83f12936660247caf5672815054f9ac0d1661183820b44f3",
+        "crw-depth-xp-results/embed/in32-s0/c10/meta.npz": "131093bb7d41b37a8d8cfda41916140ee63004ab70e77c3d3a331ddc23d8d821",
+        "crw-depth-xp-results/compare/c10.npz": "c1a5bdd8d204c999c7cd766480ff7031e3549ec24f93e3180224bb6b0976800f",
+        "crw-depth-xp-results/nets/in32-s0/info.json": "330c64899678cb7b48981ec9d19b895d3ade9d9567eb02cdf3242c364815793d",
+        "crw-depth-xp-results/embed/in32-s0/c10/DONE": "52f378e8bbefd3e617dfa0ff6883444354c8a85c96a88029ca0d5ea8d21cfc95"
+      }
+    },
+    "x1-in32-s0-full": {
+      "file": "crw-depth-xp-results/embed/in32-s0/c10/op_knn15_full.npz",
+      "volume": "crw-depth-xp-results:embed/in32-s0/c10/op_knn15_full.npz",
+      "producer": "xp/modal_xp.py:embed",
+      "net": "in32-s0",
+      "kernel": {
+        "rule": "knn",
+        "param": 15,
+        "label": "k-NN 15"
+      },
+      "chain": "full",
+      "sites": [
+        "stem",
+        "b1",
+        "b2",
+        "b3",
+        "b4",
+        "b5",
+        "b6",
+        "b7",
+        "b8",
+        "b9",
+        "pool",
+        "logits"
+      ],
+      "K": 16,
+      "probe": {
+        "id": "c10",
+        "dataset": "cifar10-test",
+        "ids_from": "crw-depth-xp-results/probes.npz:c10_idx",
+        "labels_from": "crw-depth-xp-results/embed/in32-s0/c10/meta.npz:labels",
+        "viewer": "local/data/r20s0b/probe.npz"
+      },
+      "checks": {
+        "compare": "crw-depth-xp-results/compare/c10.npz",
+        "stage_done": "crw-depth-xp-results/embed/in32-s0/c10/DONE"
+      },
+      "bundle": {
+        "crw-depth-xp-results/embed/in32-s0/c10/op_knn15_full.npz": "59e6346bee97ee96c31359f124febe110375417928cb5022282a51cc45fbb526",
+        "local/data/r20s0b/probe.npz": "4819448905f04a5e02dcecb709b7e479007bcb0941085935652735674b7d18a0",
+        "crw-depth-xp-results/probes.npz": "d23262ab73be388b83f12936660247caf5672815054f9ac0d1661183820b44f3",
+        "crw-depth-xp-results/embed/in32-s0/c10/meta.npz": "131093bb7d41b37a8d8cfda41916140ee63004ab70e77c3d3a331ddc23d8d821",
+        "crw-depth-xp-results/compare/c10.npz": "c1a5bdd8d204c999c7cd766480ff7031e3549ec24f93e3180224bb6b0976800f",
+        "crw-depth-xp-results/nets/in32-s0/info.json": "330c64899678cb7b48981ec9d19b895d3ade9d9567eb02cdf3242c364815793d",
+        "crw-depth-xp-results/embed/in32-s0/c10/DONE": "52f378e8bbefd3e617dfa0ff6883444354c8a85c96a88029ca0d5ea8d21cfc95"
+      }
+    },
+    "x1-in32-s1-trunk": {
+      "file": "crw-depth-xp-results/embed/in32-s1/c10/op_knn15_trunk.npz",
+      "volume": "crw-depth-xp-results:embed/in32-s1/c10/op_knn15_trunk.npz",
+      "producer": "xp/modal_xp.py:embed",
+      "net": "in32-s1",
+      "kernel": {
+        "rule": "knn",
+        "param": 15,
+        "label": "k-NN 15"
+      },
+      "chain": "trunk",
+      "sites": [
+        "stem",
+        "b1",
+        "b2",
+        "b3",
+        "b4",
+        "b5",
+        "b6",
+        "b7",
+        "b8",
+        "b9"
+      ],
+      "K": 16,
+      "probe": {
+        "id": "c10",
+        "dataset": "cifar10-test",
+        "ids_from": "crw-depth-xp-results/probes.npz:c10_idx",
+        "labels_from": "crw-depth-xp-results/embed/in32-s1/c10/meta.npz:labels",
+        "viewer": "local/data/r20s0b/probe.npz"
+      },
+      "checks": {
+        "compare": "crw-depth-xp-results/compare/c10.npz",
+        "stage_done": "crw-depth-xp-results/embed/in32-s1/c10/DONE"
+      },
+      "bundle": {
+        "crw-depth-xp-results/embed/in32-s1/c10/op_knn15_trunk.npz": "e2671848e267440e988571312816007cda06666dd5b18aad1be7c0dc4e612ea3",
+        "local/data/r20s0b/probe.npz": "4819448905f04a5e02dcecb709b7e479007bcb0941085935652735674b7d18a0",
+        "crw-depth-xp-results/probes.npz": "d23262ab73be388b83f12936660247caf5672815054f9ac0d1661183820b44f3",
+        "crw-depth-xp-results/embed/in32-s1/c10/meta.npz": "6def7340e08896bcef968d1b790d228784efbf29e8f0dc4c6b733367d569111d",
+        "crw-depth-xp-results/compare/c10.npz": "c1a5bdd8d204c999c7cd766480ff7031e3549ec24f93e3180224bb6b0976800f",
+        "crw-depth-xp-results/nets/in32-s1/info.json": "458f33e2ba5486bffd328ed7c88f1e4f606ae87b6e4cfa50fc6d09f2712fe295",
+        "crw-depth-xp-results/embed/in32-s1/c10/DONE": "85610895ca57480beabbbc66327746ad94c11554eea4ac9cad862e7a99397959"
+      }
+    },
+    "x1-in32-s1-full": {
+      "file": "crw-depth-xp-results/embed/in32-s1/c10/op_knn15_full.npz",
+      "volume": "crw-depth-xp-results:embed/in32-s1/c10/op_knn15_full.npz",
+      "producer": "xp/modal_xp.py:embed",
+      "net": "in32-s1",
+      "kernel": {
+        "rule": "knn",
+        "param": 15,
+        "label": "k-NN 15"
+      },
+      "chain": "full",
+      "sites": [
+        "stem",
+        "b1",
+        "b2",
+        "b3",
+        "b4",
+        "b5",
+        "b6",
+        "b7",
+        "b8",
+        "b9",
+        "pool",
+        "logits"
+      ],
+      "K": 16,
+      "probe": {
+        "id": "c10",
+        "dataset": "cifar10-test",
+        "ids_from": "crw-depth-xp-results/probes.npz:c10_idx",
+        "labels_from": "crw-depth-xp-results/embed/in32-s1/c10/meta.npz:labels",
+        "viewer": "local/data/r20s0b/probe.npz"
+      },
+      "checks": {
+        "compare": "crw-depth-xp-results/compare/c10.npz",
+        "stage_done": "crw-depth-xp-results/embed/in32-s1/c10/DONE"
+      },
+      "bundle": {
+        "crw-depth-xp-results/embed/in32-s1/c10/op_knn15_full.npz": "393b93cd59d3ed3953047127899d13910d502139ccc513c3ad596e28492c30b5",
+        "local/data/r20s0b/probe.npz": "4819448905f04a5e02dcecb709b7e479007bcb0941085935652735674b7d18a0",
+        "crw-depth-xp-results/probes.npz": "d23262ab73be388b83f12936660247caf5672815054f9ac0d1661183820b44f3",
+        "crw-depth-xp-results/embed/in32-s1/c10/meta.npz": "6def7340e08896bcef968d1b790d228784efbf29e8f0dc4c6b733367d569111d",
+        "crw-depth-xp-results/compare/c10.npz": "c1a5bdd8d204c999c7cd766480ff7031e3549ec24f93e3180224bb6b0976800f",
+        "crw-depth-xp-results/nets/in32-s1/info.json": "458f33e2ba5486bffd328ed7c88f1e4f606ae87b6e4cfa50fc6d09f2712fe295",
+        "crw-depth-xp-results/embed/in32-s1/c10/DONE": "85610895ca57480beabbbc66327746ad94c11554eea4ac9cad862e7a99397959"
+      }
+    },
+    "x1-init-s0-trunk": {
+      "file": "crw-depth-xp-results/embed/init-s0/c10/op_knn15_trunk.npz",
+      "volume": "crw-depth-xp-results:embed/init-s0/c10/op_knn15_trunk.npz",
+      "producer": "xp/modal_xp.py:embed",
+      "net": "init-s0",
+      "kernel": {
+        "rule": "knn",
+        "param": 15,
+        "label": "k-NN 15"
+      },
+      "chain": "trunk",
+      "sites": [
+        "stem",
+        "b1",
+        "b2",
+        "b3",
+        "b4",
+        "b5",
+        "b6",
+        "b7",
+        "b8",
+        "b9"
+      ],
+      "K": 16,
+      "probe": {
+        "id": "c10",
+        "dataset": "cifar10-test",
+        "ids_from": "crw-depth-xp-results/probes.npz:c10_idx",
+        "labels_from": "crw-depth-xp-results/embed/init-s0/c10/meta.npz:labels",
+        "viewer": "local/data/r20s0b/probe.npz"
+      },
+      "checks": {
+        "compare": "crw-depth-xp-results/compare/c10.npz",
+        "stage_done": "crw-depth-xp-results/embed/init-s0/c10/DONE"
+      },
+      "bundle": {
+        "crw-depth-xp-results/embed/init-s0/c10/op_knn15_trunk.npz": "f828fefe58040f9ca841f7cf00544539df3891d261e6ce518a220b4722e5291b",
+        "local/data/r20s0b/probe.npz": "4819448905f04a5e02dcecb709b7e479007bcb0941085935652735674b7d18a0",
+        "crw-depth-xp-results/probes.npz": "d23262ab73be388b83f12936660247caf5672815054f9ac0d1661183820b44f3",
+        "crw-depth-xp-results/embed/init-s0/c10/meta.npz": "365fbc5ac1fafcffed681420f188b761790f39bf38369ca7ee0b0eb1242cd7af",
+        "crw-depth-xp-results/compare/c10.npz": "c1a5bdd8d204c999c7cd766480ff7031e3549ec24f93e3180224bb6b0976800f",
+        "crw-depth-xp-results/embed/init-s0/c10/DONE": "643b92699359768a0c1a5da7f5be153f7f04323b6b3f902fc56ed6a366be0419"
+      }
+    },
+    "x1-init-s0-full": {
+      "file": "crw-depth-xp-results/embed/init-s0/c10/op_knn15_full.npz",
+      "volume": "crw-depth-xp-results:embed/init-s0/c10/op_knn15_full.npz",
+      "producer": "xp/modal_xp.py:embed",
+      "net": "init-s0",
+      "kernel": {
+        "rule": "knn",
+        "param": 15,
+        "label": "k-NN 15"
+      },
+      "chain": "full",
+      "sites": [
+        "stem",
+        "b1",
+        "b2",
+        "b3",
+        "b4",
+        "b5",
+        "b6",
+        "b7",
+        "b8",
+        "b9",
+        "pool",
+        "logits"
+      ],
+      "K": 16,
+      "probe": {
+        "id": "c10",
+        "dataset": "cifar10-test",
+        "ids_from": "crw-depth-xp-results/probes.npz:c10_idx",
+        "labels_from": "crw-depth-xp-results/embed/init-s0/c10/meta.npz:labels",
+        "viewer": "local/data/r20s0b/probe.npz"
+      },
+      "checks": {
+        "compare": "crw-depth-xp-results/compare/c10.npz",
+        "stage_done": "crw-depth-xp-results/embed/init-s0/c10/DONE"
+      },
+      "bundle": {
+        "crw-depth-xp-results/embed/init-s0/c10/op_knn15_full.npz": "597d8296c8cd390dd07e3586a40440ba9a0425a29e60d8bdae34305581cb8edd",
+        "local/data/r20s0b/probe.npz": "4819448905f04a5e02dcecb709b7e479007bcb0941085935652735674b7d18a0",
+        "crw-depth-xp-results/probes.npz": "d23262ab73be388b83f12936660247caf5672815054f9ac0d1661183820b44f3",
+        "crw-depth-xp-results/embed/init-s0/c10/meta.npz": "365fbc5ac1fafcffed681420f188b761790f39bf38369ca7ee0b0eb1242cd7af",
+        "crw-depth-xp-results/compare/c10.npz": "c1a5bdd8d204c999c7cd766480ff7031e3549ec24f93e3180224bb6b0976800f",
+        "crw-depth-xp-results/embed/init-s0/c10/DONE": "643b92699359768a0c1a5da7f5be153f7f04323b6b3f902fc56ed6a366be0419"
+      }
+    },
+    "x1-init-s1-trunk": {
+      "file": "crw-depth-xp-results/embed/init-s1/c10/op_knn15_trunk.npz",
+      "volume": "crw-depth-xp-results:embed/init-s1/c10/op_knn15_trunk.npz",
+      "producer": "xp/modal_xp.py:embed",
+      "net": "init-s1",
+      "kernel": {
+        "rule": "knn",
+        "param": 15,
+        "label": "k-NN 15"
+      },
+      "chain": "trunk",
+      "sites": [
+        "stem",
+        "b1",
+        "b2",
+        "b3",
+        "b4",
+        "b5",
+        "b6",
+        "b7",
+        "b8",
+        "b9"
+      ],
+      "K": 16,
+      "probe": {
+        "id": "c10",
+        "dataset": "cifar10-test",
+        "ids_from": "crw-depth-xp-results/probes.npz:c10_idx",
+        "labels_from": "crw-depth-xp-results/embed/init-s1/c10/meta.npz:labels",
+        "viewer": "local/data/r20s0b/probe.npz"
+      },
+      "checks": {
+        "compare": "crw-depth-xp-results/compare/c10.npz",
+        "stage_done": "crw-depth-xp-results/embed/init-s1/c10/DONE"
+      },
+      "bundle": {
+        "crw-depth-xp-results/embed/init-s1/c10/op_knn15_trunk.npz": "eac749824115212ac6f8931d47f9105ab2f54c25d3f0b03b0e8c11c07170985d",
+        "local/data/r20s0b/probe.npz": "4819448905f04a5e02dcecb709b7e479007bcb0941085935652735674b7d18a0",
+        "crw-depth-xp-results/probes.npz": "d23262ab73be388b83f12936660247caf5672815054f9ac0d1661183820b44f3",
+        "crw-depth-xp-results/embed/init-s1/c10/meta.npz": "01ad25634323207bccb3647aeaa36f7671c3099c58b2941f675d7d818d51be64",
+        "crw-depth-xp-results/compare/c10.npz": "c1a5bdd8d204c999c7cd766480ff7031e3549ec24f93e3180224bb6b0976800f",
+        "crw-depth-xp-results/embed/init-s1/c10/DONE": "80c9ce934863dff15e3ec6699370112084d8b34093ab59f01d43d64f60edcc08"
+      }
+    },
+    "x1-init-s1-full": {
+      "file": "crw-depth-xp-results/embed/init-s1/c10/op_knn15_full.npz",
+      "volume": "crw-depth-xp-results:embed/init-s1/c10/op_knn15_full.npz",
+      "producer": "xp/modal_xp.py:embed",
+      "net": "init-s1",
+      "kernel": {
+        "rule": "knn",
+        "param": 15,
+        "label": "k-NN 15"
+      },
+      "chain": "full",
+      "sites": [
+        "stem",
+        "b1",
+        "b2",
+        "b3",
+        "b4",
+        "b5",
+        "b6",
+        "b7",
+        "b8",
+        "b9",
+        "pool",
+        "logits"
+      ],
+      "K": 16,
+      "probe": {
+        "id": "c10",
+        "dataset": "cifar10-test",
+        "ids_from": "crw-depth-xp-results/probes.npz:c10_idx",
+        "labels_from": "crw-depth-xp-results/embed/init-s1/c10/meta.npz:labels",
+        "viewer": "local/data/r20s0b/probe.npz"
+      },
+      "checks": {
+        "compare": "crw-depth-xp-results/compare/c10.npz",
+        "stage_done": "crw-depth-xp-results/embed/init-s1/c10/DONE"
+      },
+      "bundle": {
+        "crw-depth-xp-results/embed/init-s1/c10/op_knn15_full.npz": "5dcdf886dc1bacd12ca16ec03fcccf55a684a0953f5e73e332a7bd3bf44fd68a",
+        "local/data/r20s0b/probe.npz": "4819448905f04a5e02dcecb709b7e479007bcb0941085935652735674b7d18a0",
+        "crw-depth-xp-results/probes.npz": "d23262ab73be388b83f12936660247caf5672815054f9ac0d1661183820b44f3",
+        "crw-depth-xp-results/embed/init-s1/c10/meta.npz": "01ad25634323207bccb3647aeaa36f7671c3099c58b2941f675d7d818d51be64",
+        "crw-depth-xp-results/compare/c10.npz": "c1a5bdd8d204c999c7cd766480ff7031e3549ec24f93e3180224bb6b0976800f",
+        "crw-depth-xp-results/embed/init-s1/c10/DONE": "80c9ce934863dff15e3ec6699370112084d8b34093ab59f01d43d64f60edcc08"
+      }
+    },
+    "x1-rand-s0-trunk": {
+      "file": "crw-depth-xp-results/embed/rand-s0/c10/op_knn15_trunk.npz",
+      "volume": "crw-depth-xp-results:embed/rand-s0/c10/op_knn15_trunk.npz",
+      "producer": "xp/modal_xp.py:embed",
+      "net": "rand-s0",
+      "kernel": {
+        "rule": "knn",
+        "param": 15,
+        "label": "k-NN 15"
+      },
+      "chain": "trunk",
+      "sites": [
+        "stem",
+        "b1",
+        "b2",
+        "b3",
+        "b4",
+        "b5",
+        "b6",
+        "b7",
+        "b8",
+        "b9"
+      ],
+      "K": 16,
+      "probe": {
+        "id": "c10",
+        "dataset": "cifar10-test",
+        "ids_from": "crw-depth-xp-results/probes.npz:c10_idx",
+        "labels_from": "crw-depth-xp-results/embed/rand-s0/c10/meta.npz:labels",
+        "viewer": "local/data/r20s0b/probe.npz"
+      },
+      "checks": {
+        "compare": "crw-depth-xp-results/compare/c10.npz",
+        "stage_done": "crw-depth-xp-results/embed/rand-s0/c10/DONE"
+      },
+      "bundle": {
+        "crw-depth-xp-results/embed/rand-s0/c10/op_knn15_trunk.npz": "d75b0018fee0449c9ab3ddeb48482a6ccbcd26400d7c304d924435cbfd250934",
+        "local/data/r20s0b/probe.npz": "4819448905f04a5e02dcecb709b7e479007bcb0941085935652735674b7d18a0",
+        "crw-depth-xp-results/probes.npz": "d23262ab73be388b83f12936660247caf5672815054f9ac0d1661183820b44f3",
+        "crw-depth-xp-results/embed/rand-s0/c10/meta.npz": "cb1a414221f5ea9f2073f21a8c957c3a23e0418d741aa1dacebe19b38d023025",
+        "crw-depth-xp-results/compare/c10.npz": "c1a5bdd8d204c999c7cd766480ff7031e3549ec24f93e3180224bb6b0976800f",
+        "crw-depth-xp-results/nets/rand-s0/info.json": "38e38cd2f12d665c725eee942cc0f05ad7a782f7a2f4aedce741c9eabf5dd841",
+        "crw-depth-xp-results/embed/rand-s0/c10/DONE": "ecce4c835417fc3c2c781d15ca0ac4801768e7c2a3f8d264f6cdd37cf71f4555"
+      }
+    },
+    "x1-rand-s0-full": {
+      "file": "crw-depth-xp-results/embed/rand-s0/c10/op_knn15_full.npz",
+      "volume": "crw-depth-xp-results:embed/rand-s0/c10/op_knn15_full.npz",
+      "producer": "xp/modal_xp.py:embed",
+      "net": "rand-s0",
+      "kernel": {
+        "rule": "knn",
+        "param": 15,
+        "label": "k-NN 15"
+      },
+      "chain": "full",
+      "sites": [
+        "stem",
+        "b1",
+        "b2",
+        "b3",
+        "b4",
+        "b5",
+        "b6",
+        "b7",
+        "b8",
+        "b9",
+        "pool",
+        "logits"
+      ],
+      "K": 16,
+      "probe": {
+        "id": "c10",
+        "dataset": "cifar10-test",
+        "ids_from": "crw-depth-xp-results/probes.npz:c10_idx",
+        "labels_from": "crw-depth-xp-results/embed/rand-s0/c10/meta.npz:labels",
+        "viewer": "local/data/r20s0b/probe.npz"
+      },
+      "checks": {
+        "compare": "crw-depth-xp-results/compare/c10.npz",
+        "stage_done": "crw-depth-xp-results/embed/rand-s0/c10/DONE"
+      },
+      "bundle": {
+        "crw-depth-xp-results/embed/rand-s0/c10/op_knn15_full.npz": "b8e8b9778dfd139fb142d07187f73aa523cba4762f169f6c7d9cf1548d1ae84c",
+        "local/data/r20s0b/probe.npz": "4819448905f04a5e02dcecb709b7e479007bcb0941085935652735674b7d18a0",
+        "crw-depth-xp-results/probes.npz": "d23262ab73be388b83f12936660247caf5672815054f9ac0d1661183820b44f3",
+        "crw-depth-xp-results/embed/rand-s0/c10/meta.npz": "cb1a414221f5ea9f2073f21a8c957c3a23e0418d741aa1dacebe19b38d023025",
+        "crw-depth-xp-results/compare/c10.npz": "c1a5bdd8d204c999c7cd766480ff7031e3549ec24f93e3180224bb6b0976800f",
+        "crw-depth-xp-results/nets/rand-s0/info.json": "38e38cd2f12d665c725eee942cc0f05ad7a782f7a2f4aedce741c9eabf5dd841",
+        "crw-depth-xp-results/embed/rand-s0/c10/DONE": "ecce4c835417fc3c2c781d15ca0ac4801768e7c2a3f8d264f6cdd37cf71f4555"
+      }
+    },
+    "x1-svhn-s0-trunk": {
+      "file": "crw-depth-xp-results/embed/svhn-s0/c10/op_knn15_trunk.npz",
+      "volume": "crw-depth-xp-results:embed/svhn-s0/c10/op_knn15_trunk.npz",
+      "producer": "xp/modal_xp.py:embed",
+      "net": "svhn-s0",
+      "kernel": {
+        "rule": "knn",
+        "param": 15,
+        "label": "k-NN 15"
+      },
+      "chain": "trunk",
+      "sites": [
+        "stem",
+        "b1",
+        "b2",
+        "b3",
+        "b4",
+        "b5",
+        "b6",
+        "b7",
+        "b8",
+        "b9"
+      ],
+      "K": 16,
+      "probe": {
+        "id": "c10",
+        "dataset": "cifar10-test",
+        "ids_from": "crw-depth-xp-results/probes.npz:c10_idx",
+        "labels_from": "crw-depth-xp-results/embed/svhn-s0/c10/meta.npz:labels",
+        "viewer": "local/data/r20s0b/probe.npz"
+      },
+      "checks": {
+        "compare": "crw-depth-xp-results/compare/c10.npz",
+        "stage_done": "crw-depth-xp-results/embed/svhn-s0/c10/DONE"
+      },
+      "bundle": {
+        "crw-depth-xp-results/embed/svhn-s0/c10/op_knn15_trunk.npz": "cb12d54d95dab2399e1eeaafb9868e070b35e7ea2c9f2ac7230f1fcab3e4b8ad",
+        "local/data/r20s0b/probe.npz": "4819448905f04a5e02dcecb709b7e479007bcb0941085935652735674b7d18a0",
+        "crw-depth-xp-results/probes.npz": "d23262ab73be388b83f12936660247caf5672815054f9ac0d1661183820b44f3",
+        "crw-depth-xp-results/embed/svhn-s0/c10/meta.npz": "266c3d0091e76773abc167ec354473cef54e6f8f50094d12986ec16009fa2278",
+        "crw-depth-xp-results/compare/c10.npz": "c1a5bdd8d204c999c7cd766480ff7031e3549ec24f93e3180224bb6b0976800f",
+        "crw-depth-xp-results/nets/svhn-s0/info.json": "5beab981d75065cba9c2c33d13d912d906de518b8723c6fbefb88ee0353668fb",
+        "crw-depth-xp-results/embed/svhn-s0/c10/DONE": "d0606bf7ef6239da5ea086cb4b302985e69d2bac27ed78cd3d815b5dc596ebc8"
+      }
+    },
+    "x1-svhn-s0-full": {
+      "file": "crw-depth-xp-results/embed/svhn-s0/c10/op_knn15_full.npz",
+      "volume": "crw-depth-xp-results:embed/svhn-s0/c10/op_knn15_full.npz",
+      "producer": "xp/modal_xp.py:embed",
+      "net": "svhn-s0",
+      "kernel": {
+        "rule": "knn",
+        "param": 15,
+        "label": "k-NN 15"
+      },
+      "chain": "full",
+      "sites": [
+        "stem",
+        "b1",
+        "b2",
+        "b3",
+        "b4",
+        "b5",
+        "b6",
+        "b7",
+        "b8",
+        "b9",
+        "pool",
+        "logits"
+      ],
+      "K": 16,
+      "probe": {
+        "id": "c10",
+        "dataset": "cifar10-test",
+        "ids_from": "crw-depth-xp-results/probes.npz:c10_idx",
+        "labels_from": "crw-depth-xp-results/embed/svhn-s0/c10/meta.npz:labels",
+        "viewer": "local/data/r20s0b/probe.npz"
+      },
+      "checks": {
+        "compare": "crw-depth-xp-results/compare/c10.npz",
+        "stage_done": "crw-depth-xp-results/embed/svhn-s0/c10/DONE"
+      },
+      "bundle": {
+        "crw-depth-xp-results/embed/svhn-s0/c10/op_knn15_full.npz": "b0eff5d6a9afe27880fd2158fa7f2709538d2fa7b5154c59e2ebfc926e4df623",
+        "local/data/r20s0b/probe.npz": "4819448905f04a5e02dcecb709b7e479007bcb0941085935652735674b7d18a0",
+        "crw-depth-xp-results/probes.npz": "d23262ab73be388b83f12936660247caf5672815054f9ac0d1661183820b44f3",
+        "crw-depth-xp-results/embed/svhn-s0/c10/meta.npz": "266c3d0091e76773abc167ec354473cef54e6f8f50094d12986ec16009fa2278",
+        "crw-depth-xp-results/compare/c10.npz": "c1a5bdd8d204c999c7cd766480ff7031e3549ec24f93e3180224bb6b0976800f",
+        "crw-depth-xp-results/nets/svhn-s0/info.json": "5beab981d75065cba9c2c33d13d912d906de518b8723c6fbefb88ee0353668fb",
+        "crw-depth-xp-results/embed/svhn-s0/c10/DONE": "d0606bf7ef6239da5ea086cb4b302985e69d2bac27ed78cd3d815b5dc596ebc8"
+      }
+    },
+    "x1-svhn-s1-trunk": {
+      "file": "crw-depth-xp-results/embed/svhn-s1/c10/op_knn15_trunk.npz",
+      "volume": "crw-depth-xp-results:embed/svhn-s1/c10/op_knn15_trunk.npz",
+      "producer": "xp/modal_xp.py:embed",
+      "net": "svhn-s1",
+      "kernel": {
+        "rule": "knn",
+        "param": 15,
+        "label": "k-NN 15"
+      },
+      "chain": "trunk",
+      "sites": [
+        "stem",
+        "b1",
+        "b2",
+        "b3",
+        "b4",
+        "b5",
+        "b6",
+        "b7",
+        "b8",
+        "b9"
+      ],
+      "K": 16,
+      "probe": {
+        "id": "c10",
+        "dataset": "cifar10-test",
+        "ids_from": "crw-depth-xp-results/probes.npz:c10_idx",
+        "labels_from": "crw-depth-xp-results/embed/svhn-s1/c10/meta.npz:labels",
+        "viewer": "local/data/r20s0b/probe.npz"
+      },
+      "checks": {
+        "compare": "crw-depth-xp-results/compare/c10.npz",
+        "stage_done": "crw-depth-xp-results/embed/svhn-s1/c10/DONE"
+      },
+      "bundle": {
+        "crw-depth-xp-results/embed/svhn-s1/c10/op_knn15_trunk.npz": "8280da231fffc2d73a87f2feddb4b757009d8f2cafea2ada8515d5c4f56fe34c",
+        "local/data/r20s0b/probe.npz": "4819448905f04a5e02dcecb709b7e479007bcb0941085935652735674b7d18a0",
+        "crw-depth-xp-results/probes.npz": "d23262ab73be388b83f12936660247caf5672815054f9ac0d1661183820b44f3",
+        "crw-depth-xp-results/embed/svhn-s1/c10/meta.npz": "8dea508765b0284e4d103d5102ea476872da4369d5af8248f0efe95d4e4b509a",
+        "crw-depth-xp-results/compare/c10.npz": "c1a5bdd8d204c999c7cd766480ff7031e3549ec24f93e3180224bb6b0976800f",
+        "crw-depth-xp-results/nets/svhn-s1/info.json": "bf9a93e0be44febecd3c9bae24fad3575e0f781e3041215926d89fc02992a893",
+        "crw-depth-xp-results/embed/svhn-s1/c10/DONE": "c0799c70ef81062fb462271ac5c37fb038da9b2c62cef993d31ba137acca4ad5"
+      }
+    },
+    "x1-svhn-s1-full": {
+      "file": "crw-depth-xp-results/embed/svhn-s1/c10/op_knn15_full.npz",
+      "volume": "crw-depth-xp-results:embed/svhn-s1/c10/op_knn15_full.npz",
+      "producer": "xp/modal_xp.py:embed",
+      "net": "svhn-s1",
+      "kernel": {
+        "rule": "knn",
+        "param": 15,
+        "label": "k-NN 15"
+      },
+      "chain": "full",
+      "sites": [
+        "stem",
+        "b1",
+        "b2",
+        "b3",
+        "b4",
+        "b5",
+        "b6",
+        "b7",
+        "b8",
+        "b9",
+        "pool",
+        "logits"
+      ],
+      "K": 16,
+      "probe": {
+        "id": "c10",
+        "dataset": "cifar10-test",
+        "ids_from": "crw-depth-xp-results/probes.npz:c10_idx",
+        "labels_from": "crw-depth-xp-results/embed/svhn-s1/c10/meta.npz:labels",
+        "viewer": "local/data/r20s0b/probe.npz"
+      },
+      "checks": {
+        "compare": "crw-depth-xp-results/compare/c10.npz",
+        "stage_done": "crw-depth-xp-results/embed/svhn-s1/c10/DONE"
+      },
+      "bundle": {
+        "crw-depth-xp-results/embed/svhn-s1/c10/op_knn15_full.npz": "f0d2757572daa8feefcc385c5a00b92703a37697cef21dbd249217a766328848",
+        "local/data/r20s0b/probe.npz": "4819448905f04a5e02dcecb709b7e479007bcb0941085935652735674b7d18a0",
+        "crw-depth-xp-results/probes.npz": "d23262ab73be388b83f12936660247caf5672815054f9ac0d1661183820b44f3",
+        "crw-depth-xp-results/embed/svhn-s1/c10/meta.npz": "8dea508765b0284e4d103d5102ea476872da4369d5af8248f0efe95d4e4b509a",
+        "crw-depth-xp-results/compare/c10.npz": "c1a5bdd8d204c999c7cd766480ff7031e3549ec24f93e3180224bb6b0976800f",
+        "crw-depth-xp-results/nets/svhn-s1/info.json": "bf9a93e0be44febecd3c9bae24fad3575e0f781e3041215926d89fc02992a893",
+        "crw-depth-xp-results/embed/svhn-s1/c10/DONE": "c0799c70ef81062fb462271ac5c37fb038da9b2c62cef993d31ba137acca4ad5"
+      }
+    },
+    "x1-veh-s0-trunk": {
+      "file": "crw-depth-xp-results/embed/veh-s0/c10/op_knn15_trunk.npz",
+      "volume": "crw-depth-xp-results:embed/veh-s0/c10/op_knn15_trunk.npz",
+      "producer": "xp/modal_xp.py:embed",
+      "net": "veh-s0",
+      "kernel": {
+        "rule": "knn",
+        "param": 15,
+        "label": "k-NN 15"
+      },
+      "chain": "trunk",
+      "sites": [
+        "stem",
+        "b1",
+        "b2",
+        "b3",
+        "b4",
+        "b5",
+        "b6",
+        "b7",
+        "b8",
+        "b9"
+      ],
+      "K": 16,
+      "probe": {
+        "id": "c10",
+        "dataset": "cifar10-test",
+        "ids_from": "crw-depth-xp-results/probes.npz:c10_idx",
+        "labels_from": "crw-depth-xp-results/embed/veh-s0/c10/meta.npz:labels",
+        "viewer": "local/data/r20s0b/probe.npz"
+      },
+      "checks": {
+        "compare": "crw-depth-xp-results/compare/c10.npz",
+        "stage_done": "crw-depth-xp-results/embed/veh-s0/c10/DONE"
+      },
+      "bundle": {
+        "crw-depth-xp-results/embed/veh-s0/c10/op_knn15_trunk.npz": "90c40a5eb264e77bd74da59415cb38f31fb02f80c704572c494d0c0acc2f1487",
+        "local/data/r20s0b/probe.npz": "4819448905f04a5e02dcecb709b7e479007bcb0941085935652735674b7d18a0",
+        "crw-depth-xp-results/probes.npz": "d23262ab73be388b83f12936660247caf5672815054f9ac0d1661183820b44f3",
+        "crw-depth-xp-results/embed/veh-s0/c10/meta.npz": "680be7373c64635c10a1a00c0463999aef81b7a7a3dd8dc5f2342f00d3d6eaf0",
+        "crw-depth-xp-results/compare/c10.npz": "c1a5bdd8d204c999c7cd766480ff7031e3549ec24f93e3180224bb6b0976800f",
+        "crw-depth-xp-results/nets/veh-s0/info.json": "32cb813c375400a449ab48fcf172dff044134d472267df92a286a2f41bc8627c",
+        "crw-depth-xp-results/embed/veh-s0/c10/DONE": "62e3ed8e3c3d2510623bdeed30b5d2413c4c363d561de8ea817d72a414bf3d14"
+      }
+    },
+    "x1-veh-s0-full": {
+      "file": "crw-depth-xp-results/embed/veh-s0/c10/op_knn15_full.npz",
+      "volume": "crw-depth-xp-results:embed/veh-s0/c10/op_knn15_full.npz",
+      "producer": "xp/modal_xp.py:embed",
+      "net": "veh-s0",
+      "kernel": {
+        "rule": "knn",
+        "param": 15,
+        "label": "k-NN 15"
+      },
+      "chain": "full",
+      "sites": [
+        "stem",
+        "b1",
+        "b2",
+        "b3",
+        "b4",
+        "b5",
+        "b6",
+        "b7",
+        "b8",
+        "b9",
+        "pool",
+        "logits"
+      ],
+      "K": 16,
+      "probe": {
+        "id": "c10",
+        "dataset": "cifar10-test",
+        "ids_from": "crw-depth-xp-results/probes.npz:c10_idx",
+        "labels_from": "crw-depth-xp-results/embed/veh-s0/c10/meta.npz:labels",
+        "viewer": "local/data/r20s0b/probe.npz"
+      },
+      "checks": {
+        "compare": "crw-depth-xp-results/compare/c10.npz",
+        "stage_done": "crw-depth-xp-results/embed/veh-s0/c10/DONE"
+      },
+      "bundle": {
+        "crw-depth-xp-results/embed/veh-s0/c10/op_knn15_full.npz": "0877c0716f63ee33a385a1c8c6a8249945f294ff8b6f0db38f17ebe303775de5",
+        "local/data/r20s0b/probe.npz": "4819448905f04a5e02dcecb709b7e479007bcb0941085935652735674b7d18a0",
+        "crw-depth-xp-results/probes.npz": "d23262ab73be388b83f12936660247caf5672815054f9ac0d1661183820b44f3",
+        "crw-depth-xp-results/embed/veh-s0/c10/meta.npz": "680be7373c64635c10a1a00c0463999aef81b7a7a3dd8dc5f2342f00d3d6eaf0",
+        "crw-depth-xp-results/compare/c10.npz": "c1a5bdd8d204c999c7cd766480ff7031e3549ec24f93e3180224bb6b0976800f",
+        "crw-depth-xp-results/nets/veh-s0/info.json": "32cb813c375400a449ab48fcf172dff044134d472267df92a286a2f41bc8627c",
+        "crw-depth-xp-results/embed/veh-s0/c10/DONE": "62e3ed8e3c3d2510623bdeed30b5d2413c4c363d561de8ea817d72a414bf3d14"
+      }
+    },
+    "x1-veh-s1-trunk": {
+      "file": "crw-depth-xp-results/embed/veh-s1/c10/op_knn15_trunk.npz",
+      "volume": "crw-depth-xp-results:embed/veh-s1/c10/op_knn15_trunk.npz",
+      "producer": "xp/modal_xp.py:embed",
+      "net": "veh-s1",
+      "kernel": {
+        "rule": "knn",
+        "param": 15,
+        "label": "k-NN 15"
+      },
+      "chain": "trunk",
+      "sites": [
+        "stem",
+        "b1",
+        "b2",
+        "b3",
+        "b4",
+        "b5",
+        "b6",
+        "b7",
+        "b8",
+        "b9"
+      ],
+      "K": 16,
+      "probe": {
+        "id": "c10",
+        "dataset": "cifar10-test",
+        "ids_from": "crw-depth-xp-results/probes.npz:c10_idx",
+        "labels_from": "crw-depth-xp-results/embed/veh-s1/c10/meta.npz:labels",
+        "viewer": "local/data/r20s0b/probe.npz"
+      },
+      "checks": {
+        "compare": "crw-depth-xp-results/compare/c10.npz",
+        "stage_done": "crw-depth-xp-results/embed/veh-s1/c10/DONE"
+      },
+      "bundle": {
+        "crw-depth-xp-results/embed/veh-s1/c10/op_knn15_trunk.npz": "c49133e77117f09656a6616333ecc58e389a2bc18b9b5a3fff466501d8c63458",
+        "local/data/r20s0b/probe.npz": "4819448905f04a5e02dcecb709b7e479007bcb0941085935652735674b7d18a0",
+        "crw-depth-xp-results/probes.npz": "d23262ab73be388b83f12936660247caf5672815054f9ac0d1661183820b44f3",
+        "crw-depth-xp-results/embed/veh-s1/c10/meta.npz": "1c77d3cb5c799342027eedfb4c29674fb61993b4546095d358b4f6554ff0f959",
+        "crw-depth-xp-results/compare/c10.npz": "c1a5bdd8d204c999c7cd766480ff7031e3549ec24f93e3180224bb6b0976800f",
+        "crw-depth-xp-results/nets/veh-s1/info.json": "f68ba624d0e9eab9afbf3f40d5a22aa07daa0cc095ab1dc34b7e3bc94ec3aec9",
+        "crw-depth-xp-results/embed/veh-s1/c10/DONE": "7624a858bed866b0c8f5858de8232a35237f3d2115df5cf624c74002296ffa3d"
+      }
+    },
+    "x1-veh-s1-full": {
+      "file": "crw-depth-xp-results/embed/veh-s1/c10/op_knn15_full.npz",
+      "volume": "crw-depth-xp-results:embed/veh-s1/c10/op_knn15_full.npz",
+      "producer": "xp/modal_xp.py:embed",
+      "net": "veh-s1",
+      "kernel": {
+        "rule": "knn",
+        "param": 15,
+        "label": "k-NN 15"
+      },
+      "chain": "full",
+      "sites": [
+        "stem",
+        "b1",
+        "b2",
+        "b3",
+        "b4",
+        "b5",
+        "b6",
+        "b7",
+        "b8",
+        "b9",
+        "pool",
+        "logits"
+      ],
+      "K": 16,
+      "probe": {
+        "id": "c10",
+        "dataset": "cifar10-test",
+        "ids_from": "crw-depth-xp-results/probes.npz:c10_idx",
+        "labels_from": "crw-depth-xp-results/embed/veh-s1/c10/meta.npz:labels",
+        "viewer": "local/data/r20s0b/probe.npz"
+      },
+      "checks": {
+        "compare": "crw-depth-xp-results/compare/c10.npz",
+        "stage_done": "crw-depth-xp-results/embed/veh-s1/c10/DONE"
+      },
+      "bundle": {
+        "crw-depth-xp-results/embed/veh-s1/c10/op_knn15_full.npz": "44c256c715ad2bd57e16a121adc31008a35577ebff292b4b7fca067c8fbbd12b",
+        "local/data/r20s0b/probe.npz": "4819448905f04a5e02dcecb709b7e479007bcb0941085935652735674b7d18a0",
+        "crw-depth-xp-results/probes.npz": "d23262ab73be388b83f12936660247caf5672815054f9ac0d1661183820b44f3",
+        "crw-depth-xp-results/embed/veh-s1/c10/meta.npz": "1c77d3cb5c799342027eedfb4c29674fb61993b4546095d358b4f6554ff0f959",
+        "crw-depth-xp-results/compare/c10.npz": "c1a5bdd8d204c999c7cd766480ff7031e3549ec24f93e3180224bb6b0976800f",
+        "crw-depth-xp-results/nets/veh-s1/info.json": "f68ba624d0e9eab9afbf3f40d5a22aa07daa0cc095ab1dc34b7e3bc94ec3aec9",
+        "crw-depth-xp-results/embed/veh-s1/c10/DONE": "7624a858bed866b0c8f5858de8232a35237f3d2115df5cf624c74002296ffa3d"
+      }
+    },
+    "x4-pixels-suffix": {
+      "file": "crw-depth-xp-results/x4/paths_pixels.npz",
+      "volume": "crw-depth-xp-results:x4/paths_pixels.npz",
+      "producer": "xp/stage_x4.py:run_paths",
+      "net": "c10-s0",
+      "kernel": {
+        "rule": "ea",
+        "param": 100,
+        "label": "Shannon perplexity 100"
+      },
+      "chain": "suffix",
+      "sites": [
+        "stem",
+        "b1",
+        "b2",
+        "b3",
+        "b4",
+        "b5",
+        "b6",
+        "b7",
+        "b8",
+        "b9",
+        "pool",
+        "logits"
+      ],
+      "K": 16,
+      "probe": {
+        "id": "c10",
+        "dataset": "cifar10-test",
+        "ids_from": "op:probe_idx",
+        "labels_from": "op:probe_labels",
+        "viewer": "local/data/r20s0b/probe.npz"
+      },
+      "checks": {
+        "replay_err_max": 1e-06,
+        "endpoint_err_max": 1e-06,
+        "pairs_file": "crw-depth-xp-results/x4/pairs.npz",
+        "equal_vals_to": "r20s0-c10-ea100",
+        "equal_vals_atol": 1e-12
+      },
+      "bundle": {
+        "crw-depth-xp-results/x4/paths_pixels.npz": "98575a2734e8e852076c96a59946bdcd4089ebda56a6fa5f56f80475c4ccdfcb",
+        "local/data/r20s0b/probe.npz": "4819448905f04a5e02dcecb709b7e479007bcb0941085935652735674b7d18a0",
+        "crw-depth-xp-results/x4/pairs.npz": "99d0ed300a28bb736f6be3d8e6493c4255693fec7afa9c32f722ba631e9a009d",
+        "crw-depth-xp-results/x4/checks.json": "192525f6a267d9f74b158eed289865a92531b39a99ebf94b2ea47b17f926b973",
+        "crw-depth-xp-results/x3/op_c10-s0_ea100.npz": "a9af0757ac8bbbf30315a5856503134b371f8dcfab201908ec05fcdede7b8b3f"
+      }
+    },
+    "x4-b3-suffix": {
+      "file": "crw-depth-xp-results/x4/paths_b3.npz",
+      "volume": "crw-depth-xp-results:x4/paths_b3.npz",
+      "producer": "xp/stage_x4.py:run_paths",
+      "net": "c10-s0",
+      "kernel": {
+        "rule": "ea",
+        "param": 100,
+        "label": "Shannon perplexity 100"
+      },
+      "chain": "suffix",
+      "sites": [
+        "b3",
+        "b4",
+        "b5",
+        "b6",
+        "b7",
+        "b8",
+        "b9",
+        "pool",
+        "logits"
+      ],
+      "K": 16,
+      "probe": {
+        "id": "c10",
+        "dataset": "cifar10-test",
+        "ids_from": "op:probe_idx",
+        "labels_from": "op:probe_labels",
+        "viewer": "local/data/r20s0b/probe.npz"
+      },
+      "checks": {
+        "replay_err_max": 1e-06,
+        "endpoint_err_max": 1e-06,
+        "pairs_file": "crw-depth-xp-results/x4/pairs.npz"
+      },
+      "bundle": {
+        "crw-depth-xp-results/x4/paths_b3.npz": "3e40367d7ec27c7496a92754a4d5bddd8f0b4159bc09f7b1e5a1e9457d56eb26",
+        "local/data/r20s0b/probe.npz": "4819448905f04a5e02dcecb709b7e479007bcb0941085935652735674b7d18a0",
+        "crw-depth-xp-results/x4/pairs.npz": "99d0ed300a28bb736f6be3d8e6493c4255693fec7afa9c32f722ba631e9a009d",
+        "crw-depth-xp-results/x4/checks.json": "192525f6a267d9f74b158eed289865a92531b39a99ebf94b2ea47b17f926b973"
+      }
+    },
+    "x4-b6-suffix": {
+      "file": "crw-depth-xp-results/x4/paths_b6.npz",
+      "volume": "crw-depth-xp-results:x4/paths_b6.npz",
+      "producer": "xp/stage_x4.py:run_paths",
+      "net": "c10-s0",
+      "kernel": {
+        "rule": "ea",
+        "param": 100,
+        "label": "Shannon perplexity 100"
+      },
+      "chain": "suffix",
+      "sites": [
+        "b6",
+        "b7",
+        "b8",
+        "b9",
+        "pool",
+        "logits"
+      ],
+      "K": 16,
+      "probe": {
+        "id": "c10",
+        "dataset": "cifar10-test",
+        "ids_from": "op:probe_idx",
+        "labels_from": "op:probe_labels",
+        "viewer": "local/data/r20s0b/probe.npz"
+      },
+      "checks": {
+        "replay_err_max": 1e-06,
+        "endpoint_err_max": 1e-06,
+        "pairs_file": "crw-depth-xp-results/x4/pairs.npz"
+      },
+      "bundle": {
+        "crw-depth-xp-results/x4/paths_b6.npz": "a7eb15d982c143688b9540e5bceadb0ee57d463f9ab35596d2ae5adbb59d5f00",
+        "local/data/r20s0b/probe.npz": "4819448905f04a5e02dcecb709b7e479007bcb0941085935652735674b7d18a0",
+        "crw-depth-xp-results/x4/pairs.npz": "99d0ed300a28bb736f6be3d8e6493c4255693fec7afa9c32f722ba631e9a009d",
+        "crw-depth-xp-results/x4/checks.json": "192525f6a267d9f74b158eed289865a92531b39a99ebf94b2ea47b17f926b973"
+      }
+    },
+    "x4-b9-suffix": {
+      "file": "crw-depth-xp-results/x4/paths_b9.npz",
+      "volume": "crw-depth-xp-results:x4/paths_b9.npz",
+      "producer": "xp/stage_x4.py:run_paths",
+      "net": "c10-s0",
+      "kernel": {
+        "rule": "ea",
+        "param": 100,
+        "label": "Shannon perplexity 100"
+      },
+      "chain": "suffix",
+      "sites": [
+        "b9",
+        "pool",
+        "logits"
+      ],
+      "K": 16,
+      "probe": {
+        "id": "c10",
+        "dataset": "cifar10-test",
+        "ids_from": "op:probe_idx",
+        "labels_from": "op:probe_labels",
+        "viewer": "local/data/r20s0b/probe.npz"
+      },
+      "checks": {
+        "replay_err_max": 1e-06,
+        "endpoint_err_max": 1e-06,
+        "pairs_file": "crw-depth-xp-results/x4/pairs.npz"
+      },
+      "bundle": {
+        "crw-depth-xp-results/x4/paths_b9.npz": "20b296d257d15bd14a63517ed5e6349935cd65aa954b72c71962f3bfe59d4d69",
+        "local/data/r20s0b/probe.npz": "4819448905f04a5e02dcecb709b7e479007bcb0941085935652735674b7d18a0",
+        "crw-depth-xp-results/x4/pairs.npz": "99d0ed300a28bb736f6be3d8e6493c4255693fec7afa9c32f722ba631e9a009d",
+        "crw-depth-xp-results/x4/checks.json": "192525f6a267d9f74b158eed289865a92531b39a99ebf94b2ea47b17f926b973"
+      }
+    }
+  },
+  "overlays": {
+    "r20s0-c10-ea100/clean": {
+      "op": "r20s0-c10-ea100",
+      "file": "crw-depth-xp-results/x3/c10-s0_clean.npz",
+      "keys": {
+        "joint": "ea100_y",
+        "site": "ea100_site_y"
+      },
+      "lineage": "same stage_x3 run as the operator (x3/DONE)",
+      "images": {
+        "dataset": "cifar10-test",
+        "ids_from": "crw-depth-xp-results/x3/sets.npz:S"
+      },
+      "pairs": null
+    },
+    "r20s0-c10-ea100/u2": {
+      "op": "r20s0-c10-ea100",
+      "file": "crw-depth-xp-results/x3/c10-s0_u2.npz",
+      "keys": {
+        "joint": "ea100_y",
+        "site": "ea100_site_y"
+      },
+      "lineage": "same stage_x3 run as the operator (x3/DONE)",
+      "images": {
+        "dataset": "cifar10-test",
+        "ids_from": "crw-depth-xp-results/x3/sets.npz:S"
+      },
+      "pairs": "clean"
+    },
+    "r20s0-c10-ea100/u8": {
+      "op": "r20s0-c10-ea100",
+      "file": "crw-depth-xp-results/x3/c10-s0_u8.npz",
+      "keys": {
+        "joint": "ea100_y",
+        "site": "ea100_site_y"
+      },
+      "lineage": "same stage_x3 run as the operator (x3/DONE)",
+      "images": {
+        "dataset": "cifar10-test",
+        "ids_from": "crw-depth-xp-results/x3/sets.npz:S"
+      },
+      "pairs": "clean"
+    },
+    "r20s0-c10-ea100/t8": {
+      "op": "r20s0-c10-ea100",
+      "file": "crw-depth-xp-results/x3/c10-s0_t8.npz",
+      "keys": {
+        "joint": "ea100_y",
+        "site": "ea100_site_y"
+      },
+      "lineage": "same stage_x3 run as the operator (x3/DONE)",
+      "images": {
+        "dataset": "cifar10-test",
+        "ids_from": "crw-depth-xp-results/x3/sets.npz:S"
+      },
+      "pairs": "clean"
+    },
+    "r20s0-c10-ea100/n8": {
+      "op": "r20s0-c10-ea100",
+      "file": "crw-depth-xp-results/x3/c10-s0_n8.npz",
+      "keys": {
+        "joint": "ea100_y",
+        "site": "ea100_site_y"
+      },
+      "lineage": "same stage_x3 run as the operator (x3/DONE)",
+      "images": {
+        "dataset": "cifar10-test",
+        "ids_from": "crw-depth-xp-results/x3/sets.npz:S"
+      },
+      "pairs": "clean"
+    },
+    "r20s0-c10-knn15/clean": {
+      "op": "r20s0-c10-knn15",
+      "file": "crw-depth-xp-results/x3/c10-s0_clean.npz",
+      "keys": {
+        "joint": "knn15_y",
+        "site": "knn15_site_y"
+      },
+      "lineage": "same stage_x3 run as the operator (x3/DONE)",
+      "images": {
+        "dataset": "cifar10-test",
+        "ids_from": "crw-depth-xp-results/x3/sets.npz:S"
+      },
+      "pairs": null
+    },
+    "r20s0-c10-knn15/u2": {
+      "op": "r20s0-c10-knn15",
+      "file": "crw-depth-xp-results/x3/c10-s0_u2.npz",
+      "keys": {
+        "joint": "knn15_y",
+        "site": "knn15_site_y"
+      },
+      "lineage": "same stage_x3 run as the operator (x3/DONE)",
+      "images": {
+        "dataset": "cifar10-test",
+        "ids_from": "crw-depth-xp-results/x3/sets.npz:S"
+      },
+      "pairs": "clean"
+    },
+    "r20s0-c10-knn15/u8": {
+      "op": "r20s0-c10-knn15",
+      "file": "crw-depth-xp-results/x3/c10-s0_u8.npz",
+      "keys": {
+        "joint": "knn15_y",
+        "site": "knn15_site_y"
+      },
+      "lineage": "same stage_x3 run as the operator (x3/DONE)",
+      "images": {
+        "dataset": "cifar10-test",
+        "ids_from": "crw-depth-xp-results/x3/sets.npz:S"
+      },
+      "pairs": "clean"
+    },
+    "r20s0-c10-knn15/t8": {
+      "op": "r20s0-c10-knn15",
+      "file": "crw-depth-xp-results/x3/c10-s0_t8.npz",
+      "keys": {
+        "joint": "knn15_y",
+        "site": "knn15_site_y"
+      },
+      "lineage": "same stage_x3 run as the operator (x3/DONE)",
+      "images": {
+        "dataset": "cifar10-test",
+        "ids_from": "crw-depth-xp-results/x3/sets.npz:S"
+      },
+      "pairs": "clean"
+    },
+    "r20s0-c10-knn15/n8": {
+      "op": "r20s0-c10-knn15",
+      "file": "crw-depth-xp-results/x3/c10-s0_n8.npz",
+      "keys": {
+        "joint": "knn15_y",
+        "site": "knn15_site_y"
+      },
+      "lineage": "same stage_x3 run as the operator (x3/DONE)",
+      "images": {
+        "dataset": "cifar10-test",
+        "ids_from": "crw-depth-xp-results/x3/sets.npz:S"
+      },
+      "pairs": "clean"
+    },
+    "r20s0-p2-pr300/H": {
+      "op": "r20s0-p2-pr300",
+      "file": "crw-depth-invert-results/joint/P2__pr300__L12/coords_H.npz",
+      "keys": {
+        "joint": "y",
+        "source": "onestep"
+      },
+      "lineage": "same joint stage, checked against pinned raw modes and one-step source equation",
+      "images": {
+        "dataset": "cifar10-test",
+        "ids_from": "crw-depth-invert-results/splits.npz:H",
+        "meta": "crw-depth-invert-results/acts/c10/meta.npz"
+      },
+      "pairs": null
+    },
+    "r20s0-p2-pr300/c100": {
+      "op": "r20s0-p2-pr300",
+      "file": "crw-depth-invert-results/joint/P2__pr300__L12/coords_c100.npz",
+      "keys": {
+        "joint": "y",
+        "source": "onestep"
+      },
+      "lineage": "same joint stage, checked against pinned raw modes and one-step source equation",
+      "images": {
+        "dataset": "cifar100-test",
+        "ids_from": "test-list positions 0..1999 (first 2000 images)",
+        "meta": "crw-depth-invert-results/acts/c100/meta.npz"
+      },
+      "pairs": null
+    },
+    "r20s0-p2-pr300/svhn": {
+      "op": "r20s0-p2-pr300",
+      "file": "crw-depth-invert-results/joint/P2__pr300__L12/coords_svhn.npz",
+      "keys": {
+        "joint": "y",
+        "source": "onestep"
+      },
+      "lineage": "same joint stage, checked against pinned raw modes and one-step source equation",
+      "images": {
+        "dataset": "svhn-test",
+        "ids_from": "test-list positions 0..1999 (first 2000 images)",
+        "meta": "crw-depth-invert-results/acts/svhn/meta.npz"
+      },
+      "pairs": null
+    },
+    "r20s0-p2-pr300/noise20": {
+      "op": "r20s0-p2-pr300",
+      "file": "crw-depth-invert-results/joint/P2__pr300__L12/coords_noise20.npz",
+      "keys": {
+        "joint": "y",
+        "source": "onestep"
+      },
+      "lineage": "same joint stage, checked against pinned raw modes and one-step source equation",
+      "images": {
+        "dataset": "cifar10-test",
+        "ids_from": "crw-depth-invert-results/splits.npz:H",
+        "meta": "crw-depth-invert-results/acts/noise20/meta.npz"
+      },
+      "pairs": null
+    },
+    "r20s0-p2-pr300/pgd2": {
+      "op": "r20s0-p2-pr300",
+      "file": "crw-depth-invert-results/joint/P2__pr300__L12/coords_pgd2.npz",
+      "keys": {
+        "joint": "y",
+        "source": "onestep"
+      },
+      "lineage": "same joint stage, checked against pinned raw modes and one-step source equation",
+      "images": {
+        "dataset": "cifar10-test",
+        "ids_from": "crw-depth-invert-results/splits.npz:H[:1000]",
+        "meta": "crw-depth-invert-results/acts/pgd2/meta.npz"
+      },
+      "pairs": "H"
+    },
+    "r20s0-p2-pr300/pgd8": {
+      "op": "r20s0-p2-pr300",
+      "file": "crw-depth-invert-results/joint/P2__pr300__L12/coords_pgd8.npz",
+      "keys": {
+        "joint": "y",
+        "source": "onestep"
+      },
+      "lineage": "same joint stage, checked against pinned raw modes and one-step source equation",
+      "images": {
+        "dataset": "cifar10-test",
+        "ids_from": "crw-depth-invert-results/splits.npz:H[:1000]",
+        "meta": "crw-depth-invert-results/acts/pgd8/meta.npz"
+      },
+      "pairs": "H"
+    }
+  },
+  "paths": {
+    "x4-pixels-suffix/x4-pixels-paths": {
+      "op": "x4-pixels-suffix",
+      "file": "crw-depth-xp-results/x4/paths_pixels.npz",
+      "keys": {
+        "joint": "emb_y",
+        "site": "emb_site_y"
+      },
+      "lineage": "paths and probe modes saved together",
+      "images": {
+        "dataset": "cifar10-test",
+        "ids_from": "path:pair_idx",
+        "pairs_file": "crw-depth-xp-results/x4/pairs.npz"
+      }
+    },
+    "x4-b3-suffix/x4-b3-paths": {
+      "op": "x4-b3-suffix",
+      "file": "crw-depth-xp-results/x4/paths_b3.npz",
+      "keys": {
+        "joint": "emb_y",
+        "site": "emb_site_y"
+      },
+      "lineage": "paths and probe modes saved together",
+      "images": {
+        "dataset": "cifar10-test",
+        "ids_from": "path:pair_idx",
+        "pairs_file": "crw-depth-xp-results/x4/pairs.npz"
+      }
+    },
+    "x4-b6-suffix/x4-b6-paths": {
+      "op": "x4-b6-suffix",
+      "file": "crw-depth-xp-results/x4/paths_b6.npz",
+      "keys": {
+        "joint": "emb_y",
+        "site": "emb_site_y"
+      },
+      "lineage": "paths and probe modes saved together",
+      "images": {
+        "dataset": "cifar10-test",
+        "ids_from": "path:pair_idx",
+        "pairs_file": "crw-depth-xp-results/x4/pairs.npz"
+      }
+    },
+    "x4-b9-suffix/x4-b9-paths": {
+      "op": "x4-b9-suffix",
+      "file": "crw-depth-xp-results/x4/paths_b9.npz",
+      "keys": {
+        "joint": "emb_y",
+        "site": "emb_site_y"
+      },
+      "lineage": "paths and probe modes saved together",
+      "images": {
+        "dataset": "cifar10-test",
+        "ids_from": "path:pair_idx",
+        "pairs_file": "crw-depth-xp-results/x4/pairs.npz"
+      }
+    }
+  }
+}
