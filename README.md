@@ -29,14 +29,27 @@ one probe set, a handful of networks, no claims beyond what the viewer shows.
 | `spacetime_vgg_modal.py` | Modal runner: VGG-16-BN. |
 | `baseline_embed_modal.py` | Modal runner: per-site PCA and UMAP baselines for all seven networks. |
 | `upstream/` | Further modules copied unmodified from CoherentModes that the runners need; see `upstream/README.md`. |
-| `site/` | The site's sources and `site/build_site.py`. |
+| `site/` | The site's sources and `site/build_site.py`. `site/xsite/` holds the Experiments tab's data layer: input pins, operator-dataset packagers, per-entry generators and checks (`AUTHORING.md`, `SCHEMA.md`). |
+| `invert/`, `xp/`, `opt/` | The overnight experiments of 2026-11-21/22 (inverting the embedding; X1 training data, X3 adversarial images, X4 interpolation; solver study): specs, code and notes. Their outputs are not in git. |
 | `data/`, `build/` | Not in git: the runners' outputs (about 1.1 GB) and the built site (about 100 MB). |
 
 ## Build the site
 
 ```bash
-uv run --with numpy --with pillow python site/build_site.py
+uv run --with numpy --with scipy --with pillow python site/build_site.py --strict
 python3 -m http.server 8765 --bind 127.0.0.1 -d build/site     # http://127.0.0.1:8765/
+```
+
+The Experiments tab is assembled by `site/build_x.py` from `site/content/experiments/` (one fragment per entry),
+`site/assets/x/` (chart specs and the build-time facts every number on the page comes from) and the packaged operator
+datasets in `data/sitex/`. To regenerate those from the staged raw outputs in `data/fetch/`:
+
+```bash
+uv run --with numpy --with scipy --with pillow python site/xsite/ops.py                 # package data/sitex (--entry <name> for one)
+for g in x1 x3 x4 solver inv_a inv_b; do uv run --with numpy --with scipy --with pillow python site/xsite/gen_$g.py; done
+uv run --with numpy --with scipy --with pytest python -m pytest -q site/xsite/test_opdata.py
+uv run --with numpy --with scipy python site/xsite/check_numbers.py    # independent recomputation of headline facts
+uv run --with pillow python site/check_browser.py http://127.0.0.1:8765/ data/shots/check
 ```
 
 This needs `data/`, which holds:

@@ -25,6 +25,20 @@
 .xp .xp-oplede { display: flex; gap: 10px; align-items: baseline; max-width: var(--measure); font: 13px/1.5 var(--sans); color: var(--ink-2);
   border-left: 2px solid var(--line); padding: 1px 0 1px 12px; margin: 10px 0 4px; }
 .xp-oplede .ef-op-tag { flex: none; }
+/* two-minute summary (_lede.html): one compact panel between the lede and the operator note */
+.xp .xp-sum { max-width: var(--wide-w); margin: 14px 0 12px; padding: 14px 18px 4px; background: var(--surface);
+  border: 1px solid var(--line); border-radius: var(--radius); font-size: 15.5px; line-height: 1.5; color: var(--ink-2); }
+.xp .xp-sum p, .xp .xp-sum ul { margin: 0 0 .7em; }
+.xp .xp-sum strong { color: var(--fg); }
+.xp .xp-sum-lead { font-size: 16.5px; }
+.xp .xp-sum-list { padding-left: 1.1em; max-width: none; }
+.xp .xp-sum-list li { margin: 0 0 .45em; break-inside: avoid; }
+@media (min-width: 1000px) { .xp .xp-sum-list { column-count: 2; column-gap: 40px; } }
+.xp .xp-sum-list a { font: 12.5px/1 var(--sans); white-space: nowrap; margin-left: 2px; }
+.xp .xp-sum-list a::after { content: " →"; }
+.xp .xp-sum-trust, .xp .xp-sum-next { font: 13.5px/1.5 var(--sans); }
+.xp .xp-sum-next { color: var(--mute); }
+.xp .xp-sum-next strong { color: var(--ink-2); }
 
 /* ---------- views (js/main.js): the overview (lede + cards), one entry, or all entries */
 .xp[data-view="landing"] > section.experiment { display: none; }
@@ -345,6 +359,7 @@ figure.emb-fig:not(:has(.ef)) > figcaption { padding: 0 14px 12px; }
   #tab-experiments .page-head { padding: 26px 16px 0; }
   .xp-lede p:first-child { font-size: 17px; }
   .xp .xp-oplede { display: block; }
+  .xp .xp-sum { padding: 12px 14px 2px; }
   .experiment { margin-top: 40px; padding-top: 24px; }
   .experiment > h2 { font-size: 23px; }
   .xp .x-answer { font-size: 17.5px; }

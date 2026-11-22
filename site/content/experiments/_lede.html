@@ -5,6 +5,43 @@ embedding, with the experiment's own images drawn into it.</p>
 <p><strong>Every number is read from the stored outputs when the site is built.</strong> A second model audited the
 findings and definitions against the code; corrections that changed a claim are marked <span class="x-tag">audit</span>.</p>
 </div>
+<div class="xp-sum">
+<p class="xp-sum-lead"><strong>A joint coordinate at one site is computed from every site's kernel row, so questions about a single site use
+source or site-local coordinates.</strong> Descriptive comparisons survived checks better than attempts to recover or
+steer mid-network activations through coordinates.</p>
+<ul class="xp-sum-list">
+<li><strong>Joint coordinates mix depth.</strong> Ignoring source changes from b7 onward cuts a PGD 2/255 attack's b5
+joint displacement from {{fact:x.inv-sources.attack.joint.b5}} to {{fact:x.inv-sources.attack.truncated.b5}}.
+<a href="#experiments/x-inv-sources">Sources</a></li>
+<li><strong>Attacks part from noise at b7.</strong> Untargeted 8/255 attacks move about as far as same-budget sign
+noise at b6, then further from b7 (Shannon: {{fact:x.x3-adversarial.disp.u8.b7}} vs {{fact:x.x3-adversarial.disp.n8.b7}}),
+under all three kernels; a single image's switch site depends on the kernel. <a href="#experiments/x-x3-adversarial">Adversarial</a></li>
+<li><strong>Natural-image training embeds alike.</strong> CIFAR-100 and ImageNet&#8209;32 networks embed the CIFAR-10 probe
+similarly to CIFAR-10 ones (b9 agreement {{fact:x.x1-data.pair.c10_in32.b9}} for ImageNet-32); SVHN networks agree less
+({{fact:x.x1-data.pair.c10_svhn.b9}}) and already differ at the stem. <a href="#experiments/x-x1-data">Training data</a></li>
+<li><strong>Decoding works at pool, not b4.</strong> Given the clean trajectory, kernel ridge recovers activation
+direction with cosine {{fact:x.inv-decode.large.pool}} at pool and {{fact:x.inv-decode.large.b4}} at the much larger
+b4, ahead of latent harmonics on mean cosine. <a href="#experiments/x-inv-decode">Decoding</a></li>
+<li><strong>Matching sources barely steers.</strong> At b4, a near-exact oracle match to a donor's source coordinates did not
+improve the patched joint match and moved the donor's class probability only from {{fact:x.inv-edits.b4.residual}} to
+{{fact:x.inv-edits.b4.match}}. <a href="#experiments/x-inv-edits">Edits</a></li>
+<li><strong>Straight paths rarely jump.</strong> Before logits, {{fact:x.x4-paths.pre_logits.n}} of
+{{fact:x.x4-paths.pre_logits.total}} start–pair paths concentrated angular motion in a short window. Paths starting at b9,
+where the rest of the network is affine, still show steep class-mass change. <a href="#experiments/x-x4-paths">Paths</a></li>
+<li><strong>Kernel: participation ratio.</strong> Chosen because Shannon modes on the larger probe put up to
+{{fact:x.inv-kernel.top2.p8.ea400}} of their squared weight on two images; it did not win every stability test.
+<a href="#experiments/x-inv-kernel">Kernel</a></li>
+<li><strong>The sparse k-NN walk is exact.</strong> As a sparse matrix plus a rank-one term, stored walks shrink from
+{{fact:x.solver.storage.dense}} to {{fact:x.solver.storage.sparse}} MB; larger-probe costs are projections.
+<a href="#experiments/x-solver">Solver</a></li>
+</ul>
+<p class="xp-sum-trust"><strong>How far to trust it.</strong> No entry reports a bootstrap or confidence interval, and
+several scores reuse images that built the operator. A new image's row uses a frozen reverse affinity, so it is not
+built exactly like a probe row. The adversarial noise control matches the <i>L</i><sup>∞</sup> budget, not
+<i>L</i><sup>2</sup> size.</p>
+<p class="xp-sum-next"><strong>Open questions.</strong> Do these results hold on a fresh probe, another architecture and
+<i>L</i><sup>2</sup>-matched noise? Do cross-fitted new-image rows change the decoding results?</p>
+</div>
 <p class="xp-oplede"><span class="ef-op-tag">Operator</span><span>The line under each embedding figure names the one
 operator whose coordinates it draws (network, kernel, probe, sites, coordinate kind). Pictures are 2-D projections;
 quoted distances and depths use all dimensions of that operator.</span></p>

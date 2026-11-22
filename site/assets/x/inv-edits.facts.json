@@ -146,7 +146,7 @@
   "display.b4.n": {
     "value": 64,
     "text": "64",
-    "tier": "R",
+    "tier": "S",
     "source": "Packaged edit-b4-b.json:n"
   },
   "display.b4.donors": {
@@ -158,7 +158,7 @@
   "display.b6.n": {
     "value": 64,
     "text": "64",
-    "tier": "R",
+    "tier": "S",
     "source": "Packaged edit-b6-b.json:n"
   },
   "display.b6.donors": {

@@ -110,7 +110,7 @@
   "attack.shown": {
     "value": 300,
     "text": "300",
-    "tier": "R",
+    "tier": "S",
     "source": "data/sitex/ops/r20s0-p2-pr300/ov/pgd2.json:n"
   },
   "patch.cohort": {

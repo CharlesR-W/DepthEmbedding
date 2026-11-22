@@ -90,7 +90,7 @@ def decode_embedding(out, ov_dir, near):
     if not positions:
         raise ValueError("The H overlay sample has no high-row-max images to ring")
     fact(out, 'near.shown', len(positions), 'R', 'Packaged H sample.pos intersected with rowmax flags')
-    fact(out, 'near.sample', held['n'], 'R', 'Packaged H.json:n')
+    fact(out, 'near.sample', held['n'], 'S', 'Packaged H.json:n')
     op = packaged(OP)
     axes = np.asarray(op['axes']['pooled'])[:, :2]
     b4 = read_array(ov_dir, held['kinds']['joint'])[op['chain'].index('b4')]
@@ -262,7 +262,7 @@ def edit_embedding(out, ov_dir):
         stem = f"edit-{site}-"
         a, b, residual = (stem + s for s in ("a", "b", "residual"))
         target = json.loads((ov_dir / f"{b}.json").read_text())
-        fact(out, f'display.{site}.n', target['n'], 'R', f'Packaged {b}.json:n')
+        fact(out, f'display.{site}.n', target['n'], 'S', f'Packaged {b}.json:n')
         fact(out, f'display.{site}.donors', len(set(target['images']['ids'])), 'R', f'Packaged {b}.json: distinct images.ids')
         out.chart(f"emb_{site}", {"type": "emb", "schema": 1, "panels": [{"op": OP, "label": f"Edit at {site}"}],
             "site": site, "kinds": ["source", "joint"], "kind": "source", "K": 16, "dims": 2, "axes": "pooled:0",

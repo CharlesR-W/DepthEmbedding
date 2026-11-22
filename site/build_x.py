@@ -82,7 +82,10 @@ def fact_sub(text, xid, facts, where, *, plain=False):
     def replace(m):
         key = m[1].strip()
         prefix = f"x.{xid}."
-        record = facts.get(key[len(prefix):]) if xid and key.startswith(prefix) else None
+        if xid is None:  # the lede: facts keyed by full name, from every entry
+            record = facts.get(key)
+        else:
+            record = facts.get(key[len(prefix):]) if key.startswith(prefix) else None
         require(isinstance(record, dict) and isinstance(record.get("text"), str), where,
                 f"unresolved fact {key!r}")
         return record["text"] if plain else html.escape(record["text"])
@@ -490,8 +493,17 @@ def report_pages(builder):
             page = page.replace(f'src="{cdn}"', f'src="{local}"')
             require((out / local).resolve().is_file(), rel, f"missing vendored script {local}")
         page = page.replace("both loaded from a CDN", "both hosted locally")
-        bar = ('<nav aria-label="Back to experiments" style="padding:.5rem 1rem; border-bottom:1px solid currentColor">'
-               '<a href="../index.html#experiments" style="color:inherit">← Back to Depth Embedding experiments</a></nav>')
+        bar = ('<nav aria-label="Back to experiments" style="padding:.5rem 1rem; border-bottom:1px solid currentColor; '
+               'font:14px/1.45 system-ui,sans-serif">'
+               '<a href="../index.html#experiments" style="color:inherit">← Back to Depth Embedding experiments</a>'
+               '<span style="display:block; opacity:.75; margin-top:.2rem">Appendix: the original overnight report, as '
+               'generated before the audits. Where it differs from the Experiments tab, the tab is the corrected '
+               'version.</span></nav>')
+        icon = ('<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' '
+                'viewBox=\'0 0 16 16\'%3E%3Ccircle cx=\'4\' cy=\'11\' r=\'2.6\' fill=\'%232a78d6\'/%3E%3Ccircle cx=\'8\' '
+                'cy=\'7\' r=\'2.6\' fill=\'%23eb6834\'/%3E%3Ccircle cx=\'12\' cy=\'4\' r=\'2.6\' fill=\'%231baf7a\'/%3E%3C/svg%3E">')
+        if 'rel="icon"' not in page:
+            page = re.sub(r"(<head\b[^>]*>)", lambda m: m[0] + "\n" + icon, page, count=1, flags=re.I)
         page, count = re.subn(r"(<body\b[^>]*>)", lambda m: m[0] + "\n" + bar, page, count=1, flags=re.I)
         require(count == 1, rel, "report has no body")
         check_local_resources(page, rel)
@@ -528,8 +540,12 @@ def build_experiments(builder):
 
 def experiments_html(builder):
     lede = XDIR / "_lede.html"
-    parts = [fact_sub(lede.read_text(encoding="utf-8"), None, {}, lede) if lede.is_file() else ""]
     entries = builder.experiment_entries
+    facts = {}  # cross-entry tokens {{fact:x.<id>.<key>}} in the lede; an unresolved one fails the build
+    for e, _, _, _ in entries:
+        path = HERE / "assets" / "x" / f"{e['id']}.facts.json"
+        facts.update({f"x.{e['id']}.{k}": v for k, v in (read_json(path) if path.exists() else {}).items()})
+    parts = [fact_sub(lede.read_text(encoding="utf-8"), None, facts, lede) if lede.is_file() else ""]
     cards = {group: [] for group in GROUPS}
     for e, _, _, c in entries:
         if c is None:

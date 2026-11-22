@@ -5,6 +5,9 @@ R = derive from saved raw coordinates/parameters (or inspect the actual shipped
 sample for a shipping claim); P = aggregate saved scores/measurements; S =
 check a transcription only. All cited paths are relative to the repository.
 """
+import argparse
+import ast
+import gzip
 import hashlib
 import html
 import json
@@ -23,7 +26,7 @@ from scipy.stats import spearmanr
 ROOT = Path(__file__).resolve().parents[2]
 ASSETS = 'site/assets/x'
 FRAG = 'site/content/experiments'
-BUILD = 'data/build_C/index.html'
+BUILD = 'data/build_G/index.html'
 INV = 'data/invert'
 FETCH = 'data/fetch'
 IV = 'crw-depth-invert-results'
@@ -73,10 +76,48 @@ def first_modes(path, key, k=16):
     return array(path, key)[..., :k].astype(np.float64, copy=True)
 
 
-def top_two(path):
+def packaged_array(meta_path, kind):
+    spec = read_json(meta_path)['kinds'][kind]
+    path = str(Path(meta_path).parent / spec['file'])
+    with gzip.open(ROOT / path, 'rb') as f:
+        a = np.frombuffer(f.read(), dtype={'i16': '<i2', 'i8': 'i1'}[spec['dtype']]).reshape(spec['shape'])
+    scale = np.asarray(spec['scale'])
+    return a * scale.reshape((a.shape[0],) + (1,) * (a.ndim - 2) + (a.shape[-1],)), path
+
+
+def source_constant(path, name):
+    for s in ast.parse(text(path)).body:
+        if isinstance(s, ast.Assign) and any(isinstance(t, ast.Name) and t.id == name for t in s.targets):
+            return ast.literal_eval(s.value)
+    raise ValueError(f'{path}: configuration variable {name} missing')
+
+
+def energy_fraction(delta, plane):
+    return np.linalg.norm(delta @ plane)**2 / np.linalg.norm(delta)**2
+
+
+def depth_metrics(c, t, mu):
+    a = .5 / c
+    deg = np.r_[1, np.full(len(c)-2, 2), 1]
+    condition, gain = [], []
+    for m in mu:
+        diag = a + t*deg - m
+        off = np.full(len(c)-1, -t)
+        depth = np.diag(diag) + np.diag(off, 1) + np.diag(off, -1)
+        spectrum = np.sort(abs(np.linalg.eigvalsh(depth)))
+        condition.append(spectrum[-1] / spectrum[0])
+        gain.append(np.linalg.norm(np.linalg.solve(depth, np.diag(a)), ord=np.inf))
+    return np.array(condition), np.array(gain)
+
+
+def top_two_shares(path):
     v = first_modes(path, 'vecs')
     energy = np.einsum('lnk,lnk->nk', v, v)
-    return np.max(np.sort(energy, axis=0)[-2:].sum(axis=0) / energy.sum(axis=0))
+    return np.sort(energy, axis=0)[-2:].sum(axis=0) / energy.sum(axis=0)
+
+
+def top_two(path):
+    return top_two_shares(path).max()
 
 
 @cache
@@ -139,12 +180,31 @@ def probe_gram_metrics():
 
 def kernel(add, note):
     split = staged(f'{IV}/splits.npz')
-    add('probe.p2', array(split, 'P2').size, 'R', split)
-    for name, rel in [('knn15', f'{XV}/x3/op_c10-s0_knn15.npz'),
-                      ('ea300', f'{IV}/joint/P2__ea300__L12/modes.npz'),
-                      ('pr300', f'{JOINT}/modes.npz')]:
+    p2, p8, H, lab = arrays(split, 'P2', 'P8', 'H', 'labels')
+    add('probe.p2', p2.size, 'R', split)
+    per_class = np.unique(np.bincount(lab[p2]))
+    assert len(per_class) == 1
+    add('probe.per_class', per_class[0], 'R', split)
+    add('probe.p8_extra', len(set(p8) - set(p2)), 'R', split)
+    add('probe.held', len(H), 'R', split)
+    for name, op_id, rel in [('knn15', 'r20s0-c10-knn15', f'{XV}/x3/op_c10-s0_knn15.npz'),
+                             ('ea300', 'r20s0-p2-ea300', f'{IV}/joint/P2__ea300__L12/modes.npz'),
+                             ('pr300', 'r20s0-p2-pr300', f'{JOINT}/modes.npz')]:
         source = staged(rel)
-        add(f'top2.p2.{name}', top_two(source), 'R', source)
+        local = top_two_shares(source)
+        add(f'top2.p2.{name}', local.max(), 'R', source)
+        pkg = f'{PKG}/{op_id}/op.json'
+        plane = np.asarray(read_json(pkg)['axes']['pooled'])[:, :2]
+        add(f'display.{name}', np.vdot(plane[local.argmax()], plane[local.argmax()]), 'R', source, pkg)
+    refit_path = f'{INV}/refit.json'
+    refit = read_json(refit_path)
+    for k in (16, 64):
+        for rule in ('ea300', 'pr300'):
+            held = refit[f'{rule}|{k}']['held']
+            add(f'refit.k{k}.{rule}.min', min(held), 'S', refit_path)
+            add(f'refit.k{k}.{rule}.max', max(held), 'S', refit_path)
+    comparison = np.asarray(refit['ea300|16']['held']) - refit['pr300|16']['held']
+    add('refit.k16.shannon_wins', np.count_nonzero(comparison > 0), 'S', refit_path)
     loc = f'{INV}/modeloc.json'
     peaks = read_json(loc)['P8__ea400__L12']['top2']
     add('top2.p8.ea400', max(peaks[:16]), 'S', loc)
@@ -161,6 +221,10 @@ def sources(add, note):
     c, t, mu, chain = arrays(op, 'c', 't', 'vals', 'sites')
     chain = chain.tolist()
     assert tuple(chain) == SITES
+    cond, gain = depth_metrics(c, t, mu)
+    for k in (16, 64, 256):
+        add(f'depth.k{k}.condition', cond[:k].max(), 'R', op)
+        add(f'depth.k{k}.gain', gain[:k].max(), 'R', op)
     before = staged(f'{JOINT}/coords_H.npz')
     after = staged(f'{JOINT}/coords_pgd2.npz')
     y1, s1 = (first_modes(after, k) for k in ('y', 'onestep'))
@@ -201,7 +265,13 @@ def sources(add, note):
                 note(f'{kind} b5 spread: paired clean H = {val:.8g}; all H = {disp(delta, other, site):.8g}. '
                      'The experiment uses the paired clean reference (invert/adv.py).')
     add('attack.n', n, 'R', after)
-    shipped = f'{PKG}/r20s0-p2-pr300/ov/pgd2.json'
+    root = f'{PKG}/r20s0-p2-pr300'
+    shipped, op_meta = f'{root}/ov/pgd2.json', f'{root}/op.json'
+    plane = np.asarray(read_json(op_meta)['axes']['pooled'])[:, :2]
+    for kind, delta in [('joint', y1-y0), ('source', source_delta)]:
+        add(f'display.pgd2.{kind}', energy_fraction(delta[chain.index('b5')], plane), 'R', before, after, op_meta)
+    src = f'{ASSETS}/inv-sources.json'
+    add('attack.arrows', read_json(src)['emb_lead']['arrows'], 'S', src)
     add('attack.shown', len(read_json(shipped)['images']['ids']), 'R', shipped)
     conv = SITES[:SITES.index('pool')]
     rt_paths = [f'{INV}/rt/{P8}/{s}__K16.json' for s in conv]
@@ -222,25 +292,86 @@ def decode_summary(add, specs):
 
 def decode(add, note):
     p = staged(f'{IV}/decode/{P2}/b4__b4.npz')
-    add('small.b4', np.mean(array(p, 'H|64|krr|cos_raw'), dtype=np.float64), 'P', p)
+    cos_raw, cap_raw = arrays(p, 'H|64|krr|cos_raw', 'H|64|krr|cap_raw')
+    add('small.b4', np.mean(cos_raw, dtype=np.float64), 'P', p)
+    hc = staged(f'{JOINT}/coords_H.npz')
+    max_p = array(hc, 'rowmax').max(axis=0)
+    flagged = max_p > .5
+    add('near.count', np.count_nonzero(flagged), 'P', hc)
+    for name, mask in [('flagged', flagged), ('remainder', ~flagged)]:
+        add(f'tail.{name}.n', np.count_nonzero(mask), 'P', hc)
+        for metric, v in [('cosine', cos_raw), ('captured', cap_raw)]:
+            add(f'tail.{name}.{metric}', np.average(v[mask].astype(float)), 'P', p, hc)
+    root = f'{PKG}/r20s0-p2-pr300'
+    package, h_pkg = f'{root}/op.json', f'{root}/ov/H.json'
+    plane = np.asarray(read_json(package)['axes']['pooled'])[:, :2]
+    hp, qfile = packaged_array(h_pkg, 'joint')
+    b4 = hp[SITES.index('b4')]
+    shown = flagged[read_json(h_pkg)['sample']['pos']]
+    add('near.sample', len(b4), 'R', h_pkg, qfile)
+    add('near.shown', shown.sum(), 'R', h_pkg, hc)
+    add('near.projected_energy', energy_fraction(b4, plane), 'R', package, h_pkg, qfile)
+    rad = np.linalg.norm(b4 @ plane, axis=1)
+    add('near.projected_top', shown[np.argsort(rad)[-shown.sum():]].sum() if shown.any() else 0,
+        'R', package, h_pkg, qfile, hc)
+    d = array(hc, 'y')[SITES.index('b4'), :, :64]
+    add('near.top20', flagged[np.argsort(np.linalg.norm(d, axis=1))[-20:]].sum(), 'R', hc)
+    split, image_archive = staged(f'{IV}/splits.npz'), staged(f'{IV}/acts/c10/meta.npz')
+    probes, held = arrays(split, 'P2', 'H')
+    images = array(image_archive, 'images')
+    probe_pixels = {images[j].tobytes() for j in probes}
+    add('tail.identical', sum(images[i].tobytes() in probe_pixels for i in held), 'R', split, image_archive)
+    experiment = 'invert/modal_invert.py'
+    shape = source_constant(experiment, 'SHAPES')
+    for site in ('b4', 'pool', 'logits'):
+        add(f'dimension.{site}', math.prod(shape[site]), 'S', experiment)
     decode_summary(add, [('large.b4', 'b4', 'H|64|krr|cos_raw'),
                          ('large.pool', 'pool', 'H|64|krr|cos_raw'),
+                         ('large.pool_pca', 'pool', 'H|64|pca|cos_raw'),
                          ('large.b4_agree', 'b4', 'H|64|krr|agree'),
                          ('large.b4_mlp', 'b4', 'H|64|mlp|agree')])
 
 
 def ood(add, note):
     decode_summary(add, [('svhn.b4', 'b4', 'svhn|64|krr|cos_raw'), ('h.b4', 'b4', 'H|64|krr|cos_raw'),
-                         ('c100.b9', 'b9', 'c100|64|krr|cos_raw'), ('pgd8.b9', 'b9', 'pgd8|64|krr|cos_raw')])
+                         ('c100.b9', 'b9', 'c100|64|krr|cos_raw'), ('pgd8.b9', 'b9', 'pgd8|64|krr|cos_raw'),
+                         ('svhn.b4_captured', 'b4', 'svhn|64|krr|cap_raw'), ('h.b4_captured', 'b4', 'H|64|krr|cap_raw'),
+                         ('svhn.b4_agree', 'b4', 'svhn|64|krr|agree'), ('h.b4_agree', 'b4', 'H|64|krr|agree')])
+    root = f'{PKG}/r20s0-p2-pr300'
+    op, svhn = f'{root}/op.json', f'{root}/ov/svhn.json'
+    probe, pf = packaged_array(op, 'source')
+    novel, nf = packaged_array(svhn, 'source')
+    i = SITES.index('b9')
+    plane = np.asarray(read_json(op)['axes']['pooled'])[:, :2]
+    for key, p, s in [('full', probe[i], novel[i]), ('plane', probe[i] @ plane, novel[i] @ plane)]:
+        metric = (np.std(s, axis=0) / np.std(p, axis=0)) ** 2
+        add(f'display.svhn.{key}', metric.mean(), 'R', op, svhn, pf, nf)
+    before = staged(f'{JOINT}/coords_H.npz')
+    for budget in (2, 8):
+        after = staged(f'{JOINT}/coords_pgd{budget}.npz')
+        for key, kind in [('y', 'joint'), ('onestep', 'source')]:
+            attacked = first_modes(after, key)[i]
+            delta = attacked - first_modes(before, key)[i, :len(attacked)]
+            add(f'display.pgd{budget}.{kind}', energy_fraction(delta, plane), 'R', before, after, op)
+    p = f'{ASSETS}/inv-ood.json'
+    add('attack.arrows', read_json(p)['emb_attacks']['arrows'], 'S', p)
 
 
 def edits(add, note):
     p = f'{INV}/rt/{P8}/b4__K64.json'
     summary = read_json(p)
-    for k, method in [('residual', 'resid'), ('match', 'resid+match'), ('random', 'rand~resid'), ('swap', 'swap'),
-                      ('miss_before', 'resid'), ('miss_after', 'resid+match')]:
-        stat = 'miss_S' if k.startswith('miss_') else 'p_b'
+    for k, method, stat in [('residual', 'resid', 'p_b'), ('match', 'resid+match', 'p_b'),
+                            ('miss_before', 'resid', 'miss_S'), ('miss_after', 'resid+match', 'miss_S'),
+                            ('joint_before', 'resid', 'miss_D'), ('joint_after', 'resid+match', 'miss_D'),
+                            ('inferred_miss', 'resid+match_req', 'miss_S'), ('inferred_prob', 'resid+match_req', 'p_b')]:
         add(f'b4.{k}', summary[f'E4|{method}|{stat}'], 'S', p)
+    root = f'{PKG}/r20s0-p2-pr300'
+    f, op, fig = f'{root}/ov/edit-b4-b.json', f'{root}/op.json', f'{ASSETS}/inv-edits.json'
+    donors = read_json(f)['images']['ids']
+    add('display.b4.n', len(donors), 'R', f)
+    add('display.b4.donors', len(set(donors)), 'R', f)
+    add('display.arrows', read_json(fig)['emb_b4']['arrows'], 'S', fig)
+    plane = np.asarray(read_json(op)['axes']['pooled'])[:, :2]
     p = f'data/stretch/rt_points/{P2}/b4__K16.npz'
     before = staged(f'{JOINT}/coords_H.npz')
     split = staged(f'{IV}/splits.npz')
@@ -251,13 +382,19 @@ def edits(add, note):
     a, b = pairpos.T
     keep = pred[a] != pred[b]
     np.testing.assert_array_equal(keep, pair_ok)
-    src = first_modes(before, 'onestep')[meta['sites'].index('b4')]
-    swap = se[methods.tolist().index('swap')]
+    li = meta['sites'].index('b4')
+    src = first_modes(before, 'onestep')[li]
+    methods = methods.tolist()
+    joint_a, joint_edited = arrays(p, 'y_a', 'y_patched')
+    for kind, delta in [('source', se[methods.index('resid')] - se[methods.index('none')]),
+                        ('joint', joint_edited[methods.index('resid'), li] - joint_a[li])]:
+        add(f'display.b4.{kind}', energy_fraction(delta[keep], plane), 'R', p, op)
+    swap = se[methods.index('swap')]
     np.testing.assert_allclose(swap, src[b], atol=1e-8, rtol=0)
     spread = src[:meta['m_full']].std(axis=0, ddof=1)  # torch.std default in stage_rt.py
     reference = 'data/stretch/ref_rt/b4__K16.npz'
     for k, method in [('residual', 'resid'), ('match', 'resid+match')]:
-        i = methods.tolist().index(method)
+        i = methods.index(method)
         add(f'replay.b4.{k}', np.mean(pb[i, keep], dtype=float), 'P', p, split, logits)
         miss = np.mean(((se[i, keep] - swap[keep]) / spread) ** 2)
         archived = np.nanmean(array(reference, f'E4|{method}|miss_S')[:len(keep)])
@@ -301,6 +438,18 @@ def x1(add, note):
         a_train[net] = v[:, train].reshape(-1, k)
         a_test[net] = v[:, test]
     del v
+    reference = first_modes(paths['c10-s0'], 'vecs', k)
+    per_site = np.linalg.norm(reference.reshape(reference.shape[0], -1), axis=1)
+    _, _, axes_t = np.linalg.svd((reference / per_site[:, None, None]).reshape(-1, k), full_matrices=False)
+    plane = axes_t[:2].T
+    for net, site in [('c100-s0', 'b9'), ('svhn-s0', 'b9'), ('c10-s1', 'stem')]:
+        q, _ = orthogonal_procrustes(a_train[net], a_train['c10-s0'])
+        l = SITES.index(site)
+        a, b = a_test['c10-s0'][l], a_test[net][l] @ q
+        key = f'projection.{net.replace("-", "_")}.{site}'
+        for label, a_, b_ in [('full', a, b), ('display', a @ plane, b @ plane)]:
+            score = np.vdot(a_, b_) / (np.linalg.norm(a_) * np.linalg.norm(b_))
+            add(f'{key}.{label}', score, 'R', comp, paths['c10-s0'], paths[net])
     archive = array(comp, 'knn15_trunk_cos')
     stem_measures = {key: array(comp, key)[:, :, 0, 0] for key in ('nn', 'cka')}
     for g in groups:
@@ -335,7 +484,16 @@ def x3(add, note):
     add('cohort.n', len(ids), 'R', p)
     add('probe.n', len(probe), 'R', op)
     sample = f'{PKG}/r20s0-c10-ea100/ov/u8.json'
-    add('sample.n', len(read_json(sample)['images']['ids']), 'R', sample)
+    sample_pos = np.asarray(read_json(sample)['sample']['pos'])
+    add('sample.n', len(sample_pos), 'R', sample)
+    fig = f'{ASSETS}/x3-adversarial.json'
+    density = read_json(fig)['emb_lead']['arrows']
+    # Same deterministic picking rule as the shipped renderer, not stage or
+    # generator sampling. A smaller density takes a permutation prefix.
+    renderer = 'site/js/embfig.js'
+    stride = int(re.search(r'\(j \* (\d+)\) % n < k', text(renderer))[1])
+    shown = sample_pos[(np.arange(len(sample_pos)) * stride % len(sample_pos)) < density]
+    add('projection.arrows', len(shown), 'R', sample, fig, renderer)
     clean_path = f'{X3}/c10-s0_clean.npz'
     clean = array(clean_path, 'ea100_site_y')
     add('metric.k', clean.shape[-1], 'R', clean_path)
@@ -344,12 +502,23 @@ def x3(add, note):
     i, j = same.T
     good = (i != j) & (labels[i] == labels[j])
     unit = np.median(np.linalg.norm(clean[:, i[good]] - clean[:, j[good]], axis=-1), axis=1)
+    distances = {}
     for name in ('u8', 'n8'):
         f = f'{X3}/c10-s0_{name}.npz'
         moved = array(f, 'ea100_site_y') - clean
-        distance = np.median(np.linalg.norm(moved, axis=-1), axis=1) / unit
+        full = np.median(np.linalg.norm(moved, axis=-1), axis=1)
+        arrows = np.median(np.linalg.norm(moved[:, shown, :2], axis=-1), axis=1)
+        distances[name] = (full, arrows, f)
         for site in ('b6', 'b7', 'b9'):
-            add(f'disp.{name}.{site}', distance[chain.index(site)], 'R', p, clean_path, f)
+            l = chain.index(site)
+            add(f'disp.{name}.{site}', full[l] / unit[l], 'R', p, clean_path, f)
+    adv, noise = distances['u8'], distances['n8']
+    for l, site in enumerate(chain):
+        if site in ('b6', 'b7', 'b9'):
+            for axis, jj in [('full', 0), ('arrows', 1)]:
+                files = [clean_path, adv[2], noise[2]] + ([sample, fig, renderer] if jj else [])
+                add(f'projection.{site}.{axis}', float(adv[jj][l]) / noise[jj][l], 'R', *files,
+                    raw_atol=1e-6, raw_reason='fp32 norms and reduction')
     ua, na, ub = (f'{X3}/c10-{net}_{s}.npz' for net, s in [('s0', 'u8'), ('s0', 'natA'), ('s1', 'u8')])
     la, ma = arrays(ua, 'logits', 'ea100_mass')
     dst = la.argmax(axis=1)
@@ -385,6 +554,34 @@ def x3(add, note):
         literal=('8/255', 8))
     note('The 8/255 budget is consistent with the saved uint8 attack/clean difference; the exact float PGD inputs were not saved.')
     stretch = 'data/stretch/x3'
+    attack = f'{stretch}/c10-s0_u8_pr100.npz'
+    ss = f'{stretch}/sets.npz'
+    truth = array(ss, 'labels')
+    pred = array(attack, 'logits').argmax(axis=-1)
+    good = truth != pred
+    row = np.arange(np.count_nonzero(good))
+    switched = {}
+    for key in ('ea100', 'pr100', 'knn15'):
+        m = array(attack, f'{key}_mass')[:, good].transpose(1, 0, 2)
+        # The final failure index of destination > true determines the first
+        # persistent switch. Never is one bin past logits.
+        beat = m[row, :, pred[good]] > m[row, :, truth[good]]
+        switched[key] = len(SITES) - np.argmin(np.column_stack([beat[:, ::-1], np.zeros(len(row), bool)]), axis=1)
+    medians = {np.sort(v)[(len(v)-1)//2] for v in switched.values()}
+    if len(medians) != 1:
+        raise ValueError(f'matched kernel switch medians differ: {medians}')
+    add('rerun.switch.common_median', (*SITES, 'Never')[medians.pop()], 'P', ss, attack)
+    for key in ('pr100', 'knn15'):
+        gap = np.abs(switched[key] - switched['ea100'])
+        add(f'rerun.switch.{key}.different', np.mean(gap > 0), 'P', ss, attack)
+        add(f'rerun.switch.{key}.two_plus', np.mean(gap >= 2), 'P', ss, attack)
+    for key, name in [('ea100', 'ea'), ('knn15', 'knn')]:
+        p = f'{X3}/op_c10-s0_{key}.npz'
+        c, t, mu = arrays(p, 'c', 't', 'vals')
+        add(f'depth.{name}_cond', depth_metrics(c, t, mu[:16])[0].max(), 'R', p)
+    p = f'{X3}/DONE'
+    done = read_json(p)
+    add('depth.replay', max(done[f'c10-s0_{key}_replay'] for key in ('ea100', 'knn15')), 'S', p)
     for kernel_name in ('ea100', 'pr100'):
         run_op = f'{stretch}/op_c10-s0_{kernel_name}.npz'
         add(f'rerun.concentration.{kernel_name}.joint', top_two(run_op), 'R', run_op)
@@ -409,36 +606,53 @@ def x4(add, note):
     if len(kinds) != 2 or kinds[0] != kinds[1]:
         raise ValueError(f'unequal same-/different-class strata: {kinds}')
     add('pairs.per_kind', kinds[0], 'R', p)
-    starts = ('pixels', 'stem', 'b3', 'b6', 'b8', 'b9')
-    ps = [f'{X4}/paths_{s}.npz' for s in starts]
-    total = count = display_count = 0
+    add('pairs.unique_endpoints', np.unique(array(p, 'pair_idx')).size, 'R', p)
+    stage, analysis = 'xp/stage_x4.py', 'xp/analyze_x4.py'
+    add('pairs.margin_min', source_constant(stage, 'MARGIN_MIN'), 'S', stage)
+    threshold = float(re.search(r"'frac_share_gt_quarter'.*?>\s*([0-9.]+)", text(analysis))[1])
+    add('threshold.share', threshold, 'S', analysis)
+    ps = sorted(str(f.relative_to(ROOT)) for f in (ROOT / X4).glob('paths_*.npz'))
+    starts = [Path(f).stem.removeprefix('paths_') for f in ps]
+    add('starts.tested', len(starts), 'R', *ps)
+    fig = f'{ASSETS}/x4-paths.json'
+    display_switches = read_json(fig)['emb_lead']['switch']
+    shown = {step['panels'][0]['op'].removeprefix('x4-').removesuffix('-suffix') for step in display_switches}
+    add('starts.shown', len(shown), 'R', fig)
+    total = count = display_count = display_total = 0
     for s, f in zip(starts, ps, strict=True):
         d, grid, sites, kind_s = arrays(f, 'd_unit', 's256', 'sites', 'kind')
         np.testing.assert_array_equal(kind_s, kind)
         width = (grid.size - 1) // 16
         cum = np.pad(np.cumsum(d, axis=-1, dtype=np.float64), [(0, 0), (0, 0), (1, 0)])
         share = (cum[..., width:] - cum[..., :-width]).max(axis=-1) / cum[..., -1]
-        n_exceeds = np.count_nonzero(np.any(share[:, sites != 'logits'] > .25, axis=1))
+        n_exceeds = np.count_nonzero(np.any(share[:, (sites != 'logits') & (sites != s)] > threshold, axis=1))
         count += n_exceeds
-        if s in ('pixels', 'b3', 'b6', 'b9'):
+        if s in shown:
             display_count += n_exceeds
+            display_total += len(d)
         total += len(d)
         if s == 'pixels':
             add('share.pixels.logits', np.median(share[kind == 1][:, sites == 'logits']), 'P', f)
             add('grid.uniform', width / d.shape[-1], 'R', f)
             add('probe.n', array(f, 'probe_idx').size, 'R', f)
+            add('grid.points', len(grid), 'R', f)
+            add('grid.draw', len(array(f, 's64')), 'R', f)
     add('pre_logits.n', count, 'P', *ps)
     add('pre_logits.total', total, 'R', *ps)
+    displayed = [f for s, f in zip(starts, ps) if s in shown]
+    add('pre_logits.shown_n', display_count, 'P', fig, *displayed)
+    add('pre_logits.shown_total', display_total, 'R', fig, *displayed)
     note(f'Threshold count over six tested starts = {count}/{total}; over the four illustrated starts = '
-         f'{display_count}/{len(kind) * 4}. The headline counts tested starts, not only the figure options.')
+         f'{display_count}/{display_total}. The headline counts tested starts, not only the figure options.')
     f = f'{PKG}/x4-pixels-suffix/paths/x4-pixels-paths.json'
     add('pairs.display', len(read_json(f)['meta']['pair_pos']), 'R', f)
-    mass, lab, grid, chain = arrays(ps[-1], 'emb_mass', 'labels', 's64', 'chain')
+    b9 = ps[starts.index('b9')]
+    mass, lab, grid, chain = arrays(b9, 'emb_mass', 'labels', 's64', 'chain')
     m = mass[chain.tolist().index('b9')]
     pairs = np.flatnonzero(kind == 1)
     delta = m[pairs, :, lab[pairs, 1]].astype(float) - m[pairs, :, lab[pairs, 0]]
     slopes = np.diff(delta, axis=1) / np.diff(grid)
-    add('slope.b9.b9', np.median(np.abs(slopes).max(axis=1)), 'P', ps[-1])
+    add('slope.b9.b9', np.median(np.abs(slopes).max(axis=1)), 'P', b9)
     note(f'b9 slope, median of per-pair max absolute = {np.median(np.abs(slopes).max(axis=1)):.9g}; '
          f'median of per-pair max signed = {np.median(slopes.max(axis=1)):.9g}. '
          'The X4 analysis uses max absolute; the tile could say so explicitly.')
@@ -488,11 +702,29 @@ CHECKS = (kernel, sources, decode, ood, edits, x1, x3, x4, solver)
 # A literal matching a shipped sample is a passing value but not a recomputation
 # by the generator. Keep that warning distinct from a numerical failure.
 PRODUCER_TIER_WARNINGS = {
-    ('inv-sources', 'attack.shown'): ('R', 'generator uses a literal 300 (not a read of the shipped sample)'),
-    ('x3-adversarial', 'probe.n'): ('R', 'generator reads packaged probe.n metadata (does not inspect dimensions)'),
-    ('x4-paths', 'pairs.display'): ('R', 'generator uses 2 × a packaging constant (not a read of the shipped sample)'),
-    **{('x1-data', f'stem.{group}.{metric}'): ('P', 'saved matrix cells summarize entire probe runs, not per-image data')
-       for group in ('c100', 'in32', 'svhn') for metric in ('nn', 'cka')},
+    ('inv-sources', 'attack.shown'): ('R', 'reads packaged n metadata, rather than counting shipped image IDs'),
+    ('inv-decode', 'near.sample'): ('R', 'reads packaged n metadata, rather than inspecting array length'),
+    **{('inv-edits', f'display.{site}.n'): ('R', 'reads packaged n metadata, rather than counting shipped donor rows')
+       for site in ('b4', 'b6')},
+}
+
+# Explicit waivers of raw re-derivation. The stored values are still checked
+# by the corresponding S rows; these are not waivers of coverage/transcription.
+RAW_WAIVERS = {
+    'inv-kernel': {
+        'top2.p8.ea400*': 'P8 Shannon modes were not staged.',
+        'refit.*': 'Refitted operator and paired coordinates are not local; only the archived held-out shares are saved here.',
+    },
+    'inv-sources': {
+        'share.p8.*': 'P8 depth-system inputs (c, t and eigenvalues) were not staged.',
+        'patch.b5.swap': 'P8 individual patched trajectories and progress scores were not staged.',
+    },
+    'inv-decode': {'large.*': 'Only the P8 decoder summaries are local, not the individual per-image P8 scores.'},
+    'inv-ood': {'svhn.b4*, h.b4*, c100.b9, pgd8.b9': 'No staged per-image scores for these P8 decoder conditions.'},
+    'inv-edits': {'b4.*': 'No staged per-pair P8/K64 source miss, joint miss or donor probabilities; P2/K16 is a separate run.'},
+    'x1-data': {'stem.*': 'The comparison matrix already pools images; per-image neighbour lists and stem features for these pipelines were not staged.'},
+    'x3-adversarial': {'depth.replay': 'Original replay discrepancy is recorded in DONE; matching unrounded replay inputs were not archived.'},
+    'solver': {'balance.*, k16.sparse_modes': 'Historical timings have no local raw timing log; REPORT.md is the only measurement record.'},
 }
 
 
@@ -512,42 +744,45 @@ def card_list(markup):
     return re.findall(r'<li[^>]*>(.*?)</li>', markup, flags=re.S)
 
 
-def coverage(entry, facts, built):
+def resolved(markup, lookup):
+    def sub(m):
+        return html.escape(record['text']) if (record := lookup(m[1])) is not None else m[0]
+    return TOKEN.sub(sub, markup)
+
+
+def coverage(entry, facts, built, build, lede):
     frag = text(f'{FRAG}/{entry}.html')
     card = read_json(f'{ASSETS}/{entry}.json')['card']
     early = frag.partition('<h3')[0]
     card_pieces = [card['answer'], *card['numbers']]
     prefix = f'x.{entry}.'
-    required = {k.removeprefix(prefix) for k in TOKEN.findall(early + ' '.join(card_pieces))}
-
+    required = {k.removeprefix(prefix) for k in TOKEN.findall(' '.join([early, *card_pieces, lede]))
+                if k.startswith(prefix)}
     problems = [f'headline refers to missing fact key {key}' for key in sorted(required - facts.keys())]
 
     def resolve(markup):
-        def sub(match):
-            key = match[1].removeprefix(prefix)
-            return html.escape(facts[key]['text']) if key in facts else match[0]
-        return TOKEN.sub(sub, markup)
+        return resolved(markup, lambda key: facts.get(key.removeprefix(prefix)))
 
     section = re.search(rf'<section class="experiment" id="x-{re.escape(entry)}">(.*?)</section>', built, re.S)
     cards = re.findall(r'<article class="x-card">(.*?)</article>', built, flags=re.S)
     card_body = next((v for v in cards if f'href="#experiments/x-{entry}"' in v), '')
     if section is None or not card_body:
-        problems.append(f'{BUILD}: missing section or at-a-glance card')
+        problems.append(f'{build}: missing section or at-a-glance card')
     else:
         # Match the entire answer and tile group (including literals), not just
         # a substring such as `0` or `b6` which might occur elsewhere.
         for name in ('x-answer', 'x-numbers'):
             a, b = block(frag, name), block(section[1], name)
             if not a or [normalize(resolve(x)) for x in a] != [normalize(x) for x in b]:
-                problems.append(f'{BUILD}: {name} differs from resolved source')
+                problems.append(f'{build}: {name} differs from resolved source')
         a = block(card_body, 'x-card-answer')
         b = card_list(card_body)
         if [normalize(resolve(x)) for x in card_pieces] != [normalize(x) for x in a + b]:
-            problems.append(f'{BUILD}: card differs from resolved source')
+            problems.append(f'{build}: card differs from resolved source')
     return required, problems
 
 
-NUM = re.compile(r'([-+]?\d[\d,]*(?:\.(\d+))?)(%)?\Z')
+NUM = re.compile(r'([-+]?\d[\d,]*(?:\.(\d+))?)(?:[eE]([+-]?\d+))?(%)?\Z')
 
 
 def judge(actual, record, raw_atol=None, raw_reason='FP arithmetic'):
@@ -557,13 +792,14 @@ def judge(actual, record, raw_atol=None, raw_reason='FP arithmetic'):
     m = NUM.fullmatch(shown)
     if m is None:
         return False, 'unrecognized numeric display'
-    factor = 100 if m[3] else 1
+    factor = 100 if m[4] else 1
     places = len(m[2] or '')
-    centre = float(m[1].replace(',', '')) / factor
+    exp = int(m[3] or 0)
+    centre = float(m[1].replace(',', '')) * 10.**exp / factor
     # Counts are exact, even though elsewhere integer-like values can be
     # rounded (e.g. 49 s and integer percentages).
-    exact = (isinstance(actual, int) or isinstance(value, int)) and not m[3] and not places
-    tol = 0 if exact else .5 * 10.**(-places) / factor
+    exact = (isinstance(actual, int) or isinstance(value, int)) and not m[4] and not m[3] and not places
+    tol = 0 if exact else .5 * 10.**(exp - places) / factor
     epsilon = 1e-12
     dist_ok = abs(actual - centre) <= tol + epsilon and abs(value - centre) <= tol + epsilon
     # Declared full-precision values must also agree with the independent
@@ -574,15 +810,30 @@ def judge(actual, record, raw_atol=None, raw_reason='FP arithmetic'):
     return math.isfinite(actual) and dist_ok and raw_ok, why
 
 
-def main():
+def main(build=BUILD):
     rows, findings, notes = [], [], []
-    built = text(BUILD)
+    required_count = 0
+    try:
+        built = text(build)
+    except OSError as exc:
+        print(f'FAIL build: {exc}')
+        return 1
+    lede = text(f'{FRAG}/_lede.html')
+    catalog = {entry: read_json(f'{ASSETS}/{entry}.facts.json') for entry in ENTRIES}
+    qualified = {f'x.{entry}.{key}': record for entry, facts in catalog.items() for key, record in facts.items()}
+    for key in set(TOKEN.findall(lede)) - qualified.keys():
+        findings.append(('lede', f'missing fact key {key}'))
+    summary = re.compile(r'<div class="xp-sum">(.*?)</div>', re.S)
+    source_text, built_text = summary.search(resolved(lede, qualified.get)), summary.search(built)
+    if source_text is None or built_text is None or normalize(source_text[1]) != normalize(built_text[1]):
+        findings.append(('lede', f'{build}: summary differs from resolved _lede.html source'))
     for entry, check in zip(ENTRIES, CHECKS, strict=True):
-        facts = read_json(f'{ASSETS}/{entry}.facts.json')
+        facts = catalog[entry]
         for key, record in facts.items():
             if record.get('tier') not in {'R', 'P', 'S'}:
                 findings.append((entry, f'{key}: invalid or absent tier'))
-        required, problems = coverage(entry, facts, built)
+        required, problems = coverage(entry, facts, built, build, lede)
+        required_count += len(required)
         findings.extend((entry, p) for p in problems)
         checked = set()
 
@@ -614,15 +865,19 @@ def main():
         print(f'NOTE {entry}: {msg}')
     for entry, msg in findings:
         print(f'FAIL {entry}: {msg}')
-    print('LIMIT: no local P8 raw modes, per-image P8 decode scores, or per-pair outputs for the headline P8 '
-          'intervention run; its summary rows test transcription only.')
+    for entry, waivers in RAW_WAIVERS.items():
+        for keys, why in waivers.items():
+            print(f'RAW-WAIVER {entry} {keys}: {why} Summary values verified.')
     count = Counter(r[6] for r in rows)
     tiers = Counter(r[5].split('/')[-1] for r in rows if not r[1].startswith('@'))
     print(f'{sum(tiers.values())} fact rows ({dict(sorted(tiers.items()))}), '
+          f'{required_count} required headline/lede/prologue fact keys, '
           f'{count["PASS"]} passing rows including literals, {count["FAIL"]} failing rows, '
           f'{len(findings)} coverage/tier-schema/input failures.')
     return int(bool(findings or count['FAIL']))
 
 
 if __name__ == '__main__':
-    raise SystemExit(main())
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('build', nargs='?', default=BUILD, help=f'built HTML page (default {BUILD})')
+    raise SystemExit(main(parser.parse_args().build))

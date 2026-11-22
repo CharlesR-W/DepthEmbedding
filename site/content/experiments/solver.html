@@ -11,7 +11,7 @@
 <div class="x-tablewrap"><table class="x-defs">
 <thead><tr><th>Quantity</th><th>Definition</th><th>Symbols and choices</th><th>Code</th></tr></thead>
 <tbody>
-<tr><th>Compact lazy walk</th><td>$M=\frac I2+\frac{1-\eta}{2}DAD-\frac\eta2D^2+\frac\eta2dd^\top$</td><td>$A$ is the binary union of directed nearest-neighbour edges; $d$ is the Sinkhorn scaling, $D=\operatorname{diag}(d)$, and $\eta=10^{-6}$. The negative diagonal term cancels the floor on self-edges. Store a sparse matrix and a vector, not the dense outer product.</td><td><code>opt/sparse_core.py:balance_weights, make_walk</code></td></tr>
+<tr><th>Compact lazy walk</th><td>$M=\frac I2+\frac{1-\eta}{2}DAD-\frac\eta2D^2+\frac\eta2dd^\top$</td><td>$A$ is the binary union of directed nearest-neighbour edges; $d$ is the Sinkhorn scaling, $D=\operatorname{diag}(d)$, and $\eta=10^{-6}$. The negative diagonal term cancels the floor on self-edges. The prototype stores a sparse matrix and a vector, not the dense outer product.</td><td><code>opt/sparse_core.py:balance_weights, make_walk</code></td></tr>
 <tr><th>Calibration and modes</th><td>$t^*\tau=\lambda_{\min,0}(\mathcal L_{t^*}),\;\tau=4\sin^2(\pi/(2L))$<br>$(I-\mathcal L_t/b)^{16}$</td><td>The subscript 0 restricts to slice-mean-zero functions; $L$ is the number of sites. The prototype brackets this root. It uses direct Lanczos for 16 modes and a monotone polynomial filter for 256, then evaluates the original operator in the resulting subspace. $b$ bounds the spectrum from above.</td><td><code>opt/sparse_core.py:balance_root, normal_modes, power_modes, ritz</code></td></tr>
 </tbody></table></div>
 <h3>Measured at 2,000 images</h3>
@@ -31,19 +31,19 @@
 <p>The compact and dense walks differed by at most {{fact:x.solver.storage.entry_error}} entrywise; the relative error in the calibrated coupling was about {{fact:x.solver.calibration.error}}. For 256 modes, the maximum relative eigenvalue error was {{fact:x.solver.k256.val_error}}; the sine of the largest principal angle was {{fact:x.solver.k256.space_error}}. Walk storage was recomputed from the archived Grams and CSR structure. Timings and the numerical comparisons above are transcribed from the benchmark report, not new measurements.</p>
 <h3>Caveats</h3>
 <ul class="x-caveats">
-<li>Walk storage is not peak process memory. The prototype still reads precomputed Grams and finds neighbours; these timings exclude the cost of computing the Grams.</li>
+<li>Walk storage is not peak process memory. The prototype still reads precomputed Grams and finds neighbours; these timings exclude computing the Grams and the neighbour search.</li>
 <li>Subtracting a slice mean does not remove the rank-one term unless $d$ is constant. Dropping the floor instead changed the first 16 eigenvalues by up to {{fact:x.solver.floor_drift}}% in the study.</li>
 <li>The exact compact representation and sparse Sinkhorn do not carry over to the smooth kernel. Partial spectra, bounded Krylov memory and faster dense linear algebra are separate options. Sparsifying a smooth kernel would change the operator.</li>
 </ul>
 <h3>Method concerns from the audit</h3>
 <ul class="x-caveats">
-<li><span class="x-tag">audit</span> <b>Scope limit:</b> The projection starts with the graph and coupling. Time Gram construction, neighbour search and calibration separately to get an end-to-end cost.</li>
+<li><span class="x-tag">audit</span> <b>Scope limit:</b> The projection assumes the graph and coupling are already available. Time Gram construction, neighbour search and calibration separately to get an end-to-end cost.</li>
 <li><b>Projection limit:</b> Synthetic CG throughput does not establish convergence or peak RAM on large real graphs. Measure both with a stated Krylov budget.</li>
 <li><b>Validation limit:</b> The filter was checked at one coupling. Compare residuals and subspaces across couplings before reuse; see the <a href="#method/new-images-audit">shared numerical checks</a>.</li>
 </ul>
 <details class="x-more"><summary>Projected time and RAM for one solve</summary>
-<p>Estimates, not measurements. Dense setup assumes cubic scaling; inverse applications assume quadratic scaling. Sparse throughput comes from timing CG steps on synthetic graphs, not a large real Lanczos or filter solve. At {{fact:x.solver.scale.n}} images, storing float32 Grams would take {{fact:x.solver.scale.gram}} GB for one or {{fact:x.solver.scale.grams}} GB for the chain. Memory mapping need not put all of that in RAM, but it does not remove neighbour construction or I/O.</p>
-<p>The published ranges do not specify their Krylov budget. A float64 basis alone at that probe size takes {{fact:x.solver.scale.basis_measured}} GB at $n_{\mathrm{cv}}=$ {{fact:x.solver.k256.ncv}} (the small-probe comparison budget), or {{fact:x.solver.scale.basis_default}} GB at $n_{\mathrm{cv}}=$ {{fact:x.solver.scale.ncv_default}} (the filter solver default for 256 modes), before other arrays. These ranges are not machine requirements.</p>
+<p>Estimates, not measurements. Dense setup assumes cubic scaling; inverse applications assume quadratic scaling. Sparse throughput comes from timing CG steps on synthetic graphs, not from a large real Lanczos or filter solve. At {{fact:x.solver.scale.n}} images, storing float32 Grams would take {{fact:x.solver.scale.gram}} GB for one Gram or {{fact:x.solver.scale.grams}} GB for the chain. Memory mapping need not put all of that in RAM, but it does not remove neighbour construction or I/O.</p>
+<p>The report's projected ranges, in the table below, do not specify their Krylov budget. At that probe size, a float64 basis alone takes {{fact:x.solver.scale.basis_measured}} GB at $n_{\mathrm{cv}}=$ {{fact:x.solver.k256.ncv}} (the small-probe comparison budget) or {{fact:x.solver.scale.basis_default}} GB at $n_{\mathrm{cv}}=$ {{fact:x.solver.scale.ncv_default}} (the filter solver default for 256 modes), before other arrays. The projected ranges are not machine requirements.</p>
 <div class="x-tablewrap"><table class="x-decisions">
 <caption>One solve, graph and coupling available; Gram and neighbour construction excluded</caption>
 <thead><tr><th>Probe images</th><th>Modes</th><th>Dense solve time / RAM</th><th>Sparse solve time / RAM</th></tr></thead>
@@ -59,8 +59,8 @@
 <thead><tr><th>Decision</th><th>Chosen</th><th>Alternative</th><th>Why</th><th>What it could bias</th><th>How to test</th></tr></thead>
 <tbody>
 <tr><th>Walk</th><td>Preserve all off-edge weights as a rank-one update</td><td>Drop the floor</td><td>Compare the same operator</td><td>Keeping the floor excludes a faster, different kernel</td><td>Measure mode drift if changing the kernel is acceptable</td></tr>
-<tr><th>Solver</th><td>Direct Lanczos for tens of modes, polynomial filter for hundreds</td><td>Sparse LU, nested CG, block iteration</td><td>Fill-in or fewer useful modes per unit time in these tests</td><td>Filter tested at one coupling only</td><td>Compare convergence and subspaces across couplings</td></tr>
-<tr><th>Scale</th><td>Real 2,000-image benchmark and larger synthetic throughput</td><td>Full real larger-probe run</td><td>Separate measured cost from extrapolation</td><td>Real graph spectra can change iteration counts</td><td>Time the real solve, neighbour search and memory separately</td></tr>
+<tr><th>Solver</th><td>Direct Lanczos for tens of modes, polynomial filter for hundreds</td><td>Sparse LU, nested CG, block iteration</td><td>Alternatives had fill-in or produced fewer useful modes per unit time in these tests</td><td>Filter tested at one coupling only</td><td>Compare convergence and subspaces across couplings</td></tr>
+<tr><th>Scale</th><td>Real 2,000-image benchmark and larger synthetic throughput</td><td>Full real larger-probe run</td><td>Separate measured cost from extrapolation</td><td>Real graph spectra can change iteration counts</td><td>Measure real solve time, neighbour search time and memory separately</td></tr>
 </tbody></table></div>
 </details>
 <p class="x-links"><a href="https://github.com/CharlesR-W/DepthEmbedding/blob/experiments-site/opt/REPORT.md">Full solver report</a> · <a href="https://github.com/CharlesR-W/DepthEmbedding/blob/experiments-site/opt/bench.py">Benchmark code</a> · <a class="x-top" href="#experiments/x-glance-title">At a glance</a></p>

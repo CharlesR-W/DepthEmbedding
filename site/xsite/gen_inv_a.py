@@ -200,7 +200,7 @@ def sources(inputs, report):
     out.fact('patch.b5.swap', rt(16, 'E4|swap|prog_D')[5], pct=True, tier='S',
              source=f'{SUMMARY}:rt.P8__pr400__L12.b5__K16.E4|swap|prog_D')
     out.fact('attack.n', len(y[0]), tier='R', source=f'{P2}/coords_pgd2.npz:y, image count')
-    out.fact('attack.shown', packaged(PR, 'ov/pgd2.json')['n'], tier='R', source=f'data/sitex/ops/{PR}/ov/pgd2.json:n')
+    out.fact('attack.shown', packaged(PR, 'ov/pgd2.json')['n'], tier='S', source=f'data/sitex/ops/{PR}/ov/pgd2.json:n')
     path = DATA / 'stretch/rt_points/P2__pr300__L12/b4__K16.npz'
     with np.load(path, allow_pickle=False) as rerun:
         out.fact('patch.cohort', json.loads(str(rerun['meta']))['m_full'], tier='S',

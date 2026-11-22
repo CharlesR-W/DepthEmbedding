@@ -314,6 +314,8 @@ export class EmbFigure {
   async loadPanel(p) {
     const tok = p.loadTok = (p.loadTok || 0) + 1;
     p.err = null; p.ready = false; p.probe = null; p.box = null; p.hot = null;
+    p.shown = null; p.screen = null; p.ovScreen = null; p.pathScreen = null; hideTip();      // nothing of the old state stays readable (statistic, hover) while the new one loads
+    if (p.statEl) p.statEl.replaceChildren();
     if (p.cv) { const r = this.fit(p.cv); if (r) { r.g.fillStyle = this.P.surface; r.g.fillRect(0, 0, r.w, r.h); } }
     try {
       const o = await loadOp(this.root, p.item.op);
@@ -381,7 +383,7 @@ export class EmbFigure {
     this.status.textContent = "";
   }
   async reloadPanels() { this.stop(); this.siteWanted = this.chain()[Math.round(this.b)]; await this.loadPanels(); }
-  async swapPanel(p, item) { this.stop(); p.item = item; p.swapped = item !== p.base; const tok = (p.loadTok || 0) + 1; await this.loadPanel(p); if (tok === p.loadTok) this.recompute(); }
+  async swapPanel(p, item) { this.stop(); this.token = (this.token || 0) + 1;      /* supersede any projection in flight */ p.item = item; p.swapped = item !== p.base; const tok = (p.loadTok || 0) + 1; await this.loadPanel(p); if (tok === p.loadTok) this.recompute(); }
   arrowKeep(n) { const k = Math.min(n, this.density); return k >= n ? () => true : j => (j * 7919) % n < k; }
   isoNow() { return this.isoPreview ?? this.iso; }
   togglePlay() { if (this.playing) this.stop(); else this.play(); }
@@ -439,13 +441,14 @@ export class EmbFigure {
     return [...Array(K).keys()].map(k => [V[k * K], V[k * K + 1]]);
   }
   async project(p, kind) {
-    const o = p.o, K = o.K, L = o.L, N = o.N, spec = this.cur();
+    // snapshot the panel's state before the first await: a swap or reload that starts meanwhile must not be mixed in
+    const o = p.o, item = p.item, sets = p.sets, paths = p.paths, K = o.K, L = o.L, N = o.N, spec = this.cur();
     if (spec.K != null && spec.K !== K) throw new DataError(`the figure asks for K = ${spec.K}; operator ${o.id} has K = ${K}`);
     const raw = await kindData(o, kind);
     const norms = (spec.norm || "site") === "site" ? (o.op.site_norm?.[kind] || null) : null;
     const signs = spec.axes === "viewer" && o.op.viewer_signs ? o.op.viewer_signs : null;
-    const R = kind !== "site" && p.item.R ? p.item.R : null;
-    if (R && (R.length !== K || R[0].length !== K)) throw new DataError(`panel ${p.item.label}: R is ${R.length} x ${R[0].length}, operator K = ${K}`);
+    const R = kind !== "site" && item.R ? item.R : null;
+    if (R && (R.length !== K || R[0].length !== K)) throw new DataError(`panel ${item.label}: R is ${R.length} x ${R[0].length}, operator K = ${K}`);
     const slice = (arr, l) => arr.subarray(l * N * K, (l + 1) * N * K);
     const nrm = l => { if ((spec.norm || "site") !== "site") return 1; if (norms) return norms[l] || 1; let f = 0; const g = slice(raw, l); for (let j = 0; j < g.length; j++) f += g[j] * g[j]; return Math.sqrt(f) || 1; };
     const M = [];
@@ -488,7 +491,7 @@ export class EmbFigure {
       const den = kind === "site" ? t / (f * f) : t / (nrm(l) ** 2);
       plane.push(den > 0 ? a / den : NaN);
     }
-    for (const st of p.sets) {
+    for (const st of sets) {
       const xy = {};
       for (const which of ["s", "from"]) {
         if (which === "from" && !st.from) continue;
@@ -500,15 +503,15 @@ export class EmbFigure {
       setXY.push(xy);
       if (st.s.sprite) st.sprite = getImage(rel(st.s.sprite, st.url)).catch(() => null);
     }
-    for (const pt of p.paths) {
+    for (const pt of paths) {
       const s = pt.s; if (!s.kinds[kind]) throw new DataError(`path set ${s.id} has no ${kind} coordinates`);
       const sh = s.kinds[kind].shape; if (sh[0] !== L || sh[1] !== s.P || sh[2] !== s.S || sh[3] !== K) throw new DataError(`path set ${s.id}: shape [${sh}] does not match chain ${L}, P ${s.P}, S ${s.S}, K ${K}`);
       pathXY.push(proj(await loadArray(s.kinds[kind], pt.url), s.P * s.S));
     }
-    const sets = p.sets, paths = p.paths;
     return () => {
-      if (p.sets !== sets || p.paths !== paths) return;          // the panel was reloaded meanwhile
-      p.M = M; p.probe = probe; p.plane = plane; p.err = null;
+      // the panel was swapped or reloaded meanwhile: drop this projection (its operator, rotation or sets are stale)
+      if (p.o !== o || p.item !== item || !p.ready || p.sets !== sets || p.paths !== paths) return;
+      p.M = M; p.probe = probe; p.plane = plane; p.err = null; p.shown = item;      // the item whose coordinates are drawn: the header statistic reads this, never p.item
       sets.forEach((st, i) => { st.xy = setXY[i].s; st.fromXY = setXY[i].from || null; });
       paths.forEach((pt, i) => { pt.xy = pathXY[i]; });
       p.box = this.extent(p);
@@ -684,7 +687,9 @@ export class EmbFigure {
     this.markFilm();
   }
   drawStat(p, lc) {
-    const st = p.item.stat; if (!st || !p.statEl) return;
+    if (!p.statEl) return;
+    const st = p.probe && p.shown ? p.shown.stat : null;       // only the committed network's statistic, beside its own cloud
+    if (!st) { p.statEl.replaceChildren(); const r0 = this.fit(p.spark); if (r0) r0.g.clearRect(0, 0, r0.w, r0.h); return; }
     const v = st.values?.[lc];
     p.statEl.replaceChildren(h("b", { text: fmt(v) }), ` ${st.label} at ${this.chain()[lc] ?? ""}`);       // the value first: a narrow panel truncates the label, not the number
     const r = this.fit(p.spark); if (!r) return;
@@ -895,6 +900,7 @@ export class EmbFigure {
   }
   drawPanelOnly(p) { if (p.o && !p.err && p.probe) { const tween = this.kind !== "site" && this.playing; this.drawPanel(p, tween ? this.b : Math.round(this.b), Math.round(this.b)); } }
   nearest(p, x, y) {
+    if (!p.probe || !p.ready || !p.screen) return null;       // no hits until the current projection has been drawn
     let best = null, bd = 12 * 12;
     const test = (sx, sy, what) => { const d = (sx - x) ** 2 + (sy - y) ** 2; if (d < bd) { bd = d; best = { ...what, x: sx, y: sy }; } };
     for (const { st, sc, fsc, keep } of p.ovScreen || []) for (let j = 0; j < st.s.n; j++) if (!keep || keep(j)) test(sc[j * 2], sc[j * 2 + 1], { type: "ov", st, j, from: fsc ? [fsc[j * 2], fsc[j * 2 + 1]] : null });
