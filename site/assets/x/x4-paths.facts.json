@@ -1,190 +1,4 @@
 {
-  "leaves.pixels.n": {
-    "value": 34,
-    "text": "34",
-    "tier": "P",
-    "source": "crw-depth-xp-results/x4/paths_pixels.npz:pred, labels, kind; same-class pairs with any argmax unequal to label"
-  },
-  "leaves.pixels.share": {
-    "value": 0.22666666666666666,
-    "text": "23%",
-    "tier": "P",
-    "source": "crw-depth-xp-results/x4/paths_pixels.npz:pred, labels, kind; same-class fraction with any argmax unequal to label"
-  },
-  "share.pixels.logits": {
-    "value": 0.14872699975967407,
-    "text": "14.9%",
-    "tier": "P",
-    "source": "crw-depth-xp-results/x4/paths_pixels.npz:share_unit, kind, sites; median different-class logits value"
-  },
-  "slope.pixels.b9": {
-    "value": 12.453580856323242,
-    "text": "12.5",
-    "tier": "P",
-    "source": "crw-depth-xp-results/x4/paths_pixels.npz:emb_mass, s64, labels, kind, chain; b9 median different-class max absolute slope"
-  },
-  "loc.pixels.joint": {
-    "value": 0.14283897102210807,
-    "text": "14.3%",
-    "tier": "R",
-    "source": "crw-depth-xp-results/x4/paths_pixels.npz:probe_y; max top-two-image squared-norm share over all saved modes, pooling across sites before ranking"
-  },
-  "loc.pixels.site": {
-    "value": 0.8284569913949903,
-    "text": "82.8%",
-    "tier": "R",
-    "source": "crw-depth-xp-results/x4/paths_pixels.npz:probe_site_y; max top-two-image squared-norm share over all saved modes and sites"
-  },
-  "grid.points": {
-    "value": 257,
-    "text": "257",
-    "tier": "R",
-    "source": "crw-depth-xp-results/x4/paths_pixels.npz:s256 length"
-  },
-  "grid.draw": {
-    "value": 65,
-    "text": "65",
-    "tier": "R",
-    "source": "crw-depth-xp-results/x4/paths_pixels.npz:s64 length"
-  },
-  "grid.uniform": {
-    "value": 0.0625,
-    "text": "6.25%",
-    "tier": "R",
-    "source": "crw-depth-xp-results/x4/paths_pixels.npz:s256; window is one sixteenth of steps"
-  },
-  "leaves.stem.n": {
-    "value": 35,
-    "text": "35",
-    "tier": "P",
-    "source": "xp/out/x4/paths_stem.npz:pred, labels, kind; same-class pairs with any argmax unequal to label"
-  },
-  "leaves.stem.share": {
-    "value": 0.23333333333333334,
-    "text": "23%",
-    "tier": "P",
-    "source": "xp/out/x4/paths_stem.npz:pred, labels, kind; same-class fraction with any argmax unequal to label"
-  },
-  "leaves.b3.n": {
-    "value": 40,
-    "text": "40",
-    "tier": "P",
-    "source": "crw-depth-xp-results/x4/paths_b3.npz:pred, labels, kind; same-class pairs with any argmax unequal to label"
-  },
-  "leaves.b3.share": {
-    "value": 0.26666666666666666,
-    "text": "27%",
-    "tier": "P",
-    "source": "crw-depth-xp-results/x4/paths_b3.npz:pred, labels, kind; same-class fraction with any argmax unequal to label"
-  },
-  "share.b3.logits": {
-    "value": 0.13775503635406494,
-    "text": "13.8%",
-    "tier": "P",
-    "source": "crw-depth-xp-results/x4/paths_b3.npz:share_unit, kind, sites; median different-class logits value"
-  },
-  "slope.b3.b9": {
-    "value": 10.931268215179443,
-    "text": "10.9",
-    "tier": "P",
-    "source": "crw-depth-xp-results/x4/paths_b3.npz:emb_mass, s64, labels, kind, chain; b9 median different-class max absolute slope"
-  },
-  "loc.b3.joint": {
-    "value": 0.07947746519810256,
-    "text": "7.9%",
-    "tier": "R",
-    "source": "crw-depth-xp-results/x4/paths_b3.npz:probe_y; max top-two-image squared-norm share over all saved modes, pooling across sites before ranking"
-  },
-  "loc.b3.site": {
-    "value": 0.8284569913949903,
-    "text": "82.8%",
-    "tier": "R",
-    "source": "crw-depth-xp-results/x4/paths_b3.npz:probe_site_y; max top-two-image squared-norm share over all saved modes and sites"
-  },
-  "leaves.b6.n": {
-    "value": 13,
-    "text": "13",
-    "tier": "P",
-    "source": "crw-depth-xp-results/x4/paths_b6.npz:pred, labels, kind; same-class pairs with any argmax unequal to label"
-  },
-  "leaves.b6.share": {
-    "value": 0.08666666666666667,
-    "text": "9%",
-    "tier": "P",
-    "source": "crw-depth-xp-results/x4/paths_b6.npz:pred, labels, kind; same-class fraction with any argmax unequal to label"
-  },
-  "share.b6.logits": {
-    "value": 0.13248543441295624,
-    "text": "13.2%",
-    "tier": "P",
-    "source": "crw-depth-xp-results/x4/paths_b6.npz:share_unit, kind, sites; median different-class logits value"
-  },
-  "slope.b6.b9": {
-    "value": 11.150688648223877,
-    "text": "11.2",
-    "tier": "P",
-    "source": "crw-depth-xp-results/x4/paths_b6.npz:emb_mass, s64, labels, kind, chain; b9 median different-class max absolute slope"
-  },
-  "loc.b6.joint": {
-    "value": 0.027978722630756448,
-    "text": "2.8%",
-    "tier": "R",
-    "source": "crw-depth-xp-results/x4/paths_b6.npz:probe_y; max top-two-image squared-norm share over all saved modes, pooling across sites before ranking"
-  },
-  "loc.b6.site": {
-    "value": 0.5556984570618559,
-    "text": "55.6%",
-    "tier": "R",
-    "source": "crw-depth-xp-results/x4/paths_b6.npz:probe_site_y; max top-two-image squared-norm share over all saved modes and sites"
-  },
-  "leaves.b8.n": {
-    "value": 0,
-    "text": "0",
-    "tier": "P",
-    "source": "xp/out/x4/paths_b8.npz:pred, labels, kind; same-class pairs with any argmax unequal to label"
-  },
-  "leaves.b8.share": {
-    "value": 0.0,
-    "text": "0%",
-    "tier": "P",
-    "source": "xp/out/x4/paths_b8.npz:pred, labels, kind; same-class fraction with any argmax unequal to label"
-  },
-  "leaves.b9.n": {
-    "value": 0,
-    "text": "0",
-    "tier": "P",
-    "source": "crw-depth-xp-results/x4/paths_b9.npz:pred, labels, kind; same-class pairs with any argmax unequal to label"
-  },
-  "leaves.b9.share": {
-    "value": 0.0,
-    "text": "0%",
-    "tier": "P",
-    "source": "crw-depth-xp-results/x4/paths_b9.npz:pred, labels, kind; same-class fraction with any argmax unequal to label"
-  },
-  "share.b9.logits": {
-    "value": 0.09226613491773605,
-    "text": "9.2%",
-    "tier": "P",
-    "source": "crw-depth-xp-results/x4/paths_b9.npz:share_unit, kind, sites; median different-class logits value"
-  },
-  "slope.b9.b9": {
-    "value": 9.705348014831543,
-    "text": "9.7",
-    "tier": "P",
-    "source": "crw-depth-xp-results/x4/paths_b9.npz:emb_mass, s64, labels, kind, chain; b9 median different-class max absolute slope"
-  },
-  "loc.b9.joint": {
-    "value": 0.01004012423583299,
-    "text": "1.0%",
-    "tier": "R",
-    "source": "crw-depth-xp-results/x4/paths_b9.npz:probe_y; max top-two-image squared-norm share over all saved modes, pooling across sites before ranking"
-  },
-  "loc.b9.site": {
-    "value": 0.2869440803036267,
-    "text": "28.7%",
-    "tier": "R",
-    "source": "crw-depth-xp-results/x4/paths_b9.npz:probe_site_y; max top-two-image squared-norm share over all saved modes and sites"
-  },
   "pairs.per_kind": {
     "value": 150,
     "text": "150",
@@ -201,7 +15,7 @@
     "value": 579,
     "text": "579",
     "tier": "R",
-    "source": "crw-depth-xp-results/x4/pairs.npz:pair_idx; distinct test image IDs over all pairs"
+    "source": "crw-depth-xp-results/x4/pairs.npz:pair_idx; distinct test image IDs"
   },
   "pairs.margin_min": {
     "value": 0.001,
@@ -221,11 +35,191 @@
     "tier": "R",
     "source": "xp/out/x4/paths_*.npz; number of measured starts"
   },
-  "starts.shown": {
-    "value": 4,
-    "text": "4",
+  "paths.total": {
+    "value": 1800,
+    "text": "1,800",
+    "tier": "P",
+    "source": "paths_<start>.npz (six starts):kind; pairs x starts"
+  },
+  "grid.points": {
+    "value": 257,
+    "text": "257",
     "tier": "R",
-    "source": "lead figure switch options from site/xsite/ops_x4.py:STARTS"
+    "source": "crw-depth-xp-results/x4/paths_pixels.npz:s256 length"
+  },
+  "grid.draw": {
+    "value": 65,
+    "text": "65",
+    "tier": "R",
+    "source": "crw-depth-xp-results/x4/paths_pixels.npz:s64 length (speed, gain and embedding grid)"
+  },
+  "grid.uniform": {
+    "value": 0.0625,
+    "text": "6.25%",
+    "tier": "R",
+    "source": "16 of the 256 steps"
+  },
+  "grid.jump": {
+    "value": 1.0,
+    "text": "100%",
+    "tier": "R",
+    "source": "a single jump puts all of the distance into one window"
+  },
+  "emb.k": {
+    "value": 16,
+    "text": "16",
+    "tier": "R",
+    "source": "crw-depth-xp-results/x4/paths_pixels.npz:emb_site_y last axis (site-local coordinates kept)"
+  },
+  "emb.perplexity": {
+    "value": 100,
+    "text": "100",
+    "tier": "S",
+    "source": "operators x4-<start>-suffix: Shannon kernel ea100 (xp/stage_x4.py)"
+  },
+  "window.pixels.max": {
+    "value": 0.20650486885429278,
+    "text": "20.7%",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_pixels.npz:d_raw; max over pairs and downstream sites of the fastest 16-of-256-step share"
+  },
+  "window.stem.max": {
+    "value": 0.20158732740720245,
+    "text": "20.2%",
+    "tier": "P",
+    "source": "xp/out/x4/paths_stem.npz:d_raw; max over pairs and downstream sites of the fastest 16-of-256-step share"
+  },
+  "window.b3.max": {
+    "value": 0.1560323563196052,
+    "text": "15.6%",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b3.npz:d_raw; max over pairs and downstream sites of the fastest 16-of-256-step share"
+  },
+  "window.b6.max": {
+    "value": 0.1522785831271122,
+    "text": "15.2%",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b6.npz:d_raw; max over pairs and downstream sites of the fastest 16-of-256-step share"
+  },
+  "window.b8.max": {
+    "value": 0.135559053253278,
+    "text": "13.6%",
+    "tier": "P",
+    "source": "xp/out/x4/paths_b8.npz:d_raw; max over pairs and downstream sites of the fastest 16-of-256-step share"
+  },
+  "window.b9.max": {
+    "value": 0.06250052934983227,
+    "text": "6.25%",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b9.npz:d_raw; max over pairs and downstream sites of the fastest 16-of-256-step share"
+  },
+  "window.max": {
+    "value": 0.20650486885429278,
+    "text": "20.7%",
+    "tier": "P",
+    "source": "paths_<start>.npz (six starts):d_raw; max over 6 starts x 300 pairs x downstream sites of the fastest 16-of-256-step share"
+  },
+  "window.max_pre_logits": {
+    "value": 0.197941722417268,
+    "text": "19.8%",
+    "tier": "P",
+    "source": "paths_<start>.npz (six starts):d_raw; same, sites before logits"
+  },
+  "window.b3.b4.median": {
+    "value": 0.06508733125579723,
+    "text": "6.5%",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b3.npz:d_raw at b4; median over 300 pairs"
+  },
+  "window.b3.b4.max": {
+    "value": 0.07136269597655942,
+    "text": "7.1%",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b3.npz:d_raw at b4; max over 300 pairs"
+  },
+  "window.b3.b6.median": {
+    "value": 0.06813938872067682,
+    "text": "6.8%",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b3.npz:d_raw at b6; median over 300 pairs"
+  },
+  "window.b3.b6.max": {
+    "value": 0.07538450833681389,
+    "text": "7.5%",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b3.npz:d_raw at b6; max over 300 pairs"
+  },
+  "window.b3.b8.median": {
+    "value": 0.07595902719177579,
+    "text": "7.6%",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b3.npz:d_raw at b8; median over 300 pairs"
+  },
+  "window.b3.b8.max": {
+    "value": 0.10053777800712972,
+    "text": "10.1%",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b3.npz:d_raw at b8; max over 300 pairs"
+  },
+  "window.b3.b9.median": {
+    "value": 0.08564219348291459,
+    "text": "8.6%",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b3.npz:d_raw at b9; median over 300 pairs"
+  },
+  "window.b3.b9.max": {
+    "value": 0.11754485421017918,
+    "text": "11.8%",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b3.npz:d_raw at b9; max over 300 pairs"
+  },
+  "window.b3.logits.median": {
+    "value": 0.10086331013483461,
+    "text": "10.1%",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b3.npz:d_raw at logits; median over 300 pairs"
+  },
+  "window.b3.logits.max": {
+    "value": 0.1560323563196052,
+    "text": "15.6%",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b3.npz:d_raw at logits; max over 300 pairs"
+  },
+  "relu.window.median": {
+    "value": 0.0825267563215224,
+    "text": "8%",
+    "tier": "P",
+    "source": "paths_<start>.npz (six starts):relu_prev; median over start x tap x pair of the fastest-sixteenth share of ReLU flips"
+  },
+  "relu.window.max": {
+    "value": 0.2857142857142857,
+    "text": "29%",
+    "tier": "P",
+    "source": "paths_<start>.npz (six starts):relu_prev; max of the same"
+  },
+  "relu.window.n": {
+    "value": 8700,
+    "text": "8,700",
+    "tier": "P",
+    "source": "paths_<start>.npz (six starts):relu_prev; start x tap x pair combinations"
+  },
+  "refine.raw_max": {
+    "value": 0.03807544708251953,
+    "text": "0.04",
+    "tier": "P",
+    "source": "paths_<start>.npz (six starts):share1024_raw - share_raw[ref_rows]; max absolute change, in percentage points"
+  },
+  "refine.n": {
+    "value": 300,
+    "text": "300",
+    "tier": "P",
+    "source": "paths_<start>.npz (six starts):ref_rows; refined lines"
+  },
+  "sharp.min": {
+    "value": 0.8931425213813782,
+    "text": "0.89",
+    "tier": "P",
+    "source": "paths_<start>.npz (six starts):sigma_raw; minimum across starts, sites and pairs"
   },
   "threshold.share": {
     "value": 0.25,
@@ -237,174 +231,1290 @@
     "value": 1,
     "text": "1",
     "tier": "P",
-    "source": "paths_<start>.npz:share_unit, sites, ref_rows; each start–pair with >25% at any strictly downstream pre-logit site"
-  },
-  "pre_logits.shown_n": {
-    "value": 0,
-    "text": "0",
-    "tier": "P",
-    "source": "paths_<start>.npz:share_unit, sites, ref_rows; each start–pair with >25% at any strictly downstream pre-logit site; figure-selectable starts only"
-  },
-  "pre_logits.shown_total": {
-    "value": 1200,
-    "text": "1,200",
-    "tier": "P",
-    "source": "paths_<start>.npz:share_unit; figure-selectable starts only"
-  },
-  "pre_logits.exception.start": {
-    "value": "stem",
-    "text": "stem",
-    "tier": "P",
-    "source": "paths_<start>.npz:share_unit, sites, ref_rows; each start–pair with >25% at any strictly downstream pre-logit site"
-  },
-  "pre_logits.exception.row": {
-    "value": 296,
-    "text": "296",
-    "tier": "P",
-    "source": "paths_<start>.npz:share_unit, sites, ref_rows; each start–pair with >25% at any strictly downstream pre-logit site"
-  },
-  "pre_logits.exception.site": {
-    "value": "pool",
-    "text": "pool",
-    "tier": "P",
-    "source": "paths_<start>.npz:share_unit, sites, ref_rows; each start–pair with >25% at any strictly downstream pre-logit site"
-  },
-  "pre_logits.exception.refined": {
-    "value": "was not refined",
-    "text": "was not refined",
-    "tier": "P",
-    "source": "paths_<start>.npz:share_unit, sites, ref_rows; each start–pair with >25% at any strictly downstream pre-logit site"
+    "source": "paths_<start>.npz (six starts):share_unit; start-pair lines above 25% at a pre-logit downstream site"
   },
   "logits.n": {
     "value": 14,
     "text": "14",
     "tier": "P",
-    "source": "paths_<start>.npz:share_unit, sites; total count above 25% at logits"
-  },
-  "logits.pixels": {
-    "value": 5,
-    "text": "5",
-    "tier": "P",
-    "source": "paths_pixels.npz:share_unit, sites; count above 25% at logits"
-  },
-  "logits.stem": {
-    "value": 7,
-    "text": "7",
-    "tier": "P",
-    "source": "paths_stem.npz:share_unit, sites; count above 25% at logits"
-  },
-  "logits.b3": {
-    "value": 2,
-    "text": "2",
-    "tier": "P",
-    "source": "paths_b3.npz:share_unit, sites; count above 25% at logits"
-  },
-  "pre_logits.total": {
-    "value": 1800,
-    "text": "1,800",
-    "tier": "P",
-    "source": "paths_<start>.npz:kind; number of pairs across all starts, counting repeats"
-  },
-  "sharp.min": {
-    "value": 0.8931425213813782,
-    "text": "0.89",
-    "tier": "P",
-    "source": "paths_<start>.npz:sigma_raw; minimum across all six starts, sites and pairs"
+    "source": "paths_<start>.npz (six starts):share_unit; start-pair lines above 25% at the logits"
   },
   "refine.max_median": {
     "value": 6.746873259544373e-05,
     "text": "0.0001",
     "tier": "P",
-    "source": "paths_<start>.npz:share1024_unit - share_unit[ref_rows]; largest per-site median absolute difference"
+    "source": "paths_<start>.npz (six starts):share1024_unit - share_unit[ref_rows]; largest per-site median"
+  },
+  "kl.end_median": {
+    "value": 22.3248389942233,
+    "text": "22.3",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b3.npz:logits; median KL(p(0)||p(1)), different-class pairs"
+  },
+  "steep.b3.row": {
+    "value": 204,
+    "text": "204",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b3.npz:logits, labels; argmax over pairs of the largest 16-step rise of KL(p(0)||p(s))"
+  },
+  "steep.b3.a": {
+    "value": "frog",
+    "text": "frog",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b3.npz:logits, labels"
+  },
+  "steep.b3.b": {
+    "value": "automobile",
+    "text": "automobile",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b3.npz:logits, labels"
+  },
+  "steep.b3.p_from": {
+    "value": 0.9972573100395454,
+    "text": "99.7%",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b3.npz:logits, labels; softmax prob of class a at window start"
+  },
+  "steep.b3.p_to": {
+    "value": 0.0014477048514271627,
+    "text": "0.1%",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b3.npz:logits, labels; same, 16 steps later"
+  },
+  "steep.b3.kl_from": {
+    "value": 1.8636063491395867,
+    "text": "1.9",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b3.npz:logits, labels; KL at the start of the largest 16-step KL rise"
+  },
+  "steep.b3.kl_to": {
+    "value": 13.612842054043334,
+    "text": "13.6",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b3.npz:logits, labels; KL 16 steps later"
+  },
+  "steep.b3.kl_s_from": {
+    "value": 0.70703125,
+    "text": "0.707",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b3.npz:logits, labels; s at the start of that window"
+  },
+  "steep.b3.kl_s_to": {
+    "value": 0.76953125,
+    "text": "0.770",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b3.npz:logits, labels; s at its end"
+  },
+  "steep.b3.kl_window_share": {
+    "value": 0.1285635903604188,
+    "text": "12.9%",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b3.npz:d_raw at logits; the same pair, share of raw logit distance inside the KL-rise window"
+  },
+  "steep.b9.drop_pp": {
+    "value": 82.87681982860052,
+    "text": "83",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b9.npz:logits, labels; largest 16-step drop of p(class a), percentage points, all 300 lines"
+  },
+  "heim.clip.b3": {
+    "value": 21,
+    "text": "21",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b3.npz:logits; lines whose KL from s = 0 exceeds the 32-nat axis"
+  },
+  "heim.clip.b9": {
+    "value": 18,
+    "text": "18",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b9.npz:logits; lines whose KL from s = 0 exceeds the 32-nat axis"
+  },
+  "leaves.pixels.n": {
+    "value": 34,
+    "text": "34",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_pixels.npz:pred, labels, kind; same-class pairs with any argmax unequal to label"
+  },
+  "leaves.pixels.share": {
+    "value": 0.22666666666666666,
+    "text": "23%",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_pixels.npz:pred, labels, kind; same-class share with any argmax unequal to label"
+  },
+  "third.pixels.share": {
+    "value": 0.5333333333333333,
+    "text": "53%",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_pixels.npz:pred, labels, kind; different-class share with any argmax outside both labels"
+  },
+  "leave_stretch.pixels.median": {
+    "value": 0.21206225680933852,
+    "text": "21%",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_pixels.npz:pred, labels, kind; leavers, median share of the 257 points outside the class"
+  },
+  "leaves.stem.n": {
+    "value": 35,
+    "text": "35",
+    "tier": "P",
+    "source": "xp/out/x4/paths_stem.npz:pred, labels, kind; same-class pairs with any argmax unequal to label"
+  },
+  "leaves.stem.share": {
+    "value": 0.23333333333333334,
+    "text": "23%",
+    "tier": "P",
+    "source": "xp/out/x4/paths_stem.npz:pred, labels, kind; same-class share with any argmax unequal to label"
+  },
+  "third.stem.share": {
+    "value": 0.54,
+    "text": "54%",
+    "tier": "P",
+    "source": "xp/out/x4/paths_stem.npz:pred, labels, kind; different-class share with any argmax outside both labels"
+  },
+  "leave_stretch.stem.median": {
+    "value": 0.2178988326848249,
+    "text": "22%",
+    "tier": "P",
+    "source": "xp/out/x4/paths_stem.npz:pred, labels, kind; leavers, median share of the 257 points outside the class"
+  },
+  "leaves.b3.n": {
+    "value": 40,
+    "text": "40",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b3.npz:pred, labels, kind; same-class pairs with any argmax unequal to label"
+  },
+  "leaves.b3.share": {
+    "value": 0.26666666666666666,
+    "text": "27%",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b3.npz:pred, labels, kind; same-class share with any argmax unequal to label"
+  },
+  "third.b3.share": {
+    "value": 0.54,
+    "text": "54%",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b3.npz:pred, labels, kind; different-class share with any argmax outside both labels"
+  },
+  "leave_stretch.b3.median": {
+    "value": 0.25875486381322954,
+    "text": "26%",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b3.npz:pred, labels, kind; leavers, median share of the 257 points outside the class"
+  },
+  "leaves.b6.n": {
+    "value": 13,
+    "text": "13",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b6.npz:pred, labels, kind; same-class pairs with any argmax unequal to label"
+  },
+  "leaves.b6.share": {
+    "value": 0.08666666666666667,
+    "text": "9%",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b6.npz:pred, labels, kind; same-class share with any argmax unequal to label"
+  },
+  "third.b6.share": {
+    "value": 0.34,
+    "text": "34%",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b6.npz:pred, labels, kind; different-class share with any argmax outside both labels"
+  },
+  "leave_stretch.b6.median": {
+    "value": 0.22568093385214008,
+    "text": "23%",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b6.npz:pred, labels, kind; leavers, median share of the 257 points outside the class"
+  },
+  "leaves.b8.n": {
+    "value": 0,
+    "text": "0",
+    "tier": "P",
+    "source": "xp/out/x4/paths_b8.npz:pred, labels, kind; same-class pairs with any argmax unequal to label"
+  },
+  "leaves.b8.share": {
+    "value": 0.0,
+    "text": "0%",
+    "tier": "P",
+    "source": "xp/out/x4/paths_b8.npz:pred, labels, kind; same-class share with any argmax unequal to label"
+  },
+  "third.b8.share": {
+    "value": 0.16666666666666666,
+    "text": "17%",
+    "tier": "P",
+    "source": "xp/out/x4/paths_b8.npz:pred, labels, kind; different-class share with any argmax outside both labels"
+  },
+  "leaves.b9.n": {
+    "value": 0,
+    "text": "0",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b9.npz:pred, labels, kind; same-class pairs with any argmax unequal to label"
+  },
+  "leaves.b9.share": {
+    "value": 0.0,
+    "text": "0%",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b9.npz:pred, labels, kind; same-class share with any argmax unequal to label"
+  },
+  "third.b9.share": {
+    "value": 0.08666666666666667,
+    "text": "9%",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b9.npz:pred, labels, kind; different-class share with any argmax outside both labels"
+  },
+  "gain.pixels.s0": {
+    "value": 3.5752038955688477,
+    "text": "3.58",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_pixels.npz:gain_raw[:, logits, 0]; median, different-class"
+  },
+  "gain.pixels.mid": {
+    "value": 3.8625645637512207,
+    "text": "3.86",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_pixels.npz:gain_raw[:, logits, 32]; median, different-class"
+  },
+  "ftle.pixels.mid": {
+    "value": 0.32188037037849426,
+    "text": "0.32",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_pixels.npz:gain_raw midpoint median / sites crossed"
+  },
+  "align.pixels.mid": {
+    "value": 0.023473722860217094,
+    "text": "2%",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_pixels.npz:align_raw[:, 32]; median, different-class"
+  },
+  "gain.b3.s0": {
+    "value": 1.6789278984069824,
+    "text": "1.68",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b3.npz:gain_raw[:, logits, 0]; median, different-class"
+  },
+  "gain.b3.mid": {
+    "value": 1.8779503107070923,
+    "text": "1.88",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b3.npz:gain_raw[:, logits, 32]; median, different-class"
+  },
+  "ftle.b3.mid": {
+    "value": 0.23474378883838654,
+    "text": "0.23",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b3.npz:gain_raw midpoint median / sites crossed"
+  },
+  "align.b3.mid": {
+    "value": 0.1077771782875061,
+    "text": "11%",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b3.npz:align_raw[:, 32]; median, different-class"
+  },
+  "gain.b6.s0": {
+    "value": 1.5589702129364014,
+    "text": "1.56",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b6.npz:gain_raw[:, logits, 0]; median, different-class"
+  },
+  "gain.b6.mid": {
+    "value": 1.820617914199829,
+    "text": "1.82",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b6.npz:gain_raw[:, logits, 32]; median, different-class"
+  },
+  "ftle.b6.mid": {
+    "value": 0.3641235828399658,
+    "text": "0.36",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b6.npz:gain_raw midpoint median / sites crossed"
+  },
+  "align.b6.mid": {
+    "value": 0.1354372501373291,
+    "text": "14%",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b6.npz:align_raw[:, 32]; median, different-class"
+  },
+  "timing.all": {
+    "value": 0.411734355750533,
+    "text": "0.41",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b3.npz:speed[:, logits], s_switch; Spearman of peak-speed s vs first switch, different-class"
+  },
+  "timing.single": {
+    "value": 0.631214814063561,
+    "text": "0.63",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b3.npz; same, single-switch pairs"
+  },
+  "timing.single_n": {
+    "value": 69,
+    "text": "69",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b3.npz:n_switch; different-class pairs with one switch"
+  },
+  "speedfd.pixels": {
+    "value": 0.02551129711447311,
+    "text": "2.6%",
+    "tier": "S",
+    "source": "crw-depth-xp-results/x4/paths_pixels.npz:jvp_fd_med at logits"
+  },
+  "speedfd1024.pixels": {
+    "value": 0.012043304408210788,
+    "text": "1.2%",
+    "tier": "S",
+    "source": "crw-depth-xp-results/x4/paths_pixels.npz:jvp_fd1024_med at logits"
+  },
+  "embstep.raw_b3": {
+    "value": 0.08929926642185394,
+    "text": "9%",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b3.npz:d64_raw at b9; median fastest 4-of-64-step share, different-class"
+  },
+  "embstep.emb_b3": {
+    "value": 0.2710725764438333,
+    "text": "27%",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b3.npz:emb_site_y at b9 (16 coords); median fastest 4-of-64-step share, different-class"
+  },
+  "embstep.emb_b9": {
+    "value": 0.31673742891405576,
+    "text": "32%",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b9.npz:emb_site_y at b9 (16 coords); same"
+  },
+  "embstep.half_b3": {
+    "value": 9,
+    "text": "9",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b3.npz; different-class pairs above 50%"
+  },
+  "embstep.half_b9": {
+    "value": 12,
+    "text": "12",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b9.npz; different-class pairs above 50%"
+  },
+  "support.b3.b9": {
+    "value": 0.038,
+    "text": "4%",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b3.npz:emb_cmax, ref_cmax at b9; median over different-class pairs of the path-minimum lower-tail percentile"
+  },
+  "support.b3.logits": {
+    "value": 0.008,
+    "text": "1%",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b3.npz:emb_cmax, ref_cmax at logits; median over different-class pairs of the path-minimum lower-tail percentile"
+  },
+  "modes.top2_max": {
+    "value": 0.00796335443482745,
+    "text": "0.8%",
+    "tier": "R",
+    "source": "crw-depth-xp-results/x4/paths_b3.npz:probe_site_y modes 1-2; max two-image squared-norm share over chain sites"
+  },
+  "we183.a": {
+    "value": "horse",
+    "text": "horse",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b3.npz:logits, labels"
+  },
+  "we183.b": {
+    "value": "deer",
+    "text": "deer",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b3.npz:logits, labels"
+  },
+  "we183.ids": {
+    "value": "2440 and 7552",
+    "text": "2440 and 7552",
+    "tier": "R",
+    "source": "crw-depth-xp-results/x4/pairs.npz:pair_idx"
+  },
+  "we183.pixels.route": {
+    "value": "horse → deer",
+    "text": "horse → deer",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_pixels.npz:row 183 pred"
+  },
+  "we183.pixels.sw1": {
+    "value": 0.560546875,
+    "text": "0.56",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_pixels.npz:row 183 pred; first switch, step midpoint"
+  },
+  "we183.pixels.swlast": {
+    "value": 0.560546875,
+    "text": "0.56",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_pixels.npz:row 183 pred; last switch"
+  },
+  "we183.pixels.off": {
+    "value": 0.0,
+    "text": "0%",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_pixels.npz:row 183 pred; share of points outside the endpoint classes"
+  },
+  "we183.pixels.kl_max": {
+    "value": 26.498626760558555,
+    "text": "26.5",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_pixels.npz:row 183 logits; max KL from s = 0"
+  },
+  "we183.pixels.peak_s": {
+    "value": 0.59375,
+    "text": "0.59",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_pixels.npz:row 183 speed at logits; s of the maximum"
+  },
+  "we183.pixels.peak": {
+    "value": 118.29300689697266,
+    "text": "118",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_pixels.npz:row 183 speed at logits; maximum"
+  },
+  "we183.pixels.peak_chord": {
+    "value": 3.4935076251645785,
+    "text": "3.5",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_pixels.npz:row 183 speed max / |logits(1) - logits(0)|"
+  },
+  "we183.pixels.gain0": {
+    "value": 3.686439275741577,
+    "text": "3.69",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_pixels.npz:row 183 gain_raw[logits] at s = 0"
+  },
+  "we183.pixels.gain_ratio": {
+    "value": 1.5224047899246216,
+    "text": "1.5",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_pixels.npz:row 183 exp(max - min) of gain_raw[logits]"
+  },
+  "we183.pixels.gain_peak_s": {
+    "value": 0.46875,
+    "text": "0.47",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_pixels.npz:row 183 s of the gain maximum"
+  },
+  "we183.b3.route": {
+    "value": "horse → deer",
+    "text": "horse → deer",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b3.npz:row 183 pred"
+  },
+  "we183.b3.sw1": {
+    "value": 0.537109375,
+    "text": "0.54",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b3.npz:row 183 pred; first switch, step midpoint"
+  },
+  "we183.b3.swlast": {
+    "value": 0.537109375,
+    "text": "0.54",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b3.npz:row 183 pred; last switch"
+  },
+  "we183.b3.off": {
+    "value": 0.0,
+    "text": "0%",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b3.npz:row 183 pred; share of points outside the endpoint classes"
+  },
+  "we183.b3.kl_max": {
+    "value": 22.748403204545234,
+    "text": "22.7",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b3.npz:row 183 logits; max KL from s = 0"
+  },
+  "we183.b3.peak_s": {
+    "value": 0.59375,
+    "text": "0.59",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b3.npz:row 183 speed at logits; s of the maximum"
+  },
+  "we183.b3.peak": {
+    "value": 96.85562896728516,
+    "text": "97",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b3.npz:row 183 speed at logits; maximum"
+  },
+  "we183.b3.peak_chord": {
+    "value": 2.8604047459206257,
+    "text": "2.9",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b3.npz:row 183 speed max / |logits(1) - logits(0)|"
+  },
+  "we183.b3.gain0": {
+    "value": 1.7085380554199219,
+    "text": "1.71",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b3.npz:row 183 gain_raw[logits] at s = 0"
+  },
+  "we183.b3.gain_ratio": {
+    "value": 1.397762417793274,
+    "text": "1.4",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b3.npz:row 183 exp(max - min) of gain_raw[logits]"
+  },
+  "we183.b3.gain_peak_s": {
+    "value": 0.59375,
+    "text": "0.59",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b3.npz:row 183 s of the gain maximum"
+  },
+  "we183.b6.route": {
+    "value": "horse → deer",
+    "text": "horse → deer",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b6.npz:row 183 pred"
+  },
+  "we183.b6.sw1": {
+    "value": 0.599609375,
+    "text": "0.60",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b6.npz:row 183 pred; first switch, step midpoint"
+  },
+  "we183.b6.swlast": {
+    "value": 0.599609375,
+    "text": "0.60",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b6.npz:row 183 pred; last switch"
+  },
+  "we183.b6.off": {
+    "value": 0.0,
+    "text": "0%",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b6.npz:row 183 pred; share of points outside the endpoint classes"
+  },
+  "we183.b6.kl_max": {
+    "value": 22.748403204545234,
+    "text": "22.7",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b6.npz:row 183 logits; max KL from s = 0"
+  },
+  "we183.b6.peak_s": {
+    "value": 0.546875,
+    "text": "0.55",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b6.npz:row 183 speed at logits; s of the maximum"
+  },
+  "we183.b6.peak": {
+    "value": 90.27012634277344,
+    "text": "90",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b6.npz:row 183 speed at logits; maximum"
+  },
+  "we183.b6.peak_chord": {
+    "value": 2.6659173096995605,
+    "text": "2.7",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b6.npz:row 183 speed max / |logits(1) - logits(0)|"
+  },
+  "we183.b6.gain0": {
+    "value": 1.626396656036377,
+    "text": "1.63",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b6.npz:row 183 gain_raw[logits] at s = 0"
+  },
+  "we183.b6.gain_ratio": {
+    "value": 1.2884187698364258,
+    "text": "1.3",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b6.npz:row 183 exp(max - min) of gain_raw[logits]"
+  },
+  "we183.b6.gain_peak_s": {
+    "value": 0.4375,
+    "text": "0.44",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b6.npz:row 183 s of the gain maximum"
+  },
+  "we183.b9.route": {
+    "value": "horse → deer",
+    "text": "horse → deer",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b9.npz:row 183 pred"
+  },
+  "we183.b9.sw1": {
+    "value": 0.501953125,
+    "text": "0.50",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b9.npz:row 183 pred; first switch, step midpoint"
+  },
+  "we183.b9.swlast": {
+    "value": 0.501953125,
+    "text": "0.50",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b9.npz:row 183 pred; last switch"
+  },
+  "we183.b9.off": {
+    "value": 0.0,
+    "text": "0%",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b9.npz:row 183 pred; share of points outside the endpoint classes"
+  },
+  "we183.b9.kl_max": {
+    "value": 22.748403204545234,
+    "text": "22.7",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b9.npz:row 183 logits; max KL from s = 0"
+  },
+  "we183.b9.peak_s": {
+    "value": 0.0,
+    "text": "0.00",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b9.npz:row 183 speed at logits; s of the maximum"
+  },
+  "we183.b9.peak": {
+    "value": 33.860809326171875,
+    "text": "34",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b9.npz:row 183 speed at logits; maximum"
+  },
+  "we183.b9.peak_chord": {
+    "value": 0.9999999042906454,
+    "text": "1.0",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b9.npz:row 183 speed max / |logits(1) - logits(0)|"
+  },
+  "we183.b9.gain0": {
+    "value": -0.27783453464508057,
+    "text": "-0.28",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b9.npz:row 183 gain_raw[logits] at s = 0"
+  },
+  "we183.b9.gain_ratio": {
+    "value": 1.0,
+    "text": "1.0",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b9.npz:row 183 exp(max - min) of gain_raw[logits]"
+  },
+  "we183.b9.gain_peak_s": {
+    "value": 0.0,
+    "text": "0.00",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b9.npz:row 183 s of the gain maximum"
+  },
+  "we183.chord": {
+    "value": 33.86081256696839,
+    "text": "34",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b3.npz:logits, labels; row 183, distance between the endpoint logits"
+  },
+  "we183.kl_end": {
+    "value": 22.748403204545234,
+    "text": "22.7",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b3.npz:logits, labels; row 183, KL(p(0)||p(1))"
+  },
+  "we150.a": {
+    "value": "dog",
+    "text": "dog",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b3.npz:logits, labels"
+  },
+  "we150.b": {
+    "value": "ship",
+    "text": "ship",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b3.npz:logits, labels"
+  },
+  "we150.ids": {
+    "value": "3808 and 3968",
+    "text": "3808 and 3968",
+    "tier": "R",
+    "source": "crw-depth-xp-results/x4/pairs.npz:pair_idx"
+  },
+  "we150.pixels.route": {
+    "value": "dog → cat → ship",
+    "text": "dog → cat → ship",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_pixels.npz:row 150 pred"
+  },
+  "we150.pixels.sw1": {
+    "value": 0.072265625,
+    "text": "0.07",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_pixels.npz:row 150 pred; first switch, step midpoint"
+  },
+  "we150.pixels.swlast": {
+    "value": 0.587890625,
+    "text": "0.59",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_pixels.npz:row 150 pred; last switch"
+  },
+  "we150.pixels.off": {
+    "value": 0.5136186770428015,
+    "text": "51%",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_pixels.npz:row 150 pred; share of points outside the endpoint classes"
+  },
+  "we150.pixels.kl_max": {
+    "value": 15.751621291669585,
+    "text": "15.8",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_pixels.npz:row 150 logits; max KL from s = 0"
+  },
+  "we150.pixels.peak_s": {
+    "value": 0.546875,
+    "text": "0.55",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_pixels.npz:row 150 speed at logits; s of the maximum"
+  },
+  "we150.pixels.peak": {
+    "value": 102.66107940673828,
+    "text": "103",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_pixels.npz:row 150 speed at logits; maximum"
+  },
+  "we150.pixels.peak_chord": {
+    "value": 2.856685485441795,
+    "text": "2.9",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_pixels.npz:row 150 speed max / |logits(1) - logits(0)|"
+  },
+  "we150.pixels.gain0": {
+    "value": 4.074648380279541,
+    "text": "4.07",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_pixels.npz:row 150 gain_raw[logits] at s = 0"
+  },
+  "we150.pixels.gain_ratio": {
+    "value": 1.6588044166564941,
+    "text": "1.7",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_pixels.npz:row 150 exp(max - min) of gain_raw[logits]"
+  },
+  "we150.pixels.gain_peak_s": {
+    "value": 0.546875,
+    "text": "0.55",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_pixels.npz:row 150 s of the gain maximum"
+  },
+  "we150.b3.route": {
+    "value": "dog → cat → ship",
+    "text": "dog → cat → ship",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b3.npz:row 150 pred"
+  },
+  "we150.b3.sw1": {
+    "value": 0.052734375,
+    "text": "0.05",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b3.npz:row 150 pred; first switch, step midpoint"
+  },
+  "we150.b3.swlast": {
+    "value": 0.626953125,
+    "text": "0.63",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b3.npz:row 150 pred; last switch"
+  },
+  "we150.b3.off": {
+    "value": 0.5719844357976653,
+    "text": "57%",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b3.npz:row 150 pred; share of points outside the endpoint classes"
+  },
+  "we150.b3.kl_max": {
+    "value": 15.751621291669585,
+    "text": "15.8",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b3.npz:row 150 logits; max KL from s = 0"
+  },
+  "we150.b3.peak_s": {
+    "value": 0.6875,
+    "text": "0.69",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b3.npz:row 150 speed at logits; s of the maximum"
+  },
+  "we150.b3.peak": {
+    "value": 90.52621459960938,
+    "text": "91",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b3.npz:row 150 speed at logits; maximum"
+  },
+  "we150.b3.peak_chord": {
+    "value": 2.5190162113347054,
+    "text": "2.5",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b3.npz:row 150 speed max / |logits(1) - logits(0)|"
+  },
+  "we150.b3.gain0": {
+    "value": 1.8386479616165161,
+    "text": "1.84",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b3.npz:row 150 gain_raw[logits] at s = 0"
+  },
+  "we150.b3.gain_ratio": {
+    "value": 1.494382381439209,
+    "text": "1.5",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b3.npz:row 150 exp(max - min) of gain_raw[logits]"
+  },
+  "we150.b3.gain_peak_s": {
+    "value": 0.65625,
+    "text": "0.66",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b3.npz:row 150 s of the gain maximum"
+  },
+  "we150.b6.route": {
+    "value": "dog → cat → dog → ship",
+    "text": "dog → cat → dog → ship",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b6.npz:row 150 pred"
+  },
+  "we150.b6.sw1": {
+    "value": 0.212890625,
+    "text": "0.21",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b6.npz:row 150 pred; first switch, step midpoint"
+  },
+  "we150.b6.swlast": {
+    "value": 0.642578125,
+    "text": "0.64",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b6.npz:row 150 pred; last switch"
+  },
+  "we150.b6.off": {
+    "value": 0.1556420233463035,
+    "text": "16%",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b6.npz:row 150 pred; share of points outside the endpoint classes"
+  },
+  "we150.b6.kl_max": {
+    "value": 15.751621291669585,
+    "text": "15.8",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b6.npz:row 150 logits; max KL from s = 0"
+  },
+  "we150.b6.peak_s": {
+    "value": 0.484375,
+    "text": "0.48",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b6.npz:row 150 speed at logits; s of the maximum"
+  },
+  "we150.b6.peak": {
+    "value": 78.58716583251953,
+    "text": "79",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b6.npz:row 150 speed at logits; maximum"
+  },
+  "we150.b6.peak_chord": {
+    "value": 2.1867957873919517,
+    "text": "2.2",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b6.npz:row 150 speed max / |logits(1) - logits(0)|"
+  },
+  "we150.b6.gain0": {
+    "value": 1.6133054494857788,
+    "text": "1.61",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b6.npz:row 150 gain_raw[logits] at s = 0"
+  },
+  "we150.b6.gain_ratio": {
+    "value": 1.4597138166427612,
+    "text": "1.5",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b6.npz:row 150 exp(max - min) of gain_raw[logits]"
+  },
+  "we150.b6.gain_peak_s": {
+    "value": 0.40625,
+    "text": "0.41",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b6.npz:row 150 s of the gain maximum"
+  },
+  "we150.b9.route": {
+    "value": "dog → ship",
+    "text": "dog → ship",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b9.npz:row 150 pred"
+  },
+  "we150.b9.sw1": {
+    "value": 0.568359375,
+    "text": "0.57",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b9.npz:row 150 pred; first switch, step midpoint"
+  },
+  "we150.b9.swlast": {
+    "value": 0.568359375,
+    "text": "0.57",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b9.npz:row 150 pred; last switch"
+  },
+  "we150.b9.off": {
+    "value": 0.0,
+    "text": "0%",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b9.npz:row 150 pred; share of points outside the endpoint classes"
+  },
+  "we150.b9.kl_max": {
+    "value": 15.751621291669585,
+    "text": "15.8",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b9.npz:row 150 logits; max KL from s = 0"
+  },
+  "we150.b9.peak_s": {
+    "value": 0.0,
+    "text": "0.00",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b9.npz:row 150 speed at logits; s of the maximum"
+  },
+  "we150.b9.peak": {
+    "value": 35.937129974365234,
+    "text": "36",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b9.npz:row 150 speed at logits; maximum"
+  },
+  "we150.b9.peak_chord": {
+    "value": 0.9999999822665624,
+    "text": "1.0",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b9.npz:row 150 speed max / |logits(1) - logits(0)|"
+  },
+  "we150.b9.gain0": {
+    "value": -0.27783453464508057,
+    "text": "-0.28",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b9.npz:row 150 gain_raw[logits] at s = 0"
+  },
+  "we150.b9.gain_ratio": {
+    "value": 1.0,
+    "text": "1.0",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b9.npz:row 150 exp(max - min) of gain_raw[logits]"
+  },
+  "we150.b9.gain_peak_s": {
+    "value": 0.0,
+    "text": "0.00",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b9.npz:row 150 s of the gain maximum"
+  },
+  "we150.chord": {
+    "value": 35.9371306116541,
+    "text": "36",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b3.npz:logits, labels; row 150, distance between the endpoint logits"
+  },
+  "we150.kl_end": {
+    "value": 15.751621291669585,
+    "text": "15.8",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b3.npz:logits, labels; row 150, KL(p(0)||p(1))"
+  },
+  "we33.a": {
+    "value": "horse",
+    "text": "horse",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b3.npz:logits, labels"
+  },
+  "we33.b": {
+    "value": "horse",
+    "text": "horse",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b3.npz:logits, labels"
+  },
+  "we33.ids": {
+    "value": "8587 and 8514",
+    "text": "8587 and 8514",
+    "tier": "R",
+    "source": "crw-depth-xp-results/x4/pairs.npz:pair_idx"
+  },
+  "we33.pixels.route": {
+    "value": "horse → dog → horse",
+    "text": "horse → dog → horse",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_pixels.npz:row 33 pred"
+  },
+  "we33.pixels.sw1": {
+    "value": 0.529296875,
+    "text": "0.53",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_pixels.npz:row 33 pred; first switch, step midpoint"
+  },
+  "we33.pixels.swlast": {
+    "value": 0.904296875,
+    "text": "0.90",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_pixels.npz:row 33 pred; last switch"
+  },
+  "we33.pixels.off": {
+    "value": 0.3735408560311284,
+    "text": "37%",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_pixels.npz:row 33 pred; share of points outside the endpoint classes"
+  },
+  "we33.pixels.kl_max": {
+    "value": 4.956316551422376,
+    "text": "5.0",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_pixels.npz:row 33 logits; max KL from s = 0"
+  },
+  "we33.pixels.peak_s": {
+    "value": 0.53125,
+    "text": "0.53",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_pixels.npz:row 33 speed at logits; s of the maximum"
+  },
+  "we33.pixels.peak": {
+    "value": 71.4530258178711,
+    "text": "71",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_pixels.npz:row 33 speed at logits; maximum"
+  },
+  "we33.pixels.peak_chord": {
+    "value": 3.5943202170330024,
+    "text": "3.6",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_pixels.npz:row 33 speed max / |logits(1) - logits(0)|"
+  },
+  "we33.pixels.gain0": {
+    "value": 3.1277825832366943,
+    "text": "3.13",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_pixels.npz:row 33 gain_raw[logits] at s = 0"
+  },
+  "we33.pixels.gain_ratio": {
+    "value": 2.1594128608703613,
+    "text": "2.2",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_pixels.npz:row 33 exp(max - min) of gain_raw[logits]"
+  },
+  "we33.pixels.gain_peak_s": {
+    "value": 0.515625,
+    "text": "0.52",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_pixels.npz:row 33 s of the gain maximum"
+  },
+  "we33.b3.route": {
+    "value": "horse → dog → horse",
+    "text": "horse → dog → horse",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b3.npz:row 33 pred"
+  },
+  "we33.b3.sw1": {
+    "value": 0.513671875,
+    "text": "0.51",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b3.npz:row 33 pred; first switch, step midpoint"
+  },
+  "we33.b3.swlast": {
+    "value": 0.943359375,
+    "text": "0.94",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b3.npz:row 33 pred; last switch"
+  },
+  "we33.b3.off": {
+    "value": 0.4280155642023346,
+    "text": "43%",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b3.npz:row 33 pred; share of points outside the endpoint classes"
+  },
+  "we33.b3.kl_max": {
+    "value": 3.4480927815091937,
+    "text": "3.4",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b3.npz:row 33 logits; max KL from s = 0"
+  },
+  "we33.b3.peak_s": {
+    "value": 0.40625,
+    "text": "0.41",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b3.npz:row 33 speed at logits; s of the maximum"
+  },
+  "we33.b3.peak": {
+    "value": 95.3974609375,
+    "text": "95",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b3.npz:row 33 speed at logits; maximum"
+  },
+  "we33.b3.peak_chord": {
+    "value": 4.798803389730103,
+    "text": "4.8",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b3.npz:row 33 speed max / |logits(1) - logits(0)|"
+  },
+  "we33.b3.gain0": {
+    "value": 1.3341681957244873,
+    "text": "1.33",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b3.npz:row 33 gain_raw[logits] at s = 0"
+  },
+  "we33.b3.gain_ratio": {
+    "value": 1.686460256576538,
+    "text": "1.7",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b3.npz:row 33 exp(max - min) of gain_raw[logits]"
+  },
+  "we33.b3.gain_peak_s": {
+    "value": 0.625,
+    "text": "0.62",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b3.npz:row 33 s of the gain maximum"
+  },
+  "we33.b6.route": {
+    "value": "horse → dog → horse",
+    "text": "horse → dog → horse",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b6.npz:row 33 pred"
+  },
+  "we33.b6.sw1": {
+    "value": 0.599609375,
+    "text": "0.60",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b6.npz:row 33 pred; first switch, step midpoint"
+  },
+  "we33.b6.swlast": {
+    "value": 0.830078125,
+    "text": "0.83",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b6.npz:row 33 pred; last switch"
+  },
+  "we33.b6.off": {
+    "value": 0.22957198443579765,
+    "text": "23%",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b6.npz:row 33 pred; share of points outside the endpoint classes"
+  },
+  "we33.b6.kl_max": {
+    "value": 1.2383742962853286,
+    "text": "1.2",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b6.npz:row 33 logits; max KL from s = 0"
+  },
+  "we33.b6.peak_s": {
+    "value": 0.359375,
+    "text": "0.36",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b6.npz:row 33 speed at logits; s of the maximum"
+  },
+  "we33.b6.peak": {
+    "value": 57.07672882080078,
+    "text": "57",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b6.npz:row 33 speed at logits; maximum"
+  },
+  "we33.b6.peak_chord": {
+    "value": 2.8711455949483944,
+    "text": "2.9",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b6.npz:row 33 speed max / |logits(1) - logits(0)|"
+  },
+  "we33.b6.gain0": {
+    "value": 1.269755482673645,
+    "text": "1.27",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b6.npz:row 33 gain_raw[logits] at s = 0"
+  },
+  "we33.b6.gain_ratio": {
+    "value": 1.5606118440628052,
+    "text": "1.6",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b6.npz:row 33 exp(max - min) of gain_raw[logits]"
+  },
+  "we33.b6.gain_peak_s": {
+    "value": 0.609375,
+    "text": "0.61",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b6.npz:row 33 s of the gain maximum"
+  },
+  "we33.b9.route": {
+    "value": "horse",
+    "text": "horse",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b9.npz:row 33 pred"
+  },
+  "we33.b9.off": {
+    "value": 0.0,
+    "text": "0%",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b9.npz:row 33 pred; share of points outside the endpoint classes"
+  },
+  "we33.b9.kl_max": {
+    "value": 0.27093783956894435,
+    "text": "0.3",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b9.npz:row 33 logits; max KL from s = 0"
+  },
+  "we33.b9.peak_s": {
+    "value": 0.0,
+    "text": "0.00",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b9.npz:row 33 speed at logits; s of the maximum"
+  },
+  "we33.b9.peak": {
+    "value": 19.879425048828125,
+    "text": "20",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b9.npz:row 33 speed at logits; maximum"
+  },
+  "we33.b9.peak_chord": {
+    "value": 0.9999999095646992,
+    "text": "1.0",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b9.npz:row 33 speed max / |logits(1) - logits(0)|"
+  },
+  "we33.b9.gain0": {
+    "value": -0.27783453464508057,
+    "text": "-0.28",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b9.npz:row 33 gain_raw[logits] at s = 0"
+  },
+  "we33.b9.gain_ratio": {
+    "value": 1.0,
+    "text": "1.0",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b9.npz:row 33 exp(max - min) of gain_raw[logits]"
+  },
+  "we33.b9.gain_peak_s": {
+    "value": 0.0,
+    "text": "0.00",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b9.npz:row 33 s of the gain maximum"
+  },
+  "we33.chord": {
+    "value": 19.87942684663007,
+    "text": "20",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b3.npz:logits, labels; row 33, distance between the endpoint logits"
+  },
+  "we33.kl_end": {
+    "value": 0.27093783956894435,
+    "text": "0.3",
+    "tier": "P",
+    "source": "crw-depth-xp-results/x4/paths_b3.npz:logits, labels; row 33, KL(p(0)||p(1))"
   },
   "gain.affine.pool": {
     "value": 1.7763568394002505e-15,
     "text": "1.8e-15",
     "tier": "S",
-    "source": "crw-depth-xp-results/x4/checks.json:pool_logits_exact_err; max absolute log-gain error versus affine formula"
+    "source": "crw-depth-xp-results/x4/checks.json:pool_logits_exact_err; max abs log-gain error vs closed form"
   },
   "gain.affine.b9": {
     "value": 1.2212453270876722e-15,
     "text": "1.2e-15",
     "tier": "S",
-    "source": "crw-depth-xp-results/x4/checks.json:b9_logits_exact_err; max absolute log-gain error versus affine formula"
+    "source": "crw-depth-xp-results/x4/checks.json:b9_logits_exact_err; max abs log-gain error vs closed form"
   },
   "gain.pixels.raw": {
     "value": -0.17035132258783064,
     "text": "-0.17",
     "tier": "P",
-    "source": "crw-depth-xp-results/x4/probe_gain.npz:gain_raw, margin; Spearman, pixels to logits"
-  },
-  "gain.stem.raw": {
-    "value": -0.16683978420994605,
-    "text": "-0.17",
-    "tier": "P",
-    "source": "crw-depth-xp-results/x4/probe_gain.npz:gain_raw, margin; Spearman, stem to logits"
-  },
-  "gain.b3.raw": {
-    "value": -0.1347636089914386,
-    "text": "-0.13",
-    "tier": "P",
-    "source": "crw-depth-xp-results/x4/probe_gain.npz:gain_raw, margin; Spearman, b3 to logits"
-  },
-  "gain.b6.raw": {
-    "value": -0.0730191332547833,
-    "text": "-0.07",
-    "tier": "P",
-    "source": "crw-depth-xp-results/x4/probe_gain.npz:gain_raw, margin; Spearman, b6 to logits"
+    "source": "crw-depth-xp-results/x4/probe_gain.npz; Spearman with margin, pixels to logits"
   },
   "gain.pixels.angular": {
     "value": -0.6536665694166423,
     "text": "-0.65",
     "tier": "P",
-    "source": "crw-depth-xp-results/x4/probe_gain.npz:gain_ang, margin; Spearman, pixels to logits"
-  },
-  "gain.stem.angular": {
-    "value": -0.7238635669873407,
-    "text": "-0.72",
-    "tier": "P",
-    "source": "crw-depth-xp-results/x4/probe_gain.npz:gain_ang, margin; Spearman, stem to logits"
-  },
-  "gain.b3.angular": {
-    "value": -0.7555621599238758,
-    "text": "-0.76",
-    "tier": "P",
-    "source": "crw-depth-xp-results/x4/probe_gain.npz:gain_ang, margin; Spearman, b3 to logits"
-  },
-  "gain.b6.angular": {
-    "value": -0.7642255175563794,
-    "text": "-0.76",
-    "tier": "P",
-    "source": "crw-depth-xp-results/x4/probe_gain.npz:gain_ang, margin; Spearman, b6 to logits"
+    "source": "crw-depth-xp-results/x4/probe_gain.npz; Spearman with margin, pixels to logits"
   },
   "gain.pixels.radius_removed": {
     "value": -0.28854093174343576,
     "text": "-0.29",
     "tier": "P",
-    "source": "crw-depth-xp-results/x4/probe_gain.npz:gain_ang + log(rad_out), margin; Spearman, pixels to logits"
-  },
-  "gain.stem.radius_removed": {
-    "value": -0.3371528837882209,
-    "text": "-0.34",
-    "tier": "P",
-    "source": "crw-depth-xp-results/x4/probe_gain.npz:gain_ang + log(rad_out), margin; Spearman, stem to logits"
-  },
-  "gain.b3.radius_removed": {
-    "value": -0.335934491983623,
-    "text": "-0.34",
-    "tier": "P",
-    "source": "crw-depth-xp-results/x4/probe_gain.npz:gain_ang + log(rad_out), margin; Spearman, b3 to logits"
-  },
-  "gain.b6.radius_removed": {
-    "value": -0.2954932804841301,
-    "text": "-0.30",
-    "tier": "P",
-    "source": "crw-depth-xp-results/x4/probe_gain.npz:gain_ang + log(rad_out), margin; Spearman, b6 to logits"
+    "source": "crw-depth-xp-results/x4/probe_gain.npz; Spearman with margin, pixels to logits"
   },
   "gain.radius": {
     "value": 0.757604635901159,
     "text": "0.76",
     "tier": "P",
-    "source": "crw-depth-xp-results/x4/probe_gain.npz:log(rad_out) vs margin; Spearman, pixels to logits"
+    "source": "crw-depth-xp-results/x4/probe_gain.npz:log(rad_out) vs margin"
   }
 }

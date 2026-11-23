@@ -29,9 +29,9 @@ with a bounded reciprocal exists, but reconstruction, function and round trip ne
 <li><strong>Matching sources barely steers.</strong> At b4, a near-exact oracle match to a donor's source coordinates did not
 improve the patched joint match and moved the donor's class probability only from {{fact:x.inv-edits.b4.residual}} to
 {{fact:x.inv-edits.b4.match}}. <a href="#experiments/x-inv-edits">Edits</a></li>
-<li><strong>Straight paths rarely jump.</strong> Before logits, {{fact:x.x4-paths.pre_logits.n}} of
-{{fact:x.x4-paths.pre_logits.total}} start–pair paths concentrated angular motion in a short window. Paths starting at b9,
-where the rest of the network is affine, still show steep class-mass change. <a href="#experiments/x-x4-paths">Paths</a></li>
+<li><strong>No walls in the activations.</strong> On {{fact:x.x4-paths.paths.total}} straight lines between two images'
+activations, no recorded later site moved more than {{fact:x.x4-paths.window.max}} of its distance in any sixteenth of the
+line, though class probabilities can still change sharply. <a href="#experiments/x-x4-paths">Paths</a></li>
 <li><strong>Kernel: participation ratio.</strong> Chosen because Shannon modes on the larger probe put up to
 {{fact:x.inv-kernel.top2.p8.ea400}} of their squared weight on two images; it did not win every stability test.
 <a href="#experiments/x-inv-kernel">Kernel</a></li>

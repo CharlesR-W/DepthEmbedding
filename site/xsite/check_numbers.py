@@ -660,73 +660,247 @@ def x3(add, note):
                 raw_atol=5e-7, raw_reason='fp32 coordinate norms')
 
 
+X4_CLASSES = ('airplane', 'automobile', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
+# Numbers drawn inside the X4 static figures; the generator takes their text from the fact catalogue, so they are
+# audited here like prose tokens.
+X4_FIGURE_FACTS = ('pairs.per_kind', 'heim.clip.b3', 'heim.clip.b9', 'embstep.raw_b3', 'embstep.emb_b3', 'embstep.emb_b9',
+                   *(f'window.b3.{s}.{q}' for s in ('b4', 'b6', 'b8', 'b9', 'logits') for q in ('median', 'max')),
+                   *(f'{k}.{s}.share' for k in ('leaves', 'third') for s in ('pixels', 'stem', 'b3', 'b6', 'b8', 'b9')))
+# Values on the X4 page that are definitions or transcriptions rather than measurements, with the reason.
+X4_LISTED = {
+    'grid.jump': 'definition: a single jump puts the whole distance into one window (100%)',
+    'emb.perplexity': 'kernel parameter KERNEL in xp/stage_x4.py (ea<perplexity>)',
+    'pairs.margin_min': 'eligibility constant MARGIN_MIN in xp/stage_x4.py',
+    'threshold.share': 'summary threshold in xp/analyze_x4.py',
+    'gain.affine.pool': 'transcribed from checks.json (the run\'s own closed-form comparison)',
+    'gain.affine.b9': 'transcribed from checks.json (the run\'s own closed-form comparison)',
+    'speedfd.pixels': 'stored diagnostic jvp_fd_med (computed during the run), read directly',
+    'speedfd1024.pixels': 'stored diagnostic jvp_fd1024_med (computed during the run), read directly',
+}
+
+
+def x4_used_facts():
+    """Every x4-paths fact referenced by the fragment, the card, the X4 lede bullet or a figure annotation."""
+    pre = 'x.x4-paths.'
+    card = read_json(f'{ASSETS}/x4-paths.json')['card']
+    texts = [text(f'{FRAG}/x4-paths.html'), card['answer'], *card['numbers'], text(f'{FRAG}/_lede.html')]
+    keys = {k.removeprefix(pre) for t in texts for k in TOKEN.findall(t) if k.startswith(pre)}
+    return keys | set(X4_FIGURE_FACTS)
+
+
 def x4(add, note):
+    """Independent recomputation of every number on the X4 page (own code path, stored arrays only)."""
+    from numpy.lib.stride_tricks import sliding_window_view as slide
+    used = x4_used_facts()
+    done = set()
+
+    def put(key, value, tier, *paths, **kw):
+        if key in used:
+            add(key, value, tier, *paths, **kw)
+            done.add(key)
+
+    def fastest(steps, w):                          # largest share of the total in w consecutive steps (last axis)
+        steps = steps.astype(np.float64)
+        return slide(steps, w, axis=-1).sum(-1).max(-1) / steps.sum(-1)
+
+    def softmax(z):
+        z = z.astype(np.float64)
+        e = np.exp(z - z.max(-1, keepdims=True))
+        return e / e.sum(-1, keepdims=True)
+
     p = staged(f'{XV}/x4/pairs.npz')
-    kind = array(p, 'kind')
+    kind, pair_ids = arrays(p, 'kind', 'pair_idx')
     kinds = np.bincount(kind)
     if len(kinds) != 2 or kinds[0] != kinds[1]:
         raise ValueError(f'unequal same-/different-class strata: {kinds}')
-    add('pairs.per_kind', kinds[0], 'R', p)
-    add('pairs.unique_endpoints', np.unique(array(p, 'pair_idx')).size, 'R', p)
-    stage, analysis = 'xp/stage_x4.py', 'xp/analyze_x4.py'
-    add('pairs.margin_min', source_constant(stage, 'MARGIN_MIN'), 'S', stage)
-    threshold = float(re.search(r"'frac_share_gt_quarter'.*?>\s*([0-9.]+)", text(analysis))[1])
-    add('threshold.share', threshold, 'S', analysis)
-    ps = sorted(str(f.relative_to(ROOT)) for f in (ROOT / X4).glob('paths_*.npz'))
-    starts = [Path(f).stem.removeprefix('paths_') for f in ps]
-    add('starts.tested', len(starts), 'R', *ps)
-    fig = f'{ASSETS}/x4-paths.json'
-    display_switches = read_json(fig)['emb_lead']['switch']
-    shown = {step['panels'][0]['op'].removeprefix('x4-').removesuffix('-suffix') for step in display_switches}
-    add('starts.shown', len(shown), 'R', fig)
-    total = count = display_count = display_total = 0
-    for s, f in zip(starts, ps, strict=True):
-        d, grid, sites, kind_s = arrays(f, 'd_unit', 's256', 'sites', 'kind')
+    same, diff = kind == 0, kind == 1
+    put('pairs.per_kind', kinds[0], 'R', p)
+    put('pairs.unique_endpoints', np.unique(pair_ids).size, 'R', p)
+    stage, analysis, gen = 'xp/stage_x4.py', 'xp/analyze_x4.py', 'site/xsite/gen_x4.py'
+    put('pairs.margin_min', source_constant(stage, 'MARGIN_MIN'), 'S', stage)
+    put('threshold.share', float(re.search(r"'frac_share_gt_quarter'.*?>\s*([0-9.]+)", text(analysis))[1]), 'S', analysis)
+    pk = f'{PKG}/x4-pixels-suffix/paths/x4-pixels-paths.json'
+    put('pairs.display', len(read_json(pk)['meta']['pair_pos']), 'R', pk)
+    kernel = source_constant(stage, 'KERNEL')                       # e.g. 'ea100': Shannon perplexity 100
+    put('emb.perplexity', int(re.fullmatch(r'ea(\d+)', kernel)[1]), 'S', stage)
+    put('grid.jump', 1.0, 'R', stage)
+    ps = {Path(f).stem.removeprefix('paths_'): str(f.relative_to(ROOT)) for f in sorted((ROOT / X4).glob('paths_*.npz'))}
+    starts = [s for s in ('pixels', 'stem', 'b3', 'b6', 'b8', 'b9') if s in ps]
+    if sorted(starts) != sorted(ps):
+        raise ValueError(f'unexpected X4 starts {sorted(ps)}')
+    put('starts.tested', len(starts), 'R', *ps.values())
+    put('paths.total', len(starts) * len(kind), 'R', *ps.values())
+    top, top_pre, relu, refine_raw, refine_unit, sigma_min, n_ref = 0., 0., [], 0., 0., np.inf, 0
+    hits = logit_hits = 0
+    thr = float(re.search(r"'frac_share_gt_quarter'.*?>\s*([0-9.]+)", text(analysis))[1])
+    for s in starts:
+        f = ps[s]
+        d, grid, grid64, sites, kind_s, taps = arrays(f, 'd_raw', 's256', 's64', 'sites', 'kind', 'taps')
         np.testing.assert_array_equal(kind_s, kind)
-        width = (grid.size - 1) // 16
-        cum = np.pad(np.cumsum(d, axis=-1, dtype=np.float64), [(0, 0), (0, 0), (1, 0)])
-        share = (cum[..., width:] - cum[..., :-width]).max(axis=-1) / cum[..., -1]
-        n_exceeds = np.count_nonzero(np.any(share[:, (sites != 'logits') & (sites != s)] > threshold, axis=1))
-        count += n_exceeds
-        if s in shown:
-            display_count += n_exceeds
-            display_total += len(d)
-        total += len(d)
+        w = (grid.size - 1) // 16
+        share = fastest(d, w)
+        top = max(top, share.max())
+        put(f'window.{s}.max', share.max(), 'P', f)
         if s == 'pixels':
-            add('share.pixels.logits', np.median(share[kind == 1][:, sites == 'logits']), 'P', f)
-            add('grid.uniform', width / d.shape[-1], 'R', f)
-            add('probe.n', array(f, 'probe_idx').size, 'R', f)
-            add('grid.points', len(grid), 'R', f)
-            add('grid.draw', len(array(f, 's64')), 'R', f)
-    add('pre_logits.n', count, 'P', *ps)
-    add('pre_logits.total', total, 'R', *ps)
-    displayed = [f for s, f in zip(starts, ps) if s in shown]
-    add('pre_logits.shown_n', display_count, 'P', fig, *displayed)
-    add('pre_logits.shown_total', display_total, 'R', fig, *displayed)
-    note(f'Threshold count over six tested starts = {count}/{total}; over the four illustrated starts = '
-         f'{display_count}/{display_total}. The headline counts tested starts, not only the figure options.')
-    f = f'{PKG}/x4-pixels-suffix/paths/x4-pixels-paths.json'
-    add('pairs.display', len(read_json(f)['meta']['pair_pos']), 'R', f)
-    b9 = ps[starts.index('b9')]
-    mass, lab, grid, chain = arrays(b9, 'emb_mass', 'labels', 's64', 'chain')
-    m = mass[chain.tolist().index('b9')]
-    pairs = np.flatnonzero(kind == 1)
-    delta = m[pairs, :, lab[pairs, 1]].astype(float) - m[pairs, :, lab[pairs, 0]]
-    slopes = np.diff(delta, axis=1) / np.diff(grid)
-    add('slope.b9.b9', np.median(np.abs(slopes).max(axis=1)), 'P', b9)
-    note(f'b9 slope, median of per-pair max absolute = {np.median(np.abs(slopes).max(axis=1)):.9g}; '
-         f'median of per-pair max signed = {np.median(slopes.max(axis=1)):.9g}. '
-         'The X4 analysis uses max absolute; the tile could say so explicitly.')
-    f = ps[starts.index('b8')]
-    pred, lab = arrays(f, 'pred', 'labels')
-    add('leaves.b8.n', np.sum(np.any(pred[kind == 0] != lab[kind == 0, :1], axis=1)), 'P', f)
+            put('grid.uniform', w / (grid.size - 1), 'R', f)
+            put('grid.points', grid.size, 'R', f)
+            put('grid.draw', grid64.size, 'R', f)
+            put('probe.n', array(f, 'probe_idx').size, 'R', f)
+            put('emb.k', array(f, 'probe_site_y').shape[-1], 'R', f)
+            fd, fd1024 = arrays(f, 'jvp_fd_med', 'jvp_fd1024_med')
+            li = list(sites).index('logits')
+            put('speedfd.pixels', fd[li], 'S', f)
+            put('speedfd1024.pixels', fd1024[li], 'S', f)
+        if s == 'b3':
+            for site in ('b4', 'b6', 'b8', 'b9', 'logits'):
+                col = share[:, list(sites).index(site)]
+                put(f'window.b3.{site}.median', np.median(col), 'P', f)
+                put(f'window.b3.{site}.max', col.max(), 'P', f)
+        if len(taps):
+            relu.append(fastest(array(f, 'relu_prev'), w).ravel())
+        ref, s1024, sraw, s1024u, sunit, sig = arrays(f, 'ref_rows', 'share1024_raw', 'share_raw', 'share1024_unit', 'share_unit', 'sigma_raw')
+        n_ref += ref.size
+        refine_raw = max(refine_raw, np.nanmax(np.abs(s1024 - sraw[ref])))
+        refine_unit = max(refine_unit, np.nanmax(np.nanmedian(np.abs(s1024u - sunit[ref]), axis=0)))
+        sigma_min = min(sigma_min, np.nanmin(sig))
+        later = np.array([x not in ('logits', s) for x in sites])
+        hits += int((sunit[:, later] > thr).any(1).sum())
+        logit_hits += int((sunit[:, np.asarray(sites) == 'logits'] > thr).sum())
+        pred, lab = arrays(f, 'pred', 'labels')
+        out_same = pred[same] != lab[same, :1]
+        leave = out_same.any(1)
+        put(f'leaves.{s}.share', leave.mean(), 'P', f)
+        put(f'leaves.{s}.n', leave.sum(), 'P', f)
+        other = (pred[diff] != lab[diff, :1]) & (pred[diff] != lab[diff, 1:])
+        put(f'third.{s}.share', other.any(1).mean(), 'P', f)
+        if leave.any():
+            put(f'leave_stretch.{s}.median', np.median(out_same[leave].sum(1) / pred.shape[1]), 'P', f)
+    allp = list(ps.values())
+    put('window.max', top, 'P', *allp)
+    relu = np.concatenate(relu)
+    put('relu.window.median', np.median(relu), 'P', *allp)
+    put('relu.window.max', relu.max(), 'P', *allp)
+    put('relu.window.n', relu.size, 'P', *allp)
+    put('refine.n', n_ref, 'P', *allp)
+    put('refine.raw_max', 100 * refine_raw, 'P', *allp)
+    put('refine.max_median', refine_unit, 'P', *allp)
+    put('sharp.min', sigma_min, 'P', *allp)
+    put('pre_logits.n', hits, 'P', *allp)
+    put('logits.n', logit_hits, 'P', *allp)
+
+    # outputs: KL from the start of the line, the steepest b3 line, the affine b9 drop, clipped curves
+    kl_top = source_constant(gen, 'KL_TOP')
+    f3, f9 = ps['b3'], ps['b9']
+    probs = {}
+    for s, f in (('b3', f3), ('b9', f9)):
+        lg, lab = arrays(f, 'logits', 'labels')
+        pr = softmax(lg)
+        logp = np.log(np.clip(pr, 1e-300, None))
+        kl = np.einsum('pc,ptc->pt', pr[:, 0], logp[:, 0][:, None, :] - logp)
+        probs[s] = (pr, kl, lab)
+        put(f'heim.clip.{s}', (kl.max(1) > kl_top).sum(), 'P', f, gen)
+    pr, kl, lab = probs['b3']
+    w = 16
+    rise = slide(kl, w + 1, axis=1)[..., -1] - slide(kl, w + 1, axis=1)[..., 0]
+    i, j = np.unravel_index(np.argmax(rise), rise.shape)
+    grid = array(f3, 's256')
+    put('steep.b3.a', X4_CLASSES[lab[i, 0]], 'P', f3)
+    put('steep.b3.b', X4_CLASSES[lab[i, 1]], 'P', f3)
+    put('steep.b3.kl_from', kl[i, j], 'P', f3)
+    put('steep.b3.kl_to', kl[i, j + w], 'P', f3)
+    put('steep.b3.kl_s_from', grid[j], 'P', f3)
+    put('steep.b3.kl_s_to', grid[j + w], 'P', f3)
+    d3, sites3 = arrays(f3, 'd_raw', 'sites')
+    dl = d3[i, list(sites3).index('logits')].astype(np.float64)
+    put('steep.b3.kl_window_share', dl[j:j + w].sum() / dl.sum(), 'P', f3)
+    pa = pr[np.arange(len(lab)), :, lab[:, 0]]
+    fall = pa[:, :-w] - pa[:, w:]
+    i2, j2 = np.unravel_index(np.argmax(fall), fall.shape)
+    put('steep.b3.p_from', pa[i2, j2], 'P', f3)
+    put('steep.b3.p_to', pa[i2, j2 + w], 'P', f3)
+    pr9, _, lab9 = probs['b9']
+    pa9 = pr9[np.arange(len(lab9)), :, lab9[:, 0]]
+    put('steep.b9.drop_pp', 100 * (pa9[:, :-w] - pa9[:, w:]).max(), 'P', f9)
+
+    # Jacobian quantities
+    for s in ('pixels', 'b3', 'b6'):
+        f = ps[s]
+        g, al, sites = arrays(f, 'gain_raw', 'align_raw', 'sites')
+        mid = np.median(g[diff, 0, 32])
+        put(f'gain.{s}.s0', np.median(g[diff, 0, 0]), 'P', f)
+        put(f'gain.{s}.mid', mid, 'P', f)
+        put(f'ftle.{s}.mid', mid / (12 - (0 if s == 'pixels' else SITES.index(s) + 1)), 'P', f)
+        put(f'align.{s}.mid', np.median(al[diff, 32]), 'P', f)
+    sp, ssw, nsw, g64, sites3 = arrays(f3, 'speed', 's_switch', 'n_switch', 's64', 'sites')
+    peak = g64[sp[:, list(sites3).index('logits')].argmax(1)]
+    one = diff & (nsw == 1)
+    put('timing.all', spearmanr(peak[diff], ssw[diff]).statistic, 'P', f3)
+    put('timing.single', spearmanr(peak[one], ssw[one]).statistic, 'P', f3)
+    put('timing.single_n', one.sum(), 'P', f3)
+
+    # embedding: bunching at b9, support, localisation of the two drawn modes
+    def emb_share(f):
+        y, chain = arrays(f, 'emb_site_y', 'chain')
+        y = y[list(chain).index('b9')].astype(np.float64)
+        return fastest(np.sqrt((np.diff(y, axis=1) ** 2).sum(-1)), 4)
+    e3, e9 = emb_share(f3), emb_share(f9)
+    d64 = array(f3, 'd64_raw')[:, list(sites3).index('b9')]
+    put('embstep.raw_b3', np.median(fastest(d64, 4)[diff]), 'P', f3)
+    put('embstep.emb_b3', np.median(e3[diff]), 'P', f3)
+    put('embstep.emb_b9', np.median(e9[diff]), 'P', f9)
+    put('embstep.half_b3', (e3[diff] > .5).sum(), 'P', f3)
+    put('embstep.half_b9', (e9[diff] > .5).sum(), 'P', f9)
+    cmax, refc, chain3, psy = arrays(f3, 'emb_cmax', 'ref_cmax', 'chain', 'probe_site_y')
+    for site in ('b9', 'logits'):
+        l = list(chain3).index(site)
+        pct = (refc[l][None, None, :] < cmax[l][..., None]).mean(-1)          # share of clean images below each point
+        put(f'support.b3.{site}', np.median(pct[diff].min(1)), 'P', f3)
+    q = psy[..., :2].astype(np.float64) ** 2
+    put('modes.top2_max', (np.sort(q, axis=1)[:, -2:].sum(1) / q.sum(1)).max(), 'R', f3)
+
+    # worked examples
+    for r in (183, 150, 33):
+        a_, b_ = array(f3, 'labels')[r]
+        put(f'we{r}.a', X4_CLASSES[a_], 'R', f3)
+        put(f'we{r}.b', X4_CLASSES[b_], 'R', f3)
+        put(f'we{r}.ids', f'{pair_ids[r, 0]} and {pair_ids[r, 1]}', 'R', p)
+        for s in ('pixels', 'b3', 'b6', 'b9'):
+            f = ps[s]
+            pred, lg, spd, g, sites, g64 = arrays(f, 'pred', 'logits', 'speed', 'gain_raw', 'sites', 's64')
+            seq = pred[r]
+            k = np.flatnonzero(seq[1:] != seq[:-1])
+            sw = (k + .5) / (seq.size - 1)
+            names = [X4_CLASSES[seq[0]]] + [X4_CLASSES[seq[t + 1]] for t in k]
+            put(f'we{r}.{s}.route', ' → '.join(names), 'P', f)
+            if k.size:
+                put(f'we{r}.{s}.sw1', sw[0], 'P', f)
+                put(f'we{r}.{s}.swlast', sw[-1], 'P', f)
+            off = (seq != a_) if a_ == b_ else (seq != a_) & (seq != b_)
+            put(f'we{r}.{s}.off', off.mean(), 'P', f)
+            v = spd[r, list(sites).index('logits')].astype(np.float64)
+            put(f'we{r}.{s}.peak_s', g64[v.argmax()], 'P', f)
+            put(f'we{r}.{s}.peak_chord', v.max() / np.linalg.norm(lg[r, -1].astype(np.float64) - lg[r, 0]), 'P', f)
+            put(f'we{r}.{s}.gain_ratio', np.exp(g[r, 0].max() - g[r, 0].min()), 'P', f)
+
+    # transcribed checks and the probe-gain correlations
+    cj = staged(f'{XV}/x4/checks.json')
+    checks = read_json(cj)
+    for s in ('pool', 'b9'):
+        put(f'gain.affine.{s}', checks[f'{s}_logits_exact_err'], 'S', cj)
     f = staged(f'{XV}/x4/probe_gain.npz')
-    ss, mm, g, r, logits = arrays(f, 'starts', 'targets', 'gain_ang', 'rad_out', 'logits')
-    i, j = ss.tolist().index('pixels'), mm.tolist().index('logits')
-    top_two_logits = np.sort(logits, axis=1)[:, -2:]
-    margin = top_two_logits[:, 1] - top_two_logits[:, 0]
-    for k, score in [('angular', g[i, j]), ('radius_removed', g[i, j] + np.log(r[i, j]))]:
-        add(f'gain.pixels.{k}', spearmanr(score, margin).statistic, 'P', f)
+    ss, mm, graw, gang, rad, logits = arrays(f, 'starts', 'targets', 'gain_raw', 'gain_ang', 'rad_out', 'logits')
+    i, t = ss.tolist().index('pixels'), mm.tolist().index('logits')
+    top2 = np.sort(logits, axis=1)[:, -2:]
+    margin = top2[:, 1] - top2[:, 0]
+    for key, score in (('raw', graw[i, t]), ('angular', gang[i, t]), ('radius_removed', gang[i, t] + np.log(rad[i, t]))):
+        put(f'gain.pixels.{key}', spearmanr(score, margin).statistic, 'P', f)
+    put('gain.radius', spearmanr(np.log(rad[i, t]), margin).statistic, 'P', f)
+
+    missing = sorted(used - done)
+    note(f'{len(done)} of {len(used)} X4 page facts recomputed or read from their stated source; listed constants and '
+         'transcriptions: ' + '; '.join(f'{k} ({v})' for k, v in X4_LISTED.items() if k in used))
+    if missing:
+        raise ValueError('X4 page facts neither recomputed nor listed: ' + ', '.join(missing))
 
 
 def solver(add, note):
@@ -795,7 +969,8 @@ def block(markup, cls):
     # child divs, so retain the whole interval up to the following h3.
     if cls == 'x-numbers':
         return re.findall(r'<div class="x-numbers"[^>]*>.*?(?=<h3\b|\Z)', markup, flags=re.S)
-    return re.findall(rf'<p class="{cls}"[^>]*>.*?</p>', markup, flags=re.S)
+    # An answer may be a paragraph or a short bulleted list (x4-paths); either is compared whole.
+    return [m[0] for m in re.finditer(rf'<(p|ul) class="{cls}"[^>]*>.*?</\1>', markup, flags=re.S)]
 
 
 def normalize(markup):
@@ -835,6 +1010,8 @@ def coverage(entry, facts, built, build, lede):
         # a substring such as `0` or `b6` which might occur elsewhere.
         for name in ('x-answer', 'x-numbers'):
             a, b = block(frag, name), block(section[1], name)
+            if name == 'x-numbers' and not a and not b:
+                continue                     # tiles are optional; an answer paragraph is not
             if not a or [normalize(resolve(x)) for x in a] != [normalize(x) for x in b]:
                 problems.append(f'{build}: {name} differs from resolved source')
         a = block(card_body, 'x-card-answer')

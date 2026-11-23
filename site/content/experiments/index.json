@@ -7,6 +7,6 @@
   {"id":"inv-ood", "group":"inverting", "pending":true, "title":"Where do other datasets, noisy and adversarial images land?"},
   {"id":"inv-edits", "group":"inverting", "pending":true, "title":"Can an activation be given another image's source coordinates, and does the output follow?"},
   {"id":"x1-data", "group":"probing", "pending":true, "title":"Do networks trained on other data embed the same probe alike?"},
-  {"id":"x4-paths", "group":"probing", "pending":true, "title":"Do straight paths between two activations cross sharp transitions downstream?"},
+  {"id":"x4-paths", "group":"probing", "pending":true, "title":"Do straight paths between two activations hit a wall downstream?"},
   {"id":"solver", "group":"engineering", "pending":true, "title":"How far can the joint operator's solver scale?"}
 ]

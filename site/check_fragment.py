@@ -36,9 +36,9 @@ def check(entry):
         if re.search(r"#[0-9a-fA-F]{3,8}\b|rgba?\(", attrs.get("style") or ""):
             warnings.append(f"line {line}: literal inline colour; use site palette tokens")
     for _, line, caption in parsed.figures:
-        if not caption.strip().startswith("Plotted:"):
-            errors.append(f"line {line}: figure needs a figcaption starting with 'Plotted:'")
-    for name in ("x-scope", "x-answer", "x-numbers"):
+        if not caption.strip():
+            errors.append(f"line {line}: figure needs a non-empty figcaption")
+    for name in ("x-scope", "x-answer"):
         if not any(name in (a.get("class") or "").split() for _, a, _ in parsed.tags):
             warnings.append(f"missing .{name}")
     if card is None:

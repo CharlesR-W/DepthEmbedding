@@ -1,118 +1,170 @@
 <section class="experiment" id="x-x4-paths">
-<h2>Do straight paths between two activations cross sharp transitions downstream?</h2>
-<p class="x-scope"><b>Tested:</b> Final CIFAR-10 ResNet-20, seed 0. The same {{fact:x.x4-paths.pairs.per_kind}} same-class and {{fact:x.x4-paths.pairs.per_kind}} different-class pairs at each start. The {{fact:x.x4-paths.pairs.unique_endpoints}} distinct endpoints are test images outside the {{fact:x.x4-paths.probe.n}}-image probe, correctly classified with a top-two logit margin above {{fact:x.x4-paths.pairs.margin_min}}.</p>
-<p class="x-answer"><strong>Before logits, the sampled paths rarely concentrated angular motion in a short window. Probe class mass could change steeply even on the affine control.</strong> Across {{fact:x.x4-paths.starts.tested}} tested starts (including stem and b8), {{fact:x.x4-paths.pre_logits.n}} of {{fact:x.x4-paths.pre_logits.total}} start–pair combinations put more than {{fact:x.x4-paths.threshold.share}} of sampled angular arc length into the fastest sixteenth at any strictly downstream non-logit site. Starting at b9 leaves only average pooling and the linear head, yet the probe's class-mass readout still changes steeply.</p>
-<figure class="emb-fig" data-emb="assets/x/x4-paths.json#emb_lead">
-  <figcaption><b>Plotted:</b> The CIFAR-10 probe by class and {{fact:x.x4-paths.pairs.display}} held-out chords, half same-class and half different-class. Colour along a path gives its position $s$ from the circle to the square. Each start has its own Shannon-perplexity-100 suffix operator and axes. Move the site slider or pick a filmstrip frame. Site-local axes differ from one site to the next; the b9 control opens in this view because the pooled joint projection has little spread at b9. These two-dimensional projections illustrate the paths, not their measured speeds.</figcaption>
+<h2>Do straight paths between two activations hit a wall downstream?</h2>
+<p class="x-scope"><b>Tested:</b> ResNet-20 trained on CIFAR-10 (seed 0, final checkpoint). {{fact:x.x4-paths.pairs.per_kind}} pairs of test images from the same class and {{fact:x.x4-paths.pairs.per_kind}} from different classes, outside the {{fact:x.x4-paths.probe.n}}-image probe and all classified correctly. The same pairs at each of {{fact:x.x4-paths.starts.tested}} start sites: pixels, stem, b3, b6, b8 and b9.</p>
+<ul class="x-answer">
+  <li><strong>No wall in the activations.</strong> On {{fact:x.x4-paths.paths.total}} lines, no recorded later site moved more than {{fact:x.x4-paths.window.max}} of its distance within any sixteenth of the line (even pace: {{fact:x.x4-paths.grid.uniform}}; a wall: close to {{fact:x.x4-paths.grid.jump}}).</li>
+  <li><strong>Class probabilities can still change sharply.</strong> On the steepest line drawn at b3, the starting class falls from {{fact:x.x4-paths.steep.b3.p_from}} to {{fact:x.x4-paths.steep.b3.p_to}} within one sixteenth.</li>
+  <li><strong>Lines drawn early often detour through other classes.</strong> {{fact:x.x4-paths.leaves.b3.share}} of same-class lines drawn at b3 leave their class partway; {{fact:x.x4-paths.leaves.b8.n}} of {{fact:x.x4-paths.pairs.per_kind}} drawn at b8 do.</li>
+</ul>
+
+<h3>How a line is made</h3>
+<p>A <em>wall</em> here means a short stretch of the line where the activations downstream do most of their moving. The network is continuous, so nothing jumps literally; the question is how concentrated the change gets. With pixels as the start site, the line is a cross-fade between the two images.</p>
+<figure class="x-static">
+  <div class="x-flow">
+    <div class="x-flow-step x-flow-imgs"><img src="assets/fig/x_x4-paths_we183_a.webp" alt="Image a: a white horse" width="56" height="56"><img src="assets/fig/x_x4-paths_we183_b.webp" alt="Image b: a deer" width="56" height="56"><span>images a and b</span></div>
+    <div class="x-flow-step"><span>their activations at one layer, the <b>start site</b> (here b3)</span></div>
+    <div class="x-flow-step"><span>a straight line between them: {{fact:x.x4-paths.grid.points}} evenly spaced points, position <i>s</i> from 0 (a) to 1 (b)</span></div>
+    <div class="x-flow-step"><span>each point run through the rest of the network</span></div>
+    <div class="x-flow-step"><span>recorded at every later block output, the pooled features and the logits</span></div>
+  </div>
+  <figcaption>How each line is made. The same pairs are used at every start site, so a line always joins the same two images; only the layer where it is drawn changes.</figcaption>
 </figure>
-<div class="x-numbers">
-  <div class="x-num"><b>{{fact:x.x4-paths.share.pixels.logits}}</b><span>median share of angular arc length in the fastest sixteenth, pixels to logits ({{fact:x.x4-paths.grid.uniform}} if uniform)</span><small>Different-class pairs · activations, no embedding</small></div>
-  <div class="x-num"><b>{{fact:x.x4-paths.slope.b9.b9}}</b><span>median maximum absolute class-mass slope at b9, starting straight at b9</span><small>Different-class pairs · b9 Shannon probe rows</small></div>
-  <div class="x-num"><b>{{fact:x.x4-paths.leaves.b8.n}} of {{fact:x.x4-paths.pairs.per_kind}}</b><span>same-class b8 starts left the endpoint class at any of the {{fact:x.x4-paths.grid.points}} sampled positions</span><small>Sampled pairs · network predictions</small></div>
-  <div class="x-num"><b>{{fact:x.x4-paths.gain.pixels.angular}} vs {{fact:x.x4-paths.gain.pixels.radius_removed}}</b><span>angular gain–margin correlation before and after removing the output radius factor</span><small>Pixels to logits · CIFAR-10 probe, no embedding</small></div>
-</div>
 
-<h3>What was computed</h3>
-<div class="x-tablewrap">
-<table class="x-defs">
-<thead><tr><th>Quantity</th><th>Equation</th><th>Symbols and choices</th><th>Code</th></tr></thead>
-<tbody>
-<tr><td>Chords and suffix</td><td>$x(s)=(1-s)a+sb$<br>$h_m(s)=F_{l_0\to m}(x(s))$</td>
-<td>Interpolate the actual, uncentred activations at $l_0$ (the network's preprocessed input for pixels), not embeddings. Run each of {{fact:x.x4-paths.grid.points}} equally spaced points through the suffix. Motion and masks use downstream sites $m&gt;l_0$; the coordinate chain includes the start activation except for pixels.</td>
-<td><code>xp/stage_x4.py:site_acts, trace, run_paths</code></td></tr>
-<tr><td>Raw and angular speeds</td><td>$u=(h-\bar h)/\rho$, $\rho=\|h-\bar h\|$<br>$v_{\rm raw}=\|J(b-a)\|$<br>$v_{\rm ang}=\|(I-uu^\top)J(b-a)\|/\rho$</td>
-<td>$\bar h$ is the clean probe mean at the measurement site; $J$ is the raw suffix Jacobian there. The code also computes both speeds exactly, by a Jacobian–vector product, on the 64-step grid. At a ReLU kink it differentiates the autodiff-selected branch, not a unique classical derivative. “Angular” step lengths below are Euclidean chords between unit vectors, not arccos angles.</td>
-<td><code>xp/stage_x4.py:_unit, _steps, run_paths</code></td></tr>
-<tr><td>Fastest window and sharpness</td><td>$d_i=\|q((i+1)/T)-q(i/T)\|$<br>$W=\max_j\sum_{i=j}^{j+15}d_i/\sum_i d_i$<br>$\sigma=\log(m_{64}/m_{256})/\log 4$</td>
-<td>$q=h$ for raw steps or $q=u$ for angular steps. $W$ takes the largest of all contiguous 16-step windows on the 256-step grid. $m_T$ is the largest <em>step length</em> on the $T$-step grid (coarser grid takes every fourth point). Uniform straight-line motion gives $W=1/16$, $\sigma=1$; a single ideal jump gives $W=1$, $\sigma=0$.</td>
-<td><code>xp/stage_x4.py:path_stats, _steps, trace</code></td></tr>
-<tr><td>Suffix operator and path placement</td><td>$H_l=(I-P_l)/(2c_l)$<br>$\mathcal L_t=\operatorname{blockdiag}(H_l)+t D_{\rm path}\otimes I$<br>$z_{l,k}=p_l\phi_{l,k}/\lambda_{l,k}$<br>$T_k y_{\cdot,k}=(p_l f_{l,k}/2c_l)_l$</td>
-<td>At each chain site, use cosines of probe-centred unit activations, calibrate directed rows to Shannon perplexity 100, then symmetrise and balance to get $P_l$. To form the new row $p_l$, average the new point's calibrated conditional and the probe's frozen reverse conditionals, apply the frozen balance factors, and normalise. $c_l$ is the mean of the first eight nonconstant lazy-walk gaps; $t$ is the depth-balance value. $f$ are joint modes with zero mean per slice; $\phi,\lambda$ are nonconstant eigenpairs of $P_l$. $T_k=\operatorname{diag}(1/(2c_l)-\mu_k)+tD_{\rm path}$, with joint eigenvalue $\mu_k$. The joint solve uses every suffix row, unlike the site-local extension $z$. Draw {{fact:x.x4-paths.grid.draw}} points from this same chord, on the 64-step grid.</td>
-<td><code>xp/dm.py:ea_kernel</code><br><code>xp/xlib.py:probe_gram, cross_cos, ea_rows_t, fit_op, Ext</code></td></tr>
-<tr><td>Class mass and slope</td><td>$M_l(c,s)=\sum_{j:y_j=c}p_l(s)_j$<br>$\Delta_i=M_l(c_b,s_i)-M_l(c_a,s_i)$<br>$\max_i|\Delta_{i+1}-\Delta_i|/(1/64)$</td>
-<td>Sum the row over probe images of class $c$, then take the maximum absolute finite-difference slope of destination minus source mass on each different-class path. This uses the coordinate chain, including b9 itself for b9 starts. It is a probe readout, not the network's class probability or a distance in the modes.</td>
-<td><code>xp/xlib.py:Ext.site</code><br><code>xp/analyze_x4.py:main</code></td></tr>
-<tr><td>Log gain</td><td>$\Lambda_{\rm raw}=\log\sigma_{\max}(J)$<br>$A=(r/\rho)(I-uu^\top)J(I-vv^\top)$<br>$\Lambda_{\rm ang}=\log\sigma_{\max}(A)$</td>
-<td>$v$ and $r$ are the probe-centred input direction and radius; $u$ and $\rho$ are their output counterparts. Angular gain lifts a tangent at fixed input radius $r$ and differentiates output normalisation. Logs are natural. For logits the output Gram calculation is exact up to floating-point error for the selected branch. For non-logit targets, the 20-step power/Ritz calculation estimates the maximum from below (up to numerical error). Raw controls: $\log\sigma_{\max}(W)$ from pool and $\log(\sigma_{\max}(W)/8)$ from b9, where $W$ is the head matrix and the mean pool spans $8\times8$.</td>
-<td><code>xp/stage_x4.py:gain_exact, gain_power, _ritz, run_checks</code></td></tr>
-<tr><td>Gain and margin</td><td>$\operatorname{Spearman}(g,\text{top logit}-\text{runner-up})$<br>$g\in\{\Lambda_{\rm raw},\Lambda_{\rm ang},\Lambda_{\rm ang}+\log(\rho/\operatorname{med}_{\rm probe}\rho)\}$</td>
-<td>Across all probe images, not paths. The last version cancels the inverse output radius up to a constant; it retains the output tangent projection and the input-side factors. Gain here is not divided by sites crossed.</td>
-<td><code>xp/stage_x4.py:run_probe_gain</code><br><code>xp/analyze_x4.py:main</code></td></tr>
-<tr><td>Mask changes</td><td>$\operatorname{mean}_j\,[\,\mathbf1_{h_j(s)&gt;0}\ne\mathbf1_{h_j(s')&gt;0}\,]$</td>
-<td>At each downstream ReLU tap (stem and block outputs, where present), compare with $s'=0$ or the preceding sample. The within-block ReLUs are not counted. These are fractions of units with different masks, not counts of linear regions crossed.</td>
-<td><code>xp/stage_x4.py:trace</code><br><code>xp/analyze_x4.py:main</code></td></tr>
-</tbody>
+<h3>No concentrated movement in the activations</h3>
+<p>At every recorded later site, the activations move along the line at a fairly even pace. To see this, add up how far the activation at a later site moves between neighbouring points, starting from s = 0, and divide by the total. At an even pace this share of distance covered follows the diagonal; at a wall it would stay flat, shoot up, then stay flat. The <em>fastest sixteenth</em> is the largest share covered within any stretch one sixteenth of the line long: {{fact:x.x4-paths.grid.uniform}} for an even pace, {{fact:x.x4-paths.grid.jump}} for a single jump.</p>
+<figure class="x-static x-wide">
+  <p class="x-figtitle">Lines drawn at b3: share of distance covered, measured at five later sites</p>
+  <div class="x-key"><span><i class="x-sw diff"></i>one of {{fact:x.x4-paths.pairs.per_kind}} different-class pairs</span><span><i class="x-sw same"></i>one of {{fact:x.x4-paths.pairs.per_kind}} same-class pairs</span><span><i class="x-sw hi"></i>steepest pair at that site</span><span><i class="x-sw even"></i>even pace</span><span><i class="x-sw wall"></i>a wall at s = ½</span></div>
+  <div class="x-panels" style="--cols:5;--cols-md:3;--cols-sm:2">
+    <div class="x-panel"><div class="x-panel-label">at b4</div><img src="assets/fig/x_x4-paths_lead_b4.webp" alt="Cumulative distance curves at b4, all near the diagonal" width="196" height="196"></div>
+    <div class="x-panel"><div class="x-panel-label">at b6</div><img src="assets/fig/x_x4-paths_lead_b6.webp" alt="Cumulative distance curves at b6, all close to the diagonal" width="196" height="196"></div>
+    <div class="x-panel"><div class="x-panel-label">at b8</div><img src="assets/fig/x_x4-paths_lead_b8.webp" alt="Cumulative distance curves at b8, close to the diagonal" width="196" height="196"></div>
+    <div class="x-panel"><div class="x-panel-label">at b9</div><img src="assets/fig/x_x4-paths_lead_b9.webp" alt="Cumulative distance curves at b9, gently S-shaped" width="196" height="196"></div>
+    <div class="x-panel"><div class="x-panel-label">at the logits</div><img src="assets/fig/x_x4-paths_lead_logits.webp" alt="Cumulative distance curves at the logits, S-shaped but far from a step" width="196" height="196"></div>
+  </div>
+  <figcaption>Each thin line is one pair, drawn at b3 and measured at the site named above the panel: x is the position along the line, y the share of the line's distance covered so far. The lines bend most at the logits, where even the steepest pair (blue) covers {{fact:x.x4-paths.window.b3.logits.max}} of its distance in its fastest sixteenth (shaded); none comes near the dotted step.</figcaption>
+</figure>
+<p>Other start sites agree. The largest fastest-sixteenth share over all pairs and later sites, always at the logits:</p>
+<table class="x-mini">
+  <thead><tr><th>Start site</th><th>Largest share</th></tr></thead>
+  <tbody><tr><th>pixels</th><td>{{fact:x.x4-paths.window.pixels.max}}</td></tr><tr><th>stem</th><td>{{fact:x.x4-paths.window.stem.max}}</td></tr><tr><th>b3</th><td>{{fact:x.x4-paths.window.b3.max}}</td></tr><tr><th>b6</th><td>{{fact:x.x4-paths.window.b6.max}}</td></tr><tr><th>b8</th><td>{{fact:x.x4-paths.window.b8.max}}</td></tr><tr><th>b9</th><td>{{fact:x.x4-paths.window.b9.max}}, exactly even (affine after b9)</td></tr></tbody>
 </table>
-</div>
+<p>ReLU on/off switches at block outputs are spread out the same way. Counted between neighbouring points and pooled over {{fact:x.x4-paths.relu.window.n}} line–site combinations, the fastest sixteenth holds a median {{fact:x.x4-paths.relu.window.median}} of a line's switches and at most {{fact:x.x4-paths.relu.window.max}}.</p>
 
-<h3>Supporting figures</h3>
-  <figure class="live" data-live="lines" data-src="assets/x/x4-paths.json#motion" data-height="230">
-    <div class="live-body"></div>
-    <figcaption><b>Plotted:</b> Median angular window share and median raw sharpness over different-class pairs, measured in downstream activations. A b9-start path moves at constant <em>raw</em> speed; output normalisation can still change its angular speed.</figcaption>
-  </figure>
-<div class="x-figs">
-  <figure class="live" data-live="lines" data-src="assets/x/x4-paths.json#slope" data-height="270">
-    <div class="live-body"></div>
-    <figcaption><b>Plotted:</b> Median per-path maximum slope magnitude for destination minus source class mass. The dashed <b>b9-start affine control</b> already gives {{fact:x.x4-paths.slope.b9.b9}} at the straight chord itself, before applying the suffix. This steep change in probe weight is not a barrier in the network.</figcaption>
-  </figure>
-  <figure class="live" data-live="bars" data-src="assets/x/x4-paths.json#gains" data-height="250">
-    <div class="live-body"></div>
-    <figcaption><b>Plotted:</b> Gain–margin rank correlations across the probe. Removing the centred logit radius factor weakens the angular correlation. The log radius alone has correlation {{fact:x.x4-paths.gain.radius}} with margin. Margin is not distance to a decision boundary.</figcaption>
-  </figure>
-</div>
+<h3>Class probabilities can still change sharply</h3>
+<p>Movement is not concentrated, but the output probabilities can change within a sixteenth of the line, because the softmax saturates. The figure adapts the plots of Stefan Heimersheim and Jake Mendel (<a href="https://www.lesswrong.com/posts/LajDyGyiyX8DNNsuF/interim-research-report-activation-plateaus-and-sensitive-1">activation plateaus and sensitive directions</a>, whose x-axis is perturbation size rather than position along a line). The y-axis is the KL divergence between the output probabilities at the start of the line and at s, in nats. When the start is confidently classified, it is close to minus the log of the probability left on image a's class.</p>
+<figure class="x-static x-wide">
+  <p class="x-figtitle">Output change along the line, KL(start || current)</p>
+  <div class="x-key"><span><i class="x-sw diff"></i>one of {{fact:x.x4-paths.pairs.per_kind}} different-class pairs</span><span><i class="x-sw same"></i>one of {{fact:x.x4-paths.pairs.per_kind}} same-class pairs</span><span><i class="x-sw hi"></i>largest one-sixteenth KL rise at b3</span><span><i class="x-sw wall"></i>an illustrative wall</span></div>
+  <div class="x-panels" style="--cols:2;--cols-md:2;--cols-sm:1">
+    <div class="x-panel"><div class="x-panel-label">line drawn at b3</div><img src="assets/fig/x_x4-paths_heim_b3.webp" alt="KL curves for lines drawn at b3: flat starts, varied rises, one steep blue rise" width="340" height="240"></div>
+    <div class="x-panel"><div class="x-panel-label">line drawn at b9: the logits move on a straight line at constant speed</div><img src="assets/fig/x_x4-paths_heim_b9.webp" alt="KL curves for lines drawn at b9: flat starts, then straight rises" width="340" height="240"></div>
+  </div>
+  <figcaption>Each thin line is one pair; most same-class curves stay near zero. Blue is the line with the largest one-sixteenth KL rise when drawn at b3, a {{fact:x.x4-paths.steep.b3.a}}-to-{{fact:x.x4-paths.steep.b3.b}} pair: its KL rises from {{fact:x.x4-paths.steep.b3.kl_from}} to {{fact:x.x4-paths.steep.b3.kl_to}} nats between s = {{fact:x.x4-paths.steep.b3.kl_s_from}} and {{fact:x.x4-paths.steep.b3.kl_s_to}} (shaded), while its logits cover {{fact:x.x4-paths.steep.b3.kl_window_share}} of their total distance in that interval.</figcaption>
+</figure>
+<p>The same pair drawn at b9, where the logits move evenly on a straight line, also rises steeply. While one class leads by a clear margin its probability stays near 1; once another class overtakes it, that probability collapses. Across all lines drawn at b9, the largest drop in starting-class probability within one sixteenth was {{fact:x.x4-paths.steep.b9.drop_pp}} percentage points. So a flat stretch followed by a steep rise does not need a nonlinear network.</p>
 
-<h3>Caveats</h3>
+<h3>Three lines up close</h3>
+<p>Each example follows one pair drawn at four start sites: what the network predicts, how fast the logits move, and how strongly the network stretches small changes, all along the line. The maps below show where the line drawn at b3 runs relative to the classes it passes through.</p>
+<figure class="x-static x-wide x-we">
+  <div class="x-we-head"><img src="assets/fig/x_x4-paths_we183_a.webp" alt="Image a: a white horse" width="64" height="64"><span class="x-we-cls">{{fact:x.x4-paths.we183.a}}</span><span class="x-we-arrow">→</span><img src="assets/fig/x_x4-paths_we183_b.webp" alt="Image b: a deer" width="64" height="64"><span class="x-we-cls">{{fact:x.x4-paths.we183.b}}</span><span class="x-we-title"><b>A clear single switch</b><small>CIFAR-10 test images {{fact:x.x4-paths.we183.ids}}</small></span></div>
+  <div class="x-key"><span><i class="x-sw px"></i>drawn in pixels</span><span><i class="x-sw b3"></i>at b3</span><span><i class="x-sw b6"></i>at b6</span><span><i class="x-sw b9"></i>at b9 (straight in the logits)</span></div>
+  <div class="x-panels" style="--cols:3;--cols-md:3;--cols-sm:1">
+    <div class="x-panel"><div class="x-panel-label"><b>Output change</b>: KL from the start of the line, in nats. Strip: the network's top class at each point, one row per start site.</div><img src="assets/fig/x_x4-paths_we183_kl.webp" alt="KL and predicted class along the horse-to-deer line" width="330" height="270"></div>
+    <div class="x-panel"><div class="x-panel-label"><b>Logit speed</b>: how fast the logits move, the Jacobian applied to the line's direction b − a, in logit units per unit s. Flat for the b9 line.</div><img src="assets/fig/x_x4-paths_we183_speed.webp" alt="Logit speed along the horse-to-deer line" width="330" height="230"></div>
+    <div class="x-panel"><div class="x-panel-label"><b>Log gain</b>: ln of the Jacobian's maximum stretch factor (to the logits), as the change since s = 0. Flat for the b9 line.</div><img src="assets/fig/x_x4-paths_we183_gain.webp" alt="Change in log gain along the horse-to-deer line" width="330" height="230"></div>
+  </div>
+  <div class="x-panels x-emb" style="--cols:3;--cols-md:3;--cols-sm:2">
+    <div class="x-panel"><div class="x-panel-label">b3 (line drawn here)</div><img src="assets/fig/x_x4-paths_we183_emb_b3.webp" alt="The line in the diffusion map at b3" width="236" height="236"></div>
+    <div class="x-panel"><div class="x-panel-label">b5</div><img src="assets/fig/x_x4-paths_we183_emb_b5.webp" alt="The line in the diffusion map at b5" width="236" height="236"></div>
+    <div class="x-panel"><div class="x-panel-label">b7</div><img src="assets/fig/x_x4-paths_we183_emb_b7.webp" alt="The line in the diffusion map at b7" width="236" height="236"></div>
+    <div class="x-panel"><div class="x-panel-label">b8</div><img src="assets/fig/x_x4-paths_we183_emb_b8.webp" alt="The line in the diffusion map at b8" width="236" height="236"></div>
+    <div class="x-panel"><div class="x-panel-label">b9</div><img src="assets/fig/x_x4-paths_we183_emb_b9.webp" alt="The line in the diffusion map at b9" width="236" height="236"></div>
+    <div class="x-panel"><div class="x-panel-label">logits</div><img src="assets/fig/x_x4-paths_we183_emb_logits.webp" alt="The line in the diffusion map at logits" width="236" height="236"></div>
+  </div>
+  <p class="x-keynote"><b>Maps</b>: each panel is that site's own diffusion map of the probe (coordinates 1 and 2), zoomed to the line, so scales differ between panels. Coloured: probe images of the classes the b3 line passes through, with × at each class's centre; grey: other classes. <span class="x-mk b3">Blue</span>: the line drawn at b3, one dot per sixteenth; <span class="x-mk b9">dashed</span>: the line drawn at b9; ○ image a, ■ image b, ◆ first change of the prediction on the b3 line.</p>
+  <figcaption>From every start the prediction switches once, from horse to deer, near the middle (strip). Drawn at b3, the logits move fastest at s = {{fact:x.x4-paths.we183.b3.peak_s}}, at {{fact:x.x4-paths.we183.b3.peak_chord}} times the straight-line speed of the b9 line, and the maximum stretch varies by a factor of {{fact:x.x4-paths.we183.b3.gain_ratio}} along the line. In the b9 and logit maps the line runs from the horse cluster into the deer cluster; at earlier sites the two classes overlap and the line stays inside the mixed cloud.</figcaption>
+</figure>
+
+<figure class="x-static x-wide x-we">
+  <div class="x-we-head"><img src="assets/fig/x_x4-paths_we150_a.webp" alt="Image a: a dog" width="64" height="64"><span class="x-we-cls">{{fact:x.x4-paths.we150.a}}</span><span class="x-we-arrow">→</span><img src="assets/fig/x_x4-paths_we150_b.webp" alt="Image b: a boat" width="64" height="64"><span class="x-we-cls">{{fact:x.x4-paths.we150.b}}</span><span class="x-we-title"><b>A detour through cat</b><small>CIFAR-10 test images {{fact:x.x4-paths.we150.ids}}</small></span></div>
+  <div class="x-key"><span><i class="x-sw px"></i>drawn in pixels</span><span><i class="x-sw b3"></i>at b3</span><span><i class="x-sw b6"></i>at b6</span><span><i class="x-sw b9"></i>at b9 (straight in the logits)</span></div>
+  <div class="x-panels" style="--cols:3;--cols-md:3;--cols-sm:1">
+    <div class="x-panel"><div class="x-panel-label"><b>Output change</b> (KL, nats) and top class</div><img src="assets/fig/x_x4-paths_we150_kl.webp" alt="KL and predicted class along the dog-to-ship line" width="330" height="270"></div>
+    <div class="x-panel"><div class="x-panel-label"><b>Logit speed</b></div><img src="assets/fig/x_x4-paths_we150_speed.webp" alt="Logit speed along the dog-to-ship line" width="330" height="230"></div>
+    <div class="x-panel"><div class="x-panel-label"><b>Log gain</b>, change since s = 0</div><img src="assets/fig/x_x4-paths_we150_gain.webp" alt="Change in log gain along the dog-to-ship line" width="330" height="230"></div>
+  </div>
+  <div class="x-panels x-emb" style="--cols:3;--cols-md:3;--cols-sm:2">
+    <div class="x-panel"><div class="x-panel-label">b3 (line drawn here)</div><img src="assets/fig/x_x4-paths_we150_emb_b3.webp" alt="The line in the diffusion map at b3" width="236" height="236"></div>
+    <div class="x-panel"><div class="x-panel-label">b5</div><img src="assets/fig/x_x4-paths_we150_emb_b5.webp" alt="The line in the diffusion map at b5" width="236" height="236"></div>
+    <div class="x-panel"><div class="x-panel-label">b7</div><img src="assets/fig/x_x4-paths_we150_emb_b7.webp" alt="The line in the diffusion map at b7" width="236" height="236"></div>
+    <div class="x-panel"><div class="x-panel-label">b8</div><img src="assets/fig/x_x4-paths_we150_emb_b8.webp" alt="The line in the diffusion map at b8" width="236" height="236"></div>
+    <div class="x-panel"><div class="x-panel-label">b9</div><img src="assets/fig/x_x4-paths_we150_emb_b9.webp" alt="The line in the diffusion map at b9" width="236" height="236"></div>
+    <div class="x-panel"><div class="x-panel-label">logits</div><img src="assets/fig/x_x4-paths_we150_emb_logits.webp" alt="The line in the diffusion map at logits" width="236" height="236"></div>
+  </div>
+  <p class="x-keynote"><b>Maps</b>: each site's own diffusion map (coordinates 1 and 2), zoomed to the line; coloured: the classes the b3 line passes through (× = centre). <span class="x-mk b3">Blue</span>: drawn at b3, a dot per sixteenth; <span class="x-mk b9">dashed</span>: drawn at b9; ○ a, ■ b, ◆ first change of the prediction on the b3 line.</p>
+  <figcaption>Drawn in pixels or at b3, the top class turns to cat almost at once and stays cat for about half the line ({{fact:x.x4-paths.we150.b3.off}} at b3) before turning to ship; drawn at b3, the logits move fastest at s = {{fact:x.x4-paths.we150.b3.peak_s}}, near the second switch ({{fact:x.x4-paths.we150.b3.swlast}}), not the first. Drawn at b6 the route is {{fact:x.x4-paths.we150.b6.route}}, and drawn at b9 it is {{fact:x.x4-paths.we150.b9.route}}.</figcaption>
+</figure>
+
+<figure class="x-static x-wide x-we">
+  <div class="x-we-head"><img src="assets/fig/x_x4-paths_we33_a.webp" alt="Image a: a brown horse" width="64" height="64"><span class="x-we-cls">{{fact:x.x4-paths.we33.a}}</span><span class="x-we-arrow">→</span><img src="assets/fig/x_x4-paths_we33_b.webp" alt="Image b: a brown horse" width="64" height="64"><span class="x-we-cls">{{fact:x.x4-paths.we33.b}}</span><span class="x-we-title"><b>A detour inside one class</b><small>CIFAR-10 test images {{fact:x.x4-paths.we33.ids}}</small></span></div>
+  <div class="x-key"><span><i class="x-sw px"></i>drawn in pixels</span><span><i class="x-sw b3"></i>at b3</span><span><i class="x-sw b6"></i>at b6</span><span><i class="x-sw b9"></i>at b9 (straight in the logits)</span></div>
+  <div class="x-panels" style="--cols:3;--cols-md:3;--cols-sm:1">
+    <div class="x-panel"><div class="x-panel-label"><b>Output change</b> (KL, nats) and top class</div><img src="assets/fig/x_x4-paths_we33_kl.webp" alt="KL and predicted class along the horse-to-horse line" width="330" height="270"></div>
+    <div class="x-panel"><div class="x-panel-label"><b>Logit speed</b></div><img src="assets/fig/x_x4-paths_we33_speed.webp" alt="Logit speed along the horse-to-horse line" width="330" height="230"></div>
+    <div class="x-panel"><div class="x-panel-label"><b>Log gain</b>, change since s = 0</div><img src="assets/fig/x_x4-paths_we33_gain.webp" alt="Change in log gain along the horse-to-horse line" width="330" height="230"></div>
+  </div>
+  <div class="x-panels x-emb" style="--cols:3;--cols-md:3;--cols-sm:2">
+    <div class="x-panel"><div class="x-panel-label">b3 (line drawn here)</div><img src="assets/fig/x_x4-paths_we33_emb_b3.webp" alt="The line in the diffusion map at b3" width="236" height="236"></div>
+    <div class="x-panel"><div class="x-panel-label">b5</div><img src="assets/fig/x_x4-paths_we33_emb_b5.webp" alt="The line in the diffusion map at b5" width="236" height="236"></div>
+    <div class="x-panel"><div class="x-panel-label">b7</div><img src="assets/fig/x_x4-paths_we33_emb_b7.webp" alt="The line in the diffusion map at b7" width="236" height="236"></div>
+    <div class="x-panel"><div class="x-panel-label">b8</div><img src="assets/fig/x_x4-paths_we33_emb_b8.webp" alt="The line in the diffusion map at b8" width="236" height="236"></div>
+    <div class="x-panel"><div class="x-panel-label">b9</div><img src="assets/fig/x_x4-paths_we33_emb_b9.webp" alt="Line at b9 dipping toward the dog images; the b9 line stays with the horses" width="236" height="236"></div>
+    <div class="x-panel"><div class="x-panel-label">logits</div><img src="assets/fig/x_x4-paths_we33_emb_logits.webp" alt="Line at the logits passing near the dog centre; the b9 line stays with the horses" width="236" height="236"></div>
+  </div>
+  <p class="x-keynote"><b>Maps</b>: each site's own diffusion map (coordinates 1 and 2), zoomed to the line; coloured: the classes the b3 line passes through (× = centre). <span class="x-mk b3">Blue</span>: drawn at b3, a dot per sixteenth; <span class="x-mk b9">dashed</span>: drawn at b9; ○ a, ■ b, ◆ first change of the prediction on the b3 line.</p>
+  <figcaption>Both images are horses, yet drawn in pixels, at b3 or at b6 the middle of the line is classified dog (strip; {{fact:x.x4-paths.we33.b3.off}} of the line at b3); drawn at b9 it stays horse. In the b9 and logit maps, the b3 line dips toward the dog images and returns, while the b9 line stays with the horses. Drawn at b3, logit speed peaks at s = {{fact:x.x4-paths.we33.b3.peak_s}}, before the dog stretch begins ({{fact:x.x4-paths.we33.b3.sw1}}), at {{fact:x.x4-paths.we33.b3.peak_chord}} times the straight-line speed.</figcaption>
+</figure>
+
+<h3>Lines drawn early detour through other classes</h3>
+<p>Detours become rarer when the line is drawn after b3. A <em>detour</em> is a stretch where the network's top class is neither endpoint's class. Same-class lines that leave their class spend a median {{fact:x.x4-paths.leave_stretch.pixels.median}} to {{fact:x.x4-paths.leave_stretch.b3.median}} of the line outside it (drawn at pixels, stem, b3 or b6): the excursions are long, though this measures how long they last, not how sharply they begin. None of {{fact:x.x4-paths.pairs.per_kind}} same-class lines drawn at b8 left its class. Drawn at b9, none can: the rest of the network is affine, so the logits move on a straight line, and the logits where one class wins form a convex set. A different-class line drawn at b9 can still clip a third class, and {{fact:x.x4-paths.third.b9.share}} do.</p>
+<figure class="x-static">
+  <p class="x-figtitle">How often a line detours, by the start site where it is drawn</p>
+  <div class="x-key"><span><i class="x-sw same"></i>same-class pair: the line leaves the class</span><span><i class="x-sw diffsolid"></i>different-class pair: the line visits a third class</span></div>
+  <img src="assets/fig/x_x4-paths_detours.webp" alt="Detour rates by start site: roughly level through b3, then lower" width="360" height="230">
+  <figcaption>Each point is a share of {{fact:x.x4-paths.pairs.per_kind}} pairs. Both rates are roughly level through b3 and lower after it: {{fact:x.x4-paths.leaves.b3.share}} and {{fact:x.x4-paths.third.b3.share}} at b3, {{fact:x.x4-paths.leaves.b8.share}} and {{fact:x.x4-paths.third.b8.share}} at b8.</figcaption>
+</figure>
+
+<h3>In the embedding, crossings bunch up</h3>
+<p>In b9's diffusion map, the fastest sixteenth of a different-class line carries a median {{fact:x.x4-paths.embstep.emb_b3}} of its embedded distance, against {{fact:x.x4-paths.embstep.raw_b3}} in the same lines' raw activations. Lines drawn straight at b9, whose activations move exactly evenly, reach {{fact:x.x4-paths.embstep.emb_b9}} in the map. The bunching is consistent with the probe's class clusters at b9 and with the kernel used to place new points; this comparison does not separate their effects. It is moderate: {{fact:x.x4-paths.embstep.half_b3}} of {{fact:x.x4-paths.pairs.per_kind}} lines drawn at b3, and {{fact:x.x4-paths.embstep.half_b9}} drawn at b9, put more than half of their embedded distance into one sixteenth.</p>
+<figure class="x-static x-wide">
+  <p class="x-figtitle">Share of distance covered at b9: in the activations and in b9's diffusion map</p>
+  <div class="x-key"><span><i class="x-sw diff"></i>one of {{fact:x.x4-paths.pairs.per_kind}} different-class pairs</span><span><i class="x-sw even"></i>even pace</span><span><i class="x-sw wall"></i>a wall at s = ½</span></div>
+  <div class="x-panels" style="--cols:3;--cols-md:3;--cols-sm:1">
+    <div class="x-panel"><div class="x-panel-label">b9 activations · lines drawn at b3</div><img src="assets/fig/x_x4-paths_embstep_raw.webp" alt="Cumulative raw distance at b9, close to the diagonal" width="300" height="230"></div>
+    <div class="x-panel"><div class="x-panel-label">b9 diffusion map · the same lines</div><img src="assets/fig/x_x4-paths_embstep_b3.webp" alt="Cumulative embedded distance at b9, often S-shaped" width="300" height="230"></div>
+    <div class="x-panel"><div class="x-panel-label">b9 diffusion map · lines drawn straight at b9</div><img src="assets/fig/x_x4-paths_embstep_b9.webp" alt="Cumulative embedded distance for straight b9 lines, often S-shaped" width="300" height="230"></div>
+  </div>
+  <figcaption>As in the first figure, each line shows the share of a pair's distance covered by position s, here measured at b9 on the same {{fact:x.x4-paths.grid.draw}}-point grid in all three panels; the map uses the first {{fact:x.x4-paths.emb.k}} coordinates of b9's own diffusion map of the probe. The activations move evenly, but in the map distance bunches into a short stretch, and as much for lines drawn straight at b9 (right).</figcaption>
+</figure>
+<p>Different-class lines often contain a poorly supported point. At a line's least-supported point, only {{fact:x.x4-paths.support.b3.b9}} of clean test images are farther from their nearest probe image at b9, and {{fact:x.x4-paths.support.b3.logits}} at the logits (medians over lines drawn at b3), so the map's positions there are extrapolations.</p>
+
+<h3>Limits</h3>
 <ul class="x-caveats">
-  <li>One checkpoint and chords between correctly classified images. The minimum raw sharpness index across all tested starts was {{fact:x.x4-paths.sharp.min}}. At finer resolution, the largest site-wise median absolute change in angular window share was {{fact:x.x4-paths.refine.max_median}} (1,024 vs 256 steps on 50 paths per start); that is not a bound for individual paths.</li>
-  <li>The pre-logit exception was a {{fact:x.x4-paths.pre_logits.exception.start}} start (zero-based pair row {{fact:x.x4-paths.pre_logits.exception.row}} at {{fact:x.x4-paths.pre_logits.exception.site}}); it {{fact:x.x4-paths.pre_logits.exception.refined}}. The {{fact:x.x4-paths.starts.shown}} selectable starts alone give {{fact:x.x4-paths.pre_logits.shown_n}} of {{fact:x.x4-paths.pre_logits.shown_total}} across their full pair sets. At logits, {{fact:x.x4-paths.logits.n}} of {{fact:x.x4-paths.pre_logits.total}} exceeded the threshold (pixels {{fact:x.x4-paths.logits.pixels}}, stem {{fact:x.x4-paths.logits.stem}}, b3 {{fact:x.x4-paths.logits.b3}}).</li>
-  <li><span class="x-tag">audit</span> Different-class paths can leave the supported parts of the probe cloud, especially at late sites. The report's worst-support comparison takes the minimum over each path, not just its midpoint.</li>
-  <li><span class="x-tag">audit</span> Even on the b9-start affine control, the angular speed peak can align with a class switch. Centred logit radius can be small there, which raises angular speed without raising raw speed.</li>
-  <li>Largest two-image squared-norm shares among the retained modes, joint / site-local: pixels {{fact:x.x4-paths.loc.pixels.joint}} / {{fact:x.x4-paths.loc.pixels.site}}, b3 {{fact:x.x4-paths.loc.b3.joint}} / {{fact:x.x4-paths.loc.b3.site}}, b6 {{fact:x.x4-paths.loc.b6.joint}} / {{fact:x.x4-paths.loc.b6.site}}, b9 {{fact:x.x4-paths.loc.b9.joint}} / {{fact:x.x4-paths.loc.b9.site}}. Localised modes may affect the projected paths and embedded path lengths in the full report. The activation, gain and prediction results here use no modes. The class-mass slopes use kernel rows, not modes, but are kernel-dependent.</li>
+  <li><b>One network, one kind of path.</b> ResNet-20 seed 0, final checkpoint, straight lines between correctly classified images. It was not compared with the MLP setting where barriers were seen in earlier activation-cell work.</li>
+  <li><b>Recorded sites only.</b> Activations are recorded at block outputs, the pooled features and the logits, not inside blocks; ReLU switches are counted at block outputs, as net changes between neighbouring points, so they are not a count of distinct cells crossed.</li>
+  <li><b>Sampling.</b> Each line has {{fact:x.x4-paths.grid.points}} points, and logit speed and gain are computed at {{fact:x.x4-paths.grid.draw}} of them, so concentration narrower than one step could hide between points. Re-sampling {{fact:x.x4-paths.refine.n}} lines four times more finely changed no fastest-sixteenth share by more than {{fact:x.x4-paths.refine.raw_max}} percentage points.</li>
+  <li><b>The bunching in the map is checked against straight b9 lines only.</b> Other kernels and kernel widths were not tried.</li>
 </ul>
 
-<h3>Method concerns from the audit</h3>
-<ul class="x-caveats">
-  <li><span class="x-tag">audit</span> <b>Interpretation limit:</b> Low sampled angular concentration or raw sharpness near unity does not rule out network boundaries. This test uses one chord parameterisation and window; vary both to test other forms of concentration.</li>
-  <li><b>Measurement limit:</b> The masks count sampled net changes at post-ReLU taps. They miss internal gates and flips that cancel between samples; trace all gates if region crossings matter.</li>
-  <li><b>Measurement limit:</b> The mass slope is a finite difference on the drawing grid, not a grid-independent peak. Only the motion statistic was refined; refine slopes separately and check <a href="#method/new-images-audit">realised row widths and probe support</a>.</li>
-  <li><b>Interpretation limit:</b> Cancelling the output radius leaves both tangent projections and the input radius. It is an algebraic sensitivity check, not a causal adjustment or distance-to-boundary estimate; measure boundary distance separately to test that link.</li>
-</ul>
-<details class="x-more">
-  <summary>Decisions made on the owner's behalf <span class="x-count">(6)</span></summary>
-  <div class="x-tablewrap">
-  <table class="x-decisions">
-  <thead><tr><th>Decision</th><th>Chosen</th><th>Alternative</th><th>Why</th><th>What it could bias</th><th>How to test</th></tr></thead>
-  <tbody>
-  <tr><td>Path</td><td>Raw activation chord; reuse endpoint pairs at every start</td><td>Data-manifold path or newly matched pairs per start</td><td>Test the straight-path question while controlling pair identity</td><td>Chords may pass far from realisable activations; endpoint distances can differ by start and class</td><td>Compare to nearest-probe support and within endpoint-distance strata; test a separate manifold path</td></tr>
-  <tr><td>Embedding</td><td>Fit a clean-probe operator for each full suffix; extend path points without refitting</td><td>Truncate the full-chain extension, or fit with path points included</td><td>No prefix activations exist; paths would add near-copies to the probe</td><td>Axes differ by start; joint slices mix sites</td><td>Check masked probe replay and held-out endpoints embedded as real images</td></tr>
-  <tr><td>Concentrated motion</td><td>Fastest 1/16 window; sharpness index secondary</td><td>Largest step alone, or different widths</td><td>The continuous network can concentrate speed without making jumps</td><td>Window choice and grid resolution limit what is detected</td><td>Refine to 1,024 steps, then sweep window widths</td></tr>
-  <tr><td>Class readout</td><td>Shannon perplexity 100, not tuned; sum final row weights by class</td><td>Raw logits or matched final row perplexity</td><td>Available at every coordinate site and tied to the probe</td><td>The final row width changes as class clouds separate</td><td>Sweep kernel width and compare at matched realised perplexity</td></tr>
-  <tr><td>Gain</td><td>Undivided raw and fixed-radius angular log gain</td><td>Normalise by sites crossed</td><td>Read the amplification of a given suffix directly</td><td>Not a per-site growth rate; angular gain includes inverse centred radius</td><td>Against the affine formulas, maximum absolute raw log-gain errors were {{fact:x.x4-paths.gain.affine.pool}} from pool and {{fact:x.x4-paths.gain.affine.b9}} from b9</td></tr>
-  <tr><td>Speed versus switching</td><td>Align to first prediction switch, with a separate single-switch check</td><td>Fresh pairs, or align to every switch</td><td>One event per path for the rank comparison</td><td>Conditioning on a switch selects paths; output normalisation can induce association</td><td>Use fresh pairs and adjust for centred logit radius</td></tr>
-  </tbody>
-  </table>
-  </div>
-  <p>Original setup and amendments: <a href="https://github.com/CharlesR-W/DepthEmbedding/blob/experiments-site/xp/SPEC.md#x4-interpolation-between-real-activations-ftle">specification</a> · <a href="https://github.com/CharlesR-W/DepthEmbedding/blob/experiments-site/xp/FINDINGS.md#x4-interpolation-between-real-activations-log-gain-ftle">audited findings</a></p>
+<details class="x-more x-explore">
+  <summary>Explore more lines (interactive)</summary>
+  <figure class="emb-fig" data-emb="assets/x/x4-paths.json#emb_explore">
+    <figcaption>{{fact:x.x4-paths.pairs.display}} selected pairs, half of each kind, including the dog-to-ship and horse-to-horse examples above. Pick the start site, the coordinates (site-local: each site's own diffusion map; joint: one map of all sites from the start to the logits, which mixes sites) and the site; each line runs from a circle (image a) to a square (image b), shaded light to dark.</figcaption>
+  </figure>
 </details>
+
 <details class="x-more">
-  <summary>More figures <span class="x-count">(4)</span></summary>
-  <div class="x-figs">
-    <figure class="live" data-live="bars" data-src="assets/x/x4-paths.json#leaves" data-height="240">
-      <div class="live-body"></div>
-      <figcaption><b>Plotted:</b> Same-class pairs whose sampled logits had a different winning class somewhere along the chord. None did from b8 at any of the {{fact:x.x4-paths.grid.points}} sampled positions. At b9, none can: both endpoints lie in the same convex argmax region of logit space, and the b9 suffix is affine.</figcaption>
-    </figure>
-    <figure class="emb-fig" data-emb="assets/x/x4-paths.json#emb_gain">
-      <figcaption><b>Plotted:</b> The viewer's ResNet-20 seed 0, k-NN 15 joint embedding of the CIFAR-10 probe. Colour is each image's angular log gain from pixels to logits, not a coordinate. This projection illustrates where high and low values sit in the viewer's cloud; the gain calculation itself does not use the embedding.</figcaption>
-    </figure>
-    <figure class="live" data-live="bars" data-src="assets/x/x4-paths.json#localisation" data-height="240">
-      <div class="live-body"></div>
-      <figcaption><b>Plotted:</b> The largest squared-norm share on two probe images among the first 16 modes of each Shannon suffix operator. For each joint mode, sum energy across sites before ranking images. For each walk mode, rank images within its site and then take the maximum across modes and sites.</figcaption>
-    </figure>
-    <figure class="live" data-live="heatmap" data-src="assets/x/x4-paths.json#local_modes" data-height="340">
-      <div class="live-body"></div>
-      <figcaption><b>Plotted:</b> Two-image shares of the individual joint and site-local modes. Use the start-site slider to change suffix operators. Grey cells have no coordinates for that start. Mode numbers need not identify the same direction across bases.</figcaption>
-    </figure>
-  </div>
+  <summary>Technical details</summary>
+  <p><b>Line.</b> x(s) = (1 − s)a + sb, where a and b are the two images' activations at the start site as the network computes them (for pixels, the normalised input), on {{fact:x.x4-paths.grid.points}} evenly spaced points. Endpoints are {{fact:x.x4-paths.pairs.unique_endpoints}} distinct held-out test images, correctly classified with a top-two logit margin above {{fact:x.x4-paths.pairs.margin_min}}.</p>
+  <p><b>Fastest sixteenth.</b> At a later site, the step lengths are the Euclidean distances between the activations of neighbouring points; the fastest sixteenth is the largest sum over a sixteenth of consecutive steps, divided by the sum of all steps. In the map it uses distances in the first {{fact:x.x4-paths.emb.k}} site-local coordinates; the b9 comparison uses the {{fact:x.x4-paths.grid.draw}}-point grid on which the map was computed for all three panels.</p>
+  <p><b>KL, logit speed and gain.</b> KL(start || current) = Σ<sub>c</sub> p<sub>c</sub>(0) log(p<sub>c</sub>(0)/p<sub>c</sub>(s)), with p the softmax of the logits and natural logs. Logit speed is ‖J(b − a)‖ for the Jacobian J from the start site to the logits, computed exactly by a forward-mode Jacobian–vector product; at a ReLU kink it uses the branch automatic differentiation selects. The gain is J's maximum stretch factor σ<sub>max</sub> (its largest singular value), computed exactly from J J<sup>T</sup>; the log gain is ln σ<sub>max</sub>. From b9 and from pool, log gain matches the affine closed forms to {{fact:x.x4-paths.gain.affine.b9}} and {{fact:x.x4-paths.gain.affine.pool}}. Exact speed and the finite difference of the line differ by a median {{fact:x.x4-paths.speedfd.pixels}} at the logits (lines drawn in pixels; {{fact:x.x4-paths.speedfd1024.pixels}} four times more finely): ReLU cells are crossed within a step.</p>
+  <p><b>Population numbers for the Jacobian</b> (medians over different-class pairs). Log gain at the midpoint against the start: {{fact:x.x4-paths.gain.pixels.mid}} against {{fact:x.x4-paths.gain.pixels.s0}} drawn in pixels, {{fact:x.x4-paths.gain.b3.mid}} against {{fact:x.x4-paths.gain.b3.s0}} at b3, {{fact:x.x4-paths.gain.b6.mid}} against {{fact:x.x4-paths.gain.b6.s0}} at b6. Divided by the number of sites crossed, the midpoint log gain is a finite-time Lyapunov exponent of {{fact:x.x4-paths.ftle.pixels.mid}}, {{fact:x.x4-paths.ftle.b3.mid}} and {{fact:x.x4-paths.ftle.b6.mid}} per site. At the midpoint, the line's own direction receives {{fact:x.x4-paths.align.pixels.mid}}, {{fact:x.x4-paths.align.b3.mid}} and {{fact:x.x4-paths.align.b6.mid}} of the maximum stretch. Where the logits move fastest is associated with, not tied to, the first switch: drawn at b3, the rank correlation between the two positions is {{fact:x.x4-paths.timing.all}} over all different-class pairs and {{fact:x.x4-paths.timing.single}} over the {{fact:x.x4-paths.timing.single_n}} with a single switch.</p>
+  <p><b>Gain and confidence across the probe.</b> At each of the {{fact:x.x4-paths.probe.n}} probe images, raw log gain from pixels to the logits has rank correlation {{fact:x.x4-paths.gain.pixels.raw}} with the margin (top logit minus runner-up). A direction-only log gain, on centred and normalised activations, gives {{fact:x.x4-paths.gain.pixels.angular}}, mostly because it divides by the length of the centred logit vector, which itself tracks the margin ({{fact:x.x4-paths.gain.radius}}); without that factor it gives {{fact:x.x4-paths.gain.pixels.radius_removed}}.</p>
+  <p><b>The direction-only distance used in the first version of this page</b> (distances between centred, normalised activations, as the diffusion kernel sees them) gives the same answer: {{fact:x.x4-paths.pre_logits.n}} of {{fact:x.x4-paths.paths.total}} lines put more than {{fact:x.x4-paths.threshold.share}} of it into a sixteenth before the logits, {{fact:x.x4-paths.logits.n}} at the logits; refined lines changed by a per-site median of at most {{fact:x.x4-paths.refine.max_median}}. It rises near the probe mean, where normalising amplifies small moves, so this page uses raw distance. A second raw measure, comparing the largest step on a four-times coarser grid with the largest step (1 for a smooth line, 0 for a jump), has minimum {{fact:x.x4-paths.sharp.min}}.</p>
+  <p><b>Diffusion maps.</b> At each site, a Shannon kernel of perplexity {{fact:x.x4-paths.emb.perplexity}} on cosines of probe-centred activations; site-local coordinates are the leading nonconstant eigenvectors of that site's own diffusion operator, and line points are placed by Nyström extension against the fixed probe. A site's coordinates do not depend on the start site, so the b9 line can be drawn in the same panels as the b3 line. The two coordinates drawn are not concentrated on a few images (at most {{fact:x.x4-paths.modes.top2_max}} of a coordinate's squared norm on its two largest images); some higher coordinates are. A class's centre (×) is the median of its probe images in the two drawn coordinates. Support is a point's largest cosine to any probe image at that site, as a percentile among clean held-out test images.</p>
+  <p><b>Choices that could matter.</b> Straight lines in raw activations rather than paths along the data; the same pairs at every start; gain not divided by depth in the plots; the kernel width fixed, not tuned.</p>
+  <p>Original setup and audit: <a href="https://github.com/CharlesR-W/DepthEmbedding/blob/experiments-site/xp/SPEC.md#x4-interpolation-between-real-activations-ftle">specification</a> · <a href="https://github.com/CharlesR-W/DepthEmbedding/blob/experiments-site/xp/FINDINGS.md#x4-interpolation-between-real-activations-log-gain-ftle">audited findings</a></p>
 </details>
-<p class="x-links"><a href="reports/xp.html#tab=x4">Full X4 report</a> · <a href="#method/new-images">Placing new images</a> · <a href="https://github.com/CharlesR-W/DepthEmbedding/blob/experiments-site/xp/stage_x4.py">Run code</a> · <a href="https://github.com/CharlesR-W/DepthEmbedding/blob/experiments-site/xp/analyze_x4.py">Analysis code</a></p>
+<p class="x-links"><a href="reports/xp.html#tab=x4">Full X4 report</a> · <a href="#method/new-images">Placing new images</a> · <a href="https://github.com/CharlesR-W/DepthEmbedding/blob/experiments-site/xp/stage_x4.py">Run code</a> · <a href="https://github.com/CharlesR-W/DepthEmbedding/blob/experiments-site/site/xsite/gen_x4.py">Page generator</a></p>
 </section>
