@@ -7,7 +7,10 @@ described in full on the <a href="https://charlesr-w.github.io/CoherentModes/#me
 <li><b>Networks.</b> ResNet-20, ResNet-32 and ResNet-56 (two seeds each) and one VGG-16-BN trained on CIFAR-10
 are shown across saved checkpoints. The 14 additional ResNet-20 networks from X1 each have one final checkpoint:
 their own 12-site k-NN 15 operator in relative site units at $t^*$. Images, labels, class counts, normalisation
-and augmentation can differ across those training pipelines.</li>
+and augmentation can differ across those training pipelines. Four autoencoders are shipped the same way: the
+classifiers' ResNet-20, initial weights and CIFAR-10 batches, trained to reconstruct the input through a decoder that
+reads its 10 or 64 outputs. Their last site is that code, not logits, and the decoder is not a site
+(<a href="#experiments/x-ae-objective">the experiment</a>).</li>
 <li><b>Probe images.</b> The same $N = 2{,}000$ CIFAR-10 test images, 200 per class, for every network. Class
 labels are used only to colour the plot, never to build an operator.</li>
 <li><b>Sites.</b> The places in a network where activations are read: for the ResNets the stem, each residual
@@ -104,7 +107,7 @@ another's, under these two fits. The viewer uses the full chain; its fitted rota
 coordinates of the centred cosine activations (PCA), and a 2-d UMAP. Nothing links one site's baseline coordinates
 to the next, so they are chained along depth by Procrustes, each site rotated onto the previous rotated one: the
 usual way to animate independent embeddings. Any smoothness of their motion through depth comes from that chaining
-fit. In the through-depth modes, one mode is a single function over all sites. The X1 additions do not ship PCA or
+fit. In the through-depth modes, one mode is a single function over all sites. The X1 additions and the autoencoders do not ship PCA or
 UMAP baselines or k-means label planes. SEBA is computed in the viewer from the shipped modes, so it is still available.</p>
 
 <h2 id="new-images">Coordinates for a new image</h2>

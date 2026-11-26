@@ -312,6 +312,7 @@ class Builder:
                     write(out_b / d.name / f"{step}_base.json.gz", gz); sizes["base"] += len(gz)
             if steps:
                 base[d.name] = {"root": f"d/stb/{d.name}", "steps": steps, "K": STB_K}
+        self.export_ae(probe_idx, out_n, nets, sizes)
         self.export_x1(probe_idx, out_n, nets, sizes)
         if not nets and not base:
             return
@@ -320,6 +321,56 @@ class Builder:
         log(f"depth embedding: {len(nets)} other networks, baselines for {len(base)}: {sum(sizes.values()) / 1e6:.1f} MB gzipped "
             f"({', '.join(f'{k} {v / 1e6:.1f}' for k, v in sizes.items())}) ({time.time() - t0:.0f} s)")
 
+
+    def ship_modes(self, op, root, step, sizes, key):
+        """A validated operator's first joint modes -> st-v1 unit slices (variant own, one coupling, no label planes)."""
+        y = op["joint"].transpose(2, 0, 1)  # (K,L,N); each slice has its own int8 scale
+        mx = np.max(np.abs(y), axis=2, keepdims=True)
+        q = np.round(127 * np.divide(y, mx, out=np.zeros_like(y), where=mx != 0)).astype(np.int8)
+        q[(q == 0) & (y != 0)] = np.sign(y[(q == 0) & (y != 0)])
+        weight = np.sum(y ** 2, axis=2)
+        blob = gzip.compress(q.tobytes(), compresslevel=6, mtime=0)
+        write(root / f"{step}_own.bin.gz", blob)
+        summary = {"step": step, "rule": ST_RULE, "tstar": {"own": op["tstar"], "none": None},
+                   "variants": {"own": {"t": [op["t"]], "vals": [op["vals"].tolist()],
+                                        "weight": [weight.tolist()], "sets": []}}}
+        stats = gzip.compress(json.dumps(summary, separators=(",", ":"), allow_nan=False).encode(), mtime=0)
+        write(root / f"{step}.json.gz", stats)
+        sizes[key] = sizes.get(key, 0) + len(blob) + len(stats)
+        return y.shape[0]
+
+    def export_ae(self, probe_idx, out_n, nets, sizes):
+        """Ship the autoencoders of ae/SPEC.md (the X1 trainer with a reconstruction loss) like the X1 networks."""
+        from xsite.validate import Inputs, check_probe, validate_operator
+
+        fetch = DATA / "fetch"
+        if not (fetch / "READY.json").exists() and not self.strict:
+            return
+        inputs = Inputs(fetch)
+        ids = sorted(k for k in inputs.manifest["ops"] if k.startswith("ae-") and k.endswith("-full"))
+        if not ids and not self.strict:
+            log("autoencoders not built: no ae-*-full operators in site/xsite/inputs.json")
+            return
+        labels = np.fromfile(self.d / "labels.bin", dtype=np.int8)
+        for op_id in ids:
+            net = op_id[3:-5]
+            op = validate_operator(inputs, op_id)
+            check_probe(op["ids"], op["labels"], probe_idx, labels)
+            if op["chain"] != self.sites[:-1] + ["code"]:
+                raise ValueError(f"{op_id}: chain is not the reference trunk and pool followed by the code")
+            info_key = f"crw-depth-xp-results/nets/{net}/info.json"
+            info = json.loads(inputs.file(info_key, pin=inputs.manifest["ops"][op_id]["bundle"][info_key]).read_text())
+            step, final = info["steps"], info["log"][-1]
+            if info["name"] != net or final["step"] != step or info.get("objective") != "ae":
+                raise ValueError(f"{op_id}: training record is inconsistent")
+            code, seed = info["code"], int(net.rsplit("-s", 1)[1])
+            K = self.ship_modes(op, out_n / net, step, sizes, "ae")
+            nets.append({"id": net, "group": "ae", "label": f"Autoencoder, {code}-d code · ResNet-20 seed {seed}",
+                         "short": f"AE-{code} s{seed}", "root": f"d/stn/{net}", "sites": op["chain"], "steps": [step],
+                         "K": K, "acc": None, "psnr": final["test_psnr"], "nsets": 0, "sets": [],
+                         "training": (f"The classifiers' ResNet-20, recipe and CIFAR-10 batches, trained to reconstruct its "
+                                      f"input: a decoder reads its {code} outputs (the code site), squared error to the image."),
+                         "variants": [{"id": "own", "label": "relative site units", "C": 1}], "fidx": list(STN_FSEL)})
 
     def export_x1(self, probe_idx, out_n, nets, sizes):
         """Ship the full-chain X1 modes as st-v1 unit slices, with no label planes."""
@@ -358,24 +409,11 @@ class Builder:
                 if info["name"] != net or final["step"] != step:
                     raise ValueError(f"{op_id}: final training step is inconsistent")
 
-                y = op["joint"].transpose(2, 0, 1)  # (K,L,N); each slice has its own int8 scale
-                mx = np.max(np.abs(y), axis=2, keepdims=True)
-                q = np.round(127 * np.divide(y, mx, out=np.zeros_like(y), where=mx != 0)).astype(np.int8)
-                q[(q == 0) & (y != 0)] = np.sign(y[(q == 0) & (y != 0)])
-                weight = np.sum(y ** 2, axis=2)
-                root = out_n / net
-                blob = gzip.compress(q.tobytes(), compresslevel=6, mtime=0)
-                write(root / f"{step}_own.bin.gz", blob)
-                summary = {"step": step, "rule": ST_RULE, "tstar": {"own": op["tstar"], "none": None},
-                           "variants": {"own": {"t": [op["t"]], "vals": [op["vals"].tolist()],
-                                                "weight": [weight.tolist()], "sets": []}}}
-                stats = gzip.compress(json.dumps(summary, separators=(",", ":"), allow_nan=False).encode(), mtime=0)
-                write(root / f"{step}.json.gz", stats)
-                sizes["x1"] = sizes.get("x1", 0) + len(blob) + len(stats)
+                K = self.ship_modes(op, out_n / net, step, sizes, "x1")
                 aug = "" if train_id in {"svhn", "rand"} else "; crops and horizontal flips"
                 nets.append({"id": net, "group": "x1", "train": train, "label": f"{train} · ResNet-20 seed {seed}",
                              "short": f"{train} s{seed}", "root": f"d/stn/{net}", "sites": op["chain"], "steps": [step],
-                             "K": y.shape[0], "acc": final["test_acc"], "nsets": 0, "sets": [],
+                             "K": K, "acc": final["test_acc"], "nsets": 0, "sets": [],
                              "training": f"Trained on {train}: {detail}{aug}. Normalised by its own training-set channel statistics.",
                              "variants": [{"id": "own", "label": "relative site units", "C": 1}], "fidx": list(STN_FSEL)})
 

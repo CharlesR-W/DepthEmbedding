@@ -39,7 +39,7 @@ X3 = 'xp/out/x3'
 X4 = 'xp/out/x4'
 SITES = ('stem', *(f'b{i}' for i in range(1, 10)), 'pool', 'logits')
 ENTRIES = ('inv-kernel', 'inv-sources', 'inv-decode', 'inv-wavelets', 'inv-ood', 'inv-edits',
-           'x1-data', 'x3-adversarial', 'x4-paths', 'solver')
+           'x1-data', 'x3-adversarial', 'x4-paths', 'solver', 'ae-objective')
 TOKEN = re.compile(r'\{\{\s*fact:([^}]+?)\s*\}\}')
 
 
@@ -903,6 +903,101 @@ def x4(add, note):
         raise ValueError('X4 page facts neither recomputed nor listed: ' + ', '.join(missing))
 
 
+def ae(add, note):
+    """ae-objective: recompute neighbour overlap, both readouts and probe PSNR from the staged neighbour lists, probe
+    images and reconstructions; transcription-check the training records (test PSNR, PCA, mean image)."""
+    facts = read_json(f'{ASSETS}/ae-objective.facts.json')
+    probes = staged(f'{XV}/probes.npz')
+    images, labels = arrays(probes, 'c10_x', 'c10_y')
+    n = len(labels)
+    comp = staged(f'{XV}/compare_ae/c10.npz')
+    nets = [str(v) for v in array(comp, 'nets')]
+    np.testing.assert_array_equal(array(comp, 'labels'), labels)
+    paths = {net: staged(f'{XV}/embed/{net}/c10/knn.npy') for net in nets}
+    knn = {net: np.load(ROOT / p).astype(np.int64) for net, p in paths.items()}
+    sites = (*SITES[:-1], 'last')
+    keys = {net: [set((np.arange(n)[:, None] * n + k[l]).ravel().tolist()) for l in range(len(sites))]
+            for net, k in knn.items()}
+
+    def overlap(a, b, l):
+        return len(keys[a][l] & keys[b][l]) / (15 * n)
+
+    add('sample.probe', n, 'R', probes)
+    add('sample.chance', 15 / (n - 1), 'R', probes)
+    # Pair groups re-declared here, from ae/SPEC.md revision 1 and the page's captions, not imported.
+    clf, ae10, ae64, init = ('c10x-s0', 'c10x-s1'), ('ae10-s0', 'ae10-s1'), ('ae64-s0', 'ae64-s1'), ('init-s0', 'init-s1')
+    groups = {'clf_seeds': [clf], 'zoo_seeds': [('c10-s0', 'c10-s1')], 'ae10_seeds': [ae10], 'ae64_seeds': [ae64],
+              'init_seeds': [init],
+              'ae10_clf_diff': [(ae10[0], clf[1]), (ae10[1], clf[0])], 'ae10_clf_same': list(zip(ae10, clf)),
+              'ae64_clf_diff': [(ae64[0], clf[1]), (ae64[1], clf[0])], 'ae64_clf_same': list(zip(ae64, clf)),
+              'ae10_ae64_same': list(zip(ae10, ae64)), 'ae10_ae64_diff': [(ae10[0], ae64[1]), (ae10[1], ae64[0])],
+              'clf_init': [(a, b) for a in clf for b in init], 'ae10_init': [(a, b) for a in ae10 for b in init]}
+    table = {g: np.array([[overlap(a, b, l) for l in range(len(sites))] for a, b in pairs]) for g, pairs in groups.items()}
+    for g, v in table.items():
+        files = [paths[x] for pair in groups[g] for x in pair]
+        for l, site in enumerate(sites):
+            add(f'nn.{g}.{site}', v[:, l].mean(), 'R', *files)
+            for suffix, reduce in (('_lo', np.min), ('_hi', np.max)):
+                if f'nn.{g}.{site}{suffix}' in facts:
+                    add(f'nn.{g}.{site}{suffix}', reduce(v[:, l]), 'R', *files)
+    for width in ('ae10', 'ae64'):
+        for l, site in enumerate(sites):
+            add(f'ratio.{width}.{site}', table[f'{width}_clf_diff'][:, l].mean() / table['clf_seeds'][0, l], 'R',
+                *(paths[x] for x in (*clf, *(ae10 if width == 'ae10' else ae64))))
+    head = [sites.index(s) for s in ('stem', 'b3', 'b6', 'b9', 'pool')]
+    same_diff = np.abs(table['ae10_clf_same'].mean(0) - table['ae10_clf_diff'].mean(0))
+    add('nn.same_minus_diff.max', same_diff[head].max(), 'R', *paths.values())
+    add('nn.same_minus_diff.all_max', same_diff.max(), 'R', *paths.values())
+    for l, site in enumerate(sites):
+        add(f'gap.ae10.{site}', table['clf_seeds'][0, l] - table['ae10_clf_diff'][:, l].mean(), 'R',
+            *(paths[x] for x in (*clf, *ae10)))
+    lab = {net: (labels[k] == labels[None, :, None]).mean((1, 2)) for net, k in knn.items()}
+    # Thumbnails: per-channel 8 x 8 block means via two reductions (pixels in [0, 1]), centred cosine, 15 nearest.
+    t = images.astype(np.float64) / 255
+    t = t.reshape(n, 3, 32, 4, 8).mean(-1).reshape(n, 3, 4, 8, 4).mean(3).reshape(n, -1)
+    t -= t.mean(0)
+    t /= np.linalg.norm(t, axis=1, keepdims=True)
+    gram = t @ t.T
+    np.fill_diagonal(gram, -2)
+    near = np.argpartition(-gram, 15, axis=1)[:, :15]
+    tkeys = set((np.arange(n)[:, None] * n + near).ravel().tolist())
+    thumb = {net: np.array([len(keys[net][l] & tkeys) / (15 * n) for l in range(len(sites))]) for net in nets}
+    kinds = {'clf': clf, 'zoo': ('c10-s0', 'c10-s1'), 'ae10': ae10, 'ae64': ae64, 'init': init}
+    for kind, members in kinds.items():
+        files = [paths[m] for m in members] + [probes]
+        for l, site in enumerate(sites):
+            add(f'readout.{kind}.{site}', np.mean([lab[m][l] for m in members]), 'R', *files)
+            add(f'thumb.{kind}.{site}', np.mean([thumb[m][l] for m in members]), 'R', *files)
+    autoencoders = np.stack([lab[m] for m in (*ae10, *ae64)])
+    add('readout.ae.min', autoencoders.min(), 'R', probes, *(paths[m] for m in (*ae10, *ae64)))
+    add('readout.ae.max', autoencoders.max(), 'R', probes, *(paths[m] for m in (*ae10, *ae64)))
+    add('readout.ae.head_min', autoencoders[:, head].min(), 'R', probes)
+    add('readout.ae.head_max', autoencoders[:, head].max(), 'R', probes)
+    add('thumb.purity', (labels[near] == labels[:, None]).mean(), 'R', probes)
+    # Expected label readout of 15 neighbours drawn at random from the other N - 1 probe images.
+    same_class = labels[:, None] == labels[None, :]
+    add('readout.chance', (same_class.sum(1) - 1).mean() / (n - 1), 'R', probes)
+    for net in (*ae10, *ae64, *clf):
+        for site in ('stem', 'b3', 'b9', 'last'):
+            add(f'thumb.net.{net.replace("-", "_")}.{site}', thumb[net][sites.index(site)], 'R', paths[net], probes)
+    for net in (*ae10, *ae64):
+        name = net.replace('-', '_')
+        rec = staged(f'{XV}/nets/{net}/recon.npz')
+        recon, idx = arrays(rec, 'recon', 'idx')
+        np.testing.assert_array_equal(idx, array(probes, 'c10_idx'))
+        err = ((recon.astype(np.float64) - images) / 255) ** 2
+        add(f'psnr.probe.{name}', -10 * np.log10(err.mean()), 'R', rec, probes)
+        info_path = staged(f'{XV}/nets/{net}/info.json')
+        info = read_json(info_path)
+        add(f'psnr.{name}', info['log'][-1]['test_psnr'], 'S', info_path)
+        if net.endswith('-s0'):
+            add(f'psnr.pca{net[2:4]}', info['pca_psnr'], 'S', info_path)
+    info_path = staged(f'{XV}/nets/ae10-s0/info.json')
+    add('psnr.mean_image', read_json(info_path)['mean_image_psnr'], 'S', info_path)
+    note('Pre-flight facts (preflight.*) are transcriptions of run output that was not staged; '
+         'cka/joint_* facts are summary reads of compare_ae/c10.npz, not recomputed.')
+
+
 def solver(add, note):
     p = 'opt/REPORT.md'
     report = text(p)
@@ -932,7 +1027,7 @@ def solver(add, note):
          'derived from the Gram/top-15 union and the CSR plus rank-one layout in opt/sparse_core.py.')
 
 
-CHECKS = (kernel, sources, decode, wavelets, ood, edits, x1, x3, x4, solver)
+CHECKS = (kernel, sources, decode, wavelets, ood, edits, x1, x3, x4, solver, ae)
 # Evidence actually consumed by the producer, independently of our own tier.
 # A literal matching a shipped sample is a passing value but not a recomputation
 # by the generator. Keep that warning distinct from a numerical failure.

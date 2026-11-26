@@ -220,6 +220,13 @@ function loadDwLevel(m, net, j) {
 }
 const loadSummary = (net, step) => once(`s:${net.root}/${step}`, async () => JSON.parse(new TextDecoder().decode(await gunzip(`${net.root}/${step}.json.gz`))));
 
+// groups of extra networks, shipped with their final checkpoint and the modes only (no baselines, one variant)
+const GROUPS = {
+  x1: { title: "Trained on other data (X1) · final checkpoint only", score: "Test accuracy on its own task" },
+  ae: { title: "Trained to reconstruct (autoencoders) · final checkpoint only", score: "Test reconstruction PSNR (pixels in 0 to 1)" },
+};
+const scoreTxt = n => n.acc != null ? `${(100 * n.acc).toFixed(1)}%` : n.psnr != null ? `${n.psnr.toFixed(1)} dB` : "";
+
 // the networks this build ships: ResNet-20 seed 0 from meta.spacetime, the rest from meta.stnets.nets
 export function netList(m) {
   const S = m.spacetime, out = [];
@@ -258,27 +265,30 @@ export class DepthEmbedding {
 
   // ------------------------------------------------ controls
   buildControls() {
-    const accTxt = n => n.acc != null ? ` (${(100 * n.acc).toFixed(1)}%)` : "";
-    const box = $("emb-nets"), ref = $("emb-ref"), x1 = document.createElement("details"), group = document.createElement("optgroup");
-    const title = "Trained on other data (X1) · final checkpoint only";
-    const list = document.createElement("div"); list.className = "emb-nets";
-    const summary = document.createElement("summary"); summary.textContent = title; summary.className = "emb-hint";
-    x1.append(summary, list); group.label = title;
+    const accTxt = n => scoreTxt(n) ? ` (${scoreTxt(n)})` : "";
+    const box = $("emb-nets"), ref = $("emb-ref"), extra = {};
     box.replaceChildren(); ref.replaceChildren();
     for (const n of this.nets) {
-      const isX1 = n.group === "x1";
+      const G = GROUPS[n.group];
+      if (G && !extra[n.group]) {
+        const details = document.createElement("details"), group = document.createElement("optgroup");
+        const list = document.createElement("div"); list.className = "emb-nets";
+        const summary = document.createElement("summary"); summary.textContent = G.title; summary.className = "emb-hint";
+        details.append(summary, list); group.label = G.title;
+        extra[n.group] = { details, list, group };
+      }
       const l = document.createElement("label"); l.className = "emb-check"; l.dataset.net = n.id;
       const c = document.createElement("input"); c.type = "checkbox"; c.value = n.id; c.dataset.net = n.id;
       const acc = Object.assign(document.createElement("span"), { className: "emb-hint", textContent: accTxt(n) });
-      if (isX1) { l.title = n.training; acc.title = "Test accuracy on its own task"; }
+      if (G) { l.title = n.training; acc.title = G.score; }
       l.append(c, ` ${n.label}`, acc);
-      (isX1 ? list : box).append(l);
+      (G ? extra[n.group].list : box).append(l);
       const opt = new Option(`${n.label}${accTxt(n)}`, n.id);
-      if (isX1) opt.title = `${n.training} Test accuracy on its own task in brackets.`;
-      (isX1 ? group : ref).append(opt);
+      if (G) opt.title = `${n.training} ${G.score} in brackets.`;
+      (G ? extra[n.group].group : ref).append(opt);
     }
-    if (list.childElementCount) { box.append(x1); ref.append(group); }
-    ref.title = list.childElementCount ? "Original networks: final validation accuracy. X1: test accuracy on its own task." : "final validation accuracy in brackets";
+    for (const e of Object.values(extra)) { box.append(e.details); ref.append(e.group); }
+    ref.title = "Original networks: final validation accuracy in brackets." + Object.keys(extra).map(k => ` ${GROUPS[k].title.split(" · ")[0]}: ${GROUPS[k].score.toLowerCase()}.`).join("");
   }
   ref() { return this.byId[this.st.ref]; }
   stepFor(n) {
@@ -324,7 +334,7 @@ export class DepthEmbedding {
     $("emb-mousehint").textContent = st.three ? "Plot: hover a dot to see its image. Keys: ← → step a site (when the plot is not focused), Space plays."
       : "Plot: hover a dot to see its image; drag a box to select images and follow them through depth. Keys: ← → step a site, Space plays.";
     this.root.querySelectorAll("input[name=emb-method]").forEach(r => {
-      r.checked = r.value === st.method; r.disabled = ref.group === "x1" && r.value !== "modes" || r.value === "dw" && !ref.dw;
+      r.checked = r.value === st.method; r.disabled = !!ref.group && r.value !== "modes" || r.value === "dw" && !ref.dw;
       if (r.value === "dw") r.closest("label").title = ref.dw ? "" : "Built for ResNet-20 seed 0 only: choose it under Network";
     });
     const base = st.method !== "modes", noSets = this.noSetPlanes(), dw = st.method === "dw";
@@ -350,7 +360,7 @@ export class DepthEmbedding {
       seba: "A post-hoc readout: SEBA run once on the stacked modes. Each network runs its own; colours are matched to the reference by overlap.",
     })[st.color] || (st.color.startsWith("set") ? "A post-hoc readout: k-means sets of the rank-8 readout, computed per network and per site." : "");
     if (base) $("emb-color-hint").textContent += dw ? " (The set colourings are read out of the through-depth modes, so they are off here.)" : " (The set colourings need the through-depth modes.)";
-    if (noSets) $("emb-color-hint").textContent += " K-means colourings are unavailable here: they were not computed for networks trained on other data. SEBA uses the modes and is still available.";
+    if (noSets) $("emb-color-hint").textContent += " K-means colourings are unavailable here: they were not computed for the autoencoders or the networks trained on other data. SEBA uses the modes and is still available.";
     this.root.querySelectorAll("input[name=emb-layout]").forEach(r => { r.checked = r.value === st.layout; });
     $("emb-ocol").value = st.ocol; $("emb-show").value = st.show; $("emb-links").checked = st.links;
     $("emb-ov-opts").hidden = st.layout !== "overlay";
@@ -486,7 +496,7 @@ export class DepthEmbedding {
   }
   clamp() {
     const st = this.st, ref = this.ref();
-    if (ref.group === "x1") st.method = "modes";
+    if (ref.group) st.method = "modes";
     if (st.method === "dw" && !ref.dw) st.method = "modes";
     if (st.method === "dw") {        // one network at its one solved checkpoint; axes are functions of the chosen scale
       st.nets = [st.ref]; st.step = ref.dw.step;
@@ -569,7 +579,7 @@ export class DepthEmbedding {
     $("emb-status").textContent = `loading step ${st.step.toLocaleString("en")}…`;
     const got = await Promise.all(nets.map(async n => {
       const step = this.stepFor(n);
-      if (step === null) return { net: n, missing: true, reason: n.group === "x1" ? "only its final checkpoint is available; choose the reference's final step" : null };
+      if (step === null) return { net: n, missing: true, reason: n.group ? "only its final checkpoint is available; choose the reference's final step" : null };
       if (st.method === "dw") {
         const j = st.wl;
         if (!n.dw || n.dw.step !== step) return { net: n, missing: true, reason: "no diffusion-wavelet data" };
@@ -577,12 +587,12 @@ export class DepthEmbedding {
         catch (e) { console.error(e); return { net: n, missing: true, error: e.message }; }
       }
       if (st.method !== "modes") {
-        if (!n.base || !n.base.steps.includes(step)) return { net: n, missing: true, reason: n.group === "x1" ? "no PCA or UMAP baseline is shipped" : null };
+        if (!n.base || !n.base.steps.includes(step)) return { net: n, missing: true, reason: n.group ? "no PCA or UMAP baseline is shipped" : null };
         const kind = st.method;
         try { return { net: n, step, kind, base: await loadBase(this.m, n, step, kind) }; }
         catch (e) { console.error(e); return { net: n, missing: true, error: e.message }; }
       }
-      if (!n.variants.some(v => v.id === st.variant)) return { net: n, missing: true, reason: n.group === "x1" ? "only the relative site units variant is shipped" : null };
+      if (!n.variants.some(v => v.id === st.variant)) return { net: n, missing: true, reason: n.group ? "only the relative site units variant is shipped" : null };
       try { const [unit, summ] = await Promise.all([loadUnit(this.m, n, step, st.variant), loadSummary(n, step)]); return { net: n, step, unit, summ }; }
       catch (e) { console.error(e); return { net: n, missing: true, error: e.message }; }
     }));
@@ -1328,7 +1338,8 @@ export class DepthEmbedding {
         : st.align ? "To show them together, depths are matched and each network is rotated onto the one chosen under Network (the reference). Both are post-hoc fits."
         : "Depths are matched (a post-hoc fit). Rotation is off, so each network keeps its own coordinates and their positions cannot be compared directly.") +
       (base ? ` The ${bname} baseline is also chained along depth by Procrustes within each network (a fit).` : "") +
-      (this.panels.some(x => x.net.group === "x1") ? " X1 compares training pipelines: images, labels, class counts, normalisation and augmentation can differ. The viewer's Procrustes rotation and residual are post-hoc comparisons, not X1's joint agreement statistic." : "");
+      (this.panels.some(x => x.net.group === "x1") ? " X1 compares training pipelines: images, labels, class counts, normalisation and augmentation can differ. The viewer's Procrustes rotation and residual are post-hoc comparisons, not X1's joint agreement statistic." : "") +
+      (this.panels.some(x => x.net.group === "ae") ? " The autoencoders share the classifiers' ResNet-20 up to the last site, which is their code rather than logits; a decoder after it is not shown." : "");
     const ov = this.overlayOn(), sets = st.color.match(/^set(5|10)([as])$/);
     let colour = ov && st.show === "centroids" ? "class centroids and their paths; colour = CIFAR class (labels used for display only); shape = network"
       : ov && st.ocol === "net" ? "network (one colour and shape each)"
@@ -1343,9 +1354,9 @@ export class DepthEmbedding {
     return { kind, fits, noFit, checkpoint, mixedSteps, fitsBadge: st.align ? "Post-hoc fits" : "Post-hoc fit", overlayTitle, overlaySub, help, colour };
   }
   panelStep(d) {
-    return d.step !== this.st.step || this.panels.some(p => !p.missing && p.net.group === "x1") ? ` · step ${d.step.toLocaleString("en")}` : "";
+    return d.step !== this.st.step || this.panels.some(p => !p.missing && p.net.group) ? ` · step ${d.step.toLocaleString("en")}` : "";
   }
-  accuracy(n) { return n.acc == null ? "" : `${n.group === "x1" ? "Test accuracy on its own task:" : "final acc"} ${(100 * n.acc).toFixed(1)}%`; }
+  accuracy(n) { return !scoreTxt(n) ? "" : `${GROUPS[n.group] ? GROUPS[n.group].score + ":" : "final acc"} ${scoreTxt(n)}`; }
   otherLoaded() { return this.refD ? this.panels.filter(x => !x.missing && x !== this.refD) : []; }
   // what is plotted (prominent, above the plots; names every post-hoc fit in use) and the details line under them
   status() {

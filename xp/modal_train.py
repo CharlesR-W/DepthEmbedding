@@ -29,6 +29,7 @@ image = (modal.Image.debian_slim(python_version='3.12')
 app = modal.App(APP)
 vol = modal.Volume.from_name('crw-depth-xp-results', create_if_missing=True)
 zoo = modal.Volume.from_name('crw-modelzoo-train').read_only()
+src = modal.Volume.from_name('cm-cifar-coherent').read_only()        # zoo checkpoints (ae_check only)
 VOLS = {R: vol, '/zoo': zoo}
 
 
@@ -138,15 +139,19 @@ def train(name: str, cfg: dict):
     import numpy as np
     import torch
     import torch.nn.functional as F
-    from common import NETS, build
+    import math
+    from common import NETS, build, build_ae
     assert torch.cuda.is_available()
     t0 = time.time()
     vol.reload()
     spec = NETS[name]
-    out = Path(R) / 'nets' / name; out.mkdir(parents=True, exist_ok=True)
+    # steps, lr and holdout overrides are for pilots: they need their own directory, and never a classifier
+    assert not ({'steps', 'lr', 'holdout'} & set(cfg)) or (cfg.get('suffix') and spec.get('objective') == 'ae'), cfg
+    out = Path(R) / 'nets' / (name + cfg.get('suffix', '')); out.mkdir(parents=True, exist_ok=True)
     if (out / 'final.pt').exists() and not cfg.get('force'):
         return 'cached'
     seed, total = spec['seed'], int(cfg.get('steps', spec.get('steps', 64000)))
+    ae = spec.get('objective') == 'ae'                       # ae/SPEC.md: reconstruct the input instead of classifying
     flip, augment = spec.get('flip', True), spec.get('augment', True)
     d = Path(R) / 'data' / spec['data']
     trx, tr_y = np.load(d / 'train_x.npy'), np.load(d / 'train_y.npy')
@@ -160,6 +165,13 @@ def train(name: str, cfg: dict):
     if spec.get('shuffle_labels'):
         tr_y = tr_y[np.random.RandomState(1234 + seed).permutation(len(tr_y))]
     ncls = int(tr_y.max()) + 1
+    hold = int(cfg.get('holdout', 0))                        # pilots only: a validation split of the training images
+    if hold:
+        assert ae
+        hp = np.random.RandomState(4321).permutation(len(trx))
+        Xv = torch.from_numpy(trx[np.sort(hp[:hold])]).cuda()
+        trx, tr_y = trx[np.sort(hp[hold:])], tr_y[np.sort(hp[hold:])]
+    base_lr = float(cfg.get('lr', spec.get('lr', 0.1)))
     n = len(trx)
     X = torch.from_numpy(trx).cuda(); Y = torch.from_numpy(tr_y).cuda()
     Xt = torch.from_numpy(tex).cuda(); Yt = torch.from_numpy(te_y).cuda()
@@ -170,7 +182,7 @@ def train(name: str, cfg: dict):
     mv, sv = (mean * 255).view(1, 3, 1, 1), (std * 255).view(1, 3, 1, 1)
 
     torch.manual_seed(seed)
-    model = build(ncls).cuda()
+    model = (build_ae(spec['code']) if ae else build(ncls)).cuda()
     opt = torch.optim.SGD(model.parameters(), lr=0.1, momentum=0.9, weight_decay=1e-4)
     torch.backends.cudnn.benchmark = True
     bs, spe = 128, n // 128
@@ -183,7 +195,16 @@ def train(name: str, cfg: dict):
         model.eval(); res = {}
         with torch.inference_mode():
             sub = torch.randperm(n, generator=torch.Generator().manual_seed(0))[:10000].cuda()
-            for nm, (xx, yy) in dict(train=(X[sub], Y[sub]), test=(Xt, Yt)).items():
+            for nm, (xx, yy) in dict(train=(X[sub], Y[sub]), test=(Xt, Yt), **(dict(val=(Xv, None)) if hold else {})).items():
+                if ae:      # loss: MSE in normalised units (the training loss); psnr: of the clipped image, pixels in [0, 1]
+                    se = se01 = 0.0
+                    for i in range(0, len(xx), 2000):
+                        xn = (xx[i:i + 2000].float() - mv) / sv
+                        rec = model(xn)
+                        se += F.mse_loss(rec, xn, reduction='sum').item()
+                        se01 += (((rec * sv + mv).clamp(0, 255) - xx[i:i + 2000].float()) ** 2).sum().item() / 255 ** 2
+                    res[f'{nm}_loss'], res[f'{nm}_psnr'] = se / xx.numel(), -10 * math.log10(se01 / xx.numel())
+                    continue
                 correct = loss = 0.0
                 for i in range(0, len(xx), 2000):
                     lg = model((xx[i:i + 2000].float() - mv) / sv)
@@ -218,10 +239,13 @@ def train(name: str, cfg: dict):
                 f = torch.rand(bs, device='cuda', generator=gc) < 0.5
                 x = torch.where(f[:, None, None, None], x.flip(-1), x)
         for g in opt.param_groups:
-            g['lr'] = lr_at(step, total)
-        loss = F.cross_entropy(model((x.float() - mv) / sv), y)
+            g['lr'] = lr_at(step, total, base_lr)
+        xn = (x.float() - mv) / sv
+        loss = F.mse_loss(model(xn), xn) if ae else F.cross_entropy(model(xn), y)
         opt.zero_grad(set_to_none=True); loss.backward(); opt.step()
         step += 1
+        if ae and step % 200 == 0:
+            assert torch.isfinite(loss), f'{name}: loss {loss.item()} at step {step}'
         if step % every == 0 or step == total:
             log.append(dict(step=step, loss=loss.item(), seconds=time.time() - t0, **evaluate()))
             print(name, log[-1], flush=True)
@@ -229,11 +253,83 @@ def train(name: str, cfg: dict):
                 save_last()
     final = dict(model_state={k: v.cpu() for k, v in model.state_dict().items()}, num_classes=ncls,
                  mean=mean.cpu().tolist(), std=std.cpu().tolist(), spec=spec, steps=total, log=log, n_train=n)
+    extra = {}
+    if ae:
+        model.eval()
+        pz = np.load(Path(R) / 'probes.npz')
+        px = torch.from_numpy(pz['c10_x']).cuda()
+        with torch.inference_mode():        # the probe images as the network reconstructs them (uint8, as probes.npz)
+            rec = torch.cat([(model((px[i:i + 500].float() - mv) / sv) * sv + mv).clamp(0, 255).round().byte()
+                             for i in range(0, len(px), 500)])
+        np.savez_compressed(out / 'recon.npz', idx=pz['c10_idx'], recon=rec.cpu().numpy())
+        # control: rank-`code` PCA of the (unaugmented) training images, scored on the test images like test_psnr
+        A = X.float().flatten(1) / 255
+        mu = A.mean(0)
+        A -= mu
+        V = torch.linalg.eigh((A.T @ A).double())[1][:, -spec['code']:].float()
+        T = Xt.float().flatten(1) / 255
+        pca = ((((T - mu) @ V) @ V.T + mu).clamp(0, 1) - T).square().mean().item()
+        mean_img = (((mu.view(1, -1)).clamp(0, 1) - T).square().mean().item())        # the mean training image as output
+        with torch.inference_mode():
+            xn = (Xt[:256].float() - mv) / sv
+            codes = torch.cat([model.enc((Xt[i:i + 2000].float() - mv) / sv) for i in range(0, len(Xt), 2000)])
+            alone = torch.cat([model(xn[i:i + 1]) for i in range(8)])       # eval mode: no dependence on the batch
+            batch_dep = (alone - model(xn)[:8]).abs().max().item()
+        extra = dict(objective='ae', code=spec['code'], pca_psnr=-10 * math.log10(pca), lr=base_lr,
+                     mean_image_psnr=-10 * math.log10(mean_img), code_std=codes.std(0).cpu().tolist(),
+                     eval_batch_dependence=batch_dep,
+                     params_encoder=sum(p.numel() for p in model.enc.parameters()),
+                     params_decoder=sum(p.numel() for p in model.dec.parameters()))
     torch.save(final, out / 'final.pt')
     (out / 'info.json').write_text(json.dumps(dict(name=name, num_classes=ncls, steps=total, n_train=n,
-                                                   mean=final['mean'], std=final['std'], log=log)))
+                                                   mean=final['mean'], std=final['std'], log=log, **extra)))
     vol.commit()
     return log[-1]
+
+
+@app.function(image=image, gpu='A10G', cpu=4, memory=16384, timeout=1800, volumes={**VOLS, '/out': src})
+def ae_check(cfg: dict):
+    """ae/SPEC.md pre-flight: (a) an autoencoder's encoder starts from the classifier's initial weights under the same
+    seed (and whether those equal the zoo's step-0 checkpoint); (b) the autoencoder can fit one fixed batch: its
+    train-mode MSE after 1,500 steps must be under a quarter of the MSE of the batch's mean image."""
+    import hashlib
+    import numpy as np
+    import torch
+    import torch.nn.functional as F
+    from common import build, build_ae
+    out = {}
+    for seed in (0, 1):
+        torch.manual_seed(seed); ref = build(10).state_dict()
+        out[f's{seed}_init_sha256'] = hashlib.sha256(b''.join(v.numpy().tobytes() for v in ref.values())).hexdigest()
+        for code in (10, 64):
+            torch.manual_seed(seed); enc = build_ae(code).enc.state_dict()
+            keys = [k for k in ref if code == 10 or not k.startswith('fc.')]
+            out[f's{seed}_ae{code}_encoder_equals_classifier_init'] = all(torch.equal(ref[k], enc[k]) for k in keys)
+            assert out[f's{seed}_ae{code}_encoder_equals_classifier_init'], out
+            out[f's{seed}_ae{code}_tensors_compared'] = len(keys)
+        try:
+            from zoo.io import load_checkpoint
+            ck = load_checkpoint(Path(f'/out/runs/resnet20-relu-seed{seed}/checkpoints/step_0.pt'))['model_state']
+            out[f's{seed}_zoo_step0'] = 'match' if all(torch.equal(ref[k], ck[k].cpu()) for k in ref) else 'mismatch'
+        except Exception as e:
+            out[f's{seed}_zoo_step0'] = f'unavailable: {e!r}'
+    x = torch.from_numpy(np.load(Path(R) / 'data/c10/train_x.npy')[:128]).cuda().float()
+    xn = (x - x.mean((0, 2, 3), keepdim=True)) / x.std((0, 2, 3), keepdim=True)
+    torch.manual_seed(0); model = build_ae(10).cuda()
+    opt = torch.optim.SGD(model.parameters(), lr=float(cfg.get('lr', 0.1)), momentum=0.9, weight_decay=1e-4)
+    fit = []
+    for step in range(1501):
+        loss = F.mse_loss(model(xn), xn)
+        if step % 250 == 0:
+            fit.append(loss.item())
+        opt.zero_grad(set_to_none=True); loss.backward(); opt.step()
+    model.eval()
+    with torch.inference_mode():
+        out['one_batch_eval_mse'] = F.mse_loss(model(xn), xn).item()
+    out['one_batch_train_mse_every_250'] = fit
+    out['one_batch_mean_image_mse'] = (xn - xn.mean(0, keepdim=True)).square().mean().item()   # constant-output level
+    assert fit[-1] < 0.25 * out['one_batch_mean_image_mse'], out
+    return out
 
 
 @app.function(image=image, timeout=24 * 3600, volumes=VOLS)
@@ -241,6 +337,8 @@ def coordinator(stage: str, cfg: dict):
     from common import TRAINED
     if stage == 'data':
         return data.remote(cfg)
+    if stage == 'ae_check':
+        return ae_check.remote(cfg)
     names = cfg.get('nets', TRAINED)
     res = list(train.starmap([(n, cfg) for n in names], return_exceptions=True))
     out = {n: (repr(r) if isinstance(r, Exception) else r) for n, r in zip(names, res)}

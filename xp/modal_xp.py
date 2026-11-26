@@ -86,7 +86,7 @@ def embed(net: str, probe: str, cfg: dict):
     import numpy as np
     import torch
     import xlib
-    from common import SITES, activations, load_net, normalize
+    from common import SITES, activations, load_net, normalize, site_names
     t0 = time.time()
     vol.reload()
     d = Path(R) / 'embed' / net / probe; d.mkdir(parents=True, exist_ok=True)
@@ -125,7 +125,7 @@ def embed(net: str, probe: str, cfg: dict):
         info[f'{kname}_lam2'] = [float(v) for v in eigs[0][:, 1]]
         for chain, sel in CHAINS.items():
             op = xlib.fit_op(kers, eigs, sel, K=cfg.get('K', 32), R=16)
-            np.savez(d / f'op_{kname}_{chain}.npz', sites=np.array([SITES[i] for i in sel]), **op)
+            np.savez(d / f'op_{kname}_{chain}.npz', sites=np.array([site_names(net)[i] for i in sel]), **op)
             info[f'{kname}_{chain}'] = dict(t=float(op['t']), resid=float(op['resid'].max()), vals=op['vals'][:8].tolist())
         del kers, eigs
         info[f'{kname}_s'] = time.time() - t1
@@ -167,7 +167,7 @@ def x4(unit: dict, cfg: dict):
 
 @app.function(image=image, timeout=24 * 3600, volumes=VOLS)
 def coordinator(stage: str, cfg: dict):
-    from common import NETS, PROBES
+    from common import PROBES, X1_NETS
 
     def gather(gen):
         return [repr(r) if isinstance(r, Exception) else r for r in gen]
@@ -175,7 +175,7 @@ def coordinator(stage: str, cfg: dict):
     if stage == 'selftest':
         out = selftest.remote(cfg)
     elif stage == 'embed':
-        units = [(n, p, cfg) for n in cfg.get('nets', list(NETS)) for p in cfg.get('probes', PROBES)]
+        units = [(n, p, cfg) for n in cfg.get('nets', X1_NETS) for p in cfg.get('probes', PROBES)]
         out = gather(embed.starmap(units, return_exceptions=True))
     else:
         fn = dict(compare=compare, x3=x3, x4=x4)[stage]

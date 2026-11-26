@@ -25,12 +25,47 @@ NETS = {
     'in32-s0': dict(data='in32', seed=0, steps=250000), 'in32-s1': dict(data='in32', seed=1, steps=250000),
 }
 TRAINED = [n for n, s in NETS.items() if 'zoo' not in s]
+X1_NETS = list(NETS)
+# Autoencoders (ae/SPEC.md): the same ResNet-20 and recipe, a decoder on its `code` outputs, MSE to the input.
+# Not in TRAINED or X1_NETS, the default rosters of X1's training, embed and compare stages: name them explicitly, and
+# give compare its own `out` directory.
+AE_NETS = {f'ae{d}-s{s}': dict(data='c10', seed=s, objective='ae', code=d) for d in (10, 64) for s in (0, 1)}
+NETS.update(AE_NETS)
+NETS['c10x-s1'] = dict(data='c10', seed=1)          # second classifier from this trainer: the matched seed pair
 PROBES = ['c10', 'c100', 'svhn', 'in32']
 
 
 def build(num_classes):
     from zoo.models import build_model
     return build_model({'model': {'arch': 'resnet20', 'activation': 'relu', 'num_classes': int(num_classes)}})
+
+
+def build_ae(code):
+    """ResNet-20 whose fc output is the code, plus a decoder.  Call after torch.manual_seed(seed): the trunk (and, for
+    code = 10, the fc) is initialised exactly as build(10) under that seed; everything else is created afterwards."""
+    import torch.nn as nn
+
+    class AE(nn.Module):
+        def __init__(self):
+            super().__init__()
+            self.enc = build(10)
+            if code != 10:
+                self.enc.fc = nn.Linear(64, code)
+            layers = [nn.Linear(code, 256 * 16), nn.Unflatten(1, (256, 4, 4)), nn.BatchNorm2d(256), nn.ReLU()]
+            for a, b in ((256, 128), (128, 64), (64, 32)):
+                layers += [nn.Upsample(scale_factor=2, mode='nearest'), nn.Conv2d(a, b, 3, padding=1, bias=False),
+                           nn.BatchNorm2d(b), nn.ReLU()]
+            self.dec = nn.Sequential(*layers, nn.Conv2d(32, 3, 3, padding=1))
+
+        def forward(self, x):
+            return self.dec(self.enc(x))
+
+    return AE()
+
+
+def site_names(name):
+    """The 12 measured sites of network `name`: an autoencoder's last site is its code, not logits."""
+    return SITES[:-1] + ['code'] if NETS[name].get('objective') == 'ae' else list(SITES)
 
 
 def load_net(name):
@@ -44,7 +79,8 @@ def load_net(name):
         mean, std = C10_MEAN, C10_STD
     else:
         ck = torch.load(Path(R) / 'nets' / name / 'final.pt', map_location='cpu', weights_only=False)
-        model = build(ck['num_classes']); model.load_state_dict(ck['model_state'])
+        model = build_ae(spec['code']) if spec.get('objective') == 'ae' else build(ck['num_classes'])
+        model.load_state_dict(ck['model_state'])
         mean, std = ck['mean'], ck['std']
     torch.backends.cuda.matmul.allow_tf32 = False
     torch.backends.cudnn.allow_tf32 = False
@@ -59,7 +95,8 @@ def normalize(x01, mean, std):
 
 
 def activations(model, x):
-    """[pixels, stem, b1..b9, pool, logits] for normalised input x."""
+    """[pixels, stem, b1..b9, pool, logits] for normalised input x (an autoencoder: its encoder, logits = code)."""
+    model = getattr(model, 'enc', model)
     h = model.act(model.bn1(model.conv1(x))); acts = [x, h]
     for block in model.blocks:
         h = block(h); acts.append(h)

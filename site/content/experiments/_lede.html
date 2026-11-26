@@ -1,6 +1,6 @@
 <div class="xp-lede">
-<p><strong>Exploratory results from one overnight session (21–22 November 2026): one architecture (ResNet-20), one or
-two seeds.</strong> Each entry asks one question, answers it in a sentence or two, and leads with the diffusion
+<p><strong>Exploratory results from one overnight session (21–22 November 2026) and one later run (the autoencoders,
+26 November): one architecture (ResNet-20), one or two seeds.</strong> Each entry asks one question, answers it in a sentence or two, and leads with the diffusion
 embedding, with the experiment's own images drawn into it.</p>
 <p><strong>Every number is read from the stored outputs when the site is built.</strong> A second model audited the
 findings and definitions against the code; corrections that changed a claim are marked <span class="x-tag">audit</span>.</p>
@@ -19,6 +19,10 @@ under all three kernels; a single image's switch site depends on the kernel. <a 
 <li><strong>Natural-image training embeds alike.</strong> CIFAR-100 and ImageNet&#8209;32 networks embed the CIFAR-10 probe
 similarly to CIFAR-10 ones (b9 agreement {{fact:x.x1-data.pair.c10_in32.b9}} for ImageNet-32); SVHN networks agree less
 ({{fact:x.x1-data.pair.c10_svhn.b9}}) and already differ at the stem. <a href="#experiments/x-x1-data">Training data</a></li>
+<li><strong>Reconstruction parts from classification at the stem.</strong> The classifiers' ResNet-20 trained as an
+autoencoder shares {{fact:x.ae-objective.nn.ae10_clf_diff.stem}} of a classifier's 15 nearest neighbours at the stem and
+{{fact:x.ae-objective.nn.ae10_clf_diff.b9}} at b9; two classifiers share {{fact:x.ae-objective.nn.clf_seeds.stem}} and
+{{fact:x.ae-objective.nn.clf_seeds.b9}}. <a href="#experiments/x-ae-objective">Autoencoders</a></li>
 <li><strong>Decoding works at pool, not b4.</strong> Given the clean trajectory, kernel ridge recovers activation
 direction with cosine {{fact:x.inv-decode.large.pool}} at pool and {{fact:x.inv-decode.large.b4}} at the much larger
 b4, ahead of latent harmonics on mean cosine. <a href="#experiments/x-inv-decode">Decoding</a></li>

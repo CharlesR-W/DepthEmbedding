@@ -59,12 +59,12 @@ def site_share(va, vb, train, test):
 def run(unit, cfg):
     import scipy.sparse as sp
     import torch
-    from common import NETS, R
+    from common import R, X1_NETS
     t0 = time.time()
     probe = unit['probe']
     out = Path(R) / cfg.get('out', 'compare'); out.mkdir(parents=True, exist_ok=True)
     root = Path(R) / 'embed'
-    nets = cfg.get('nets', list(NETS))
+    nets = cfg.get('nets', X1_NETS)
     missing = [m for m in nets if not (root / m / probe / 'DONE').exists()]
     assert not missing, f'no embedding on probe {probe} for {missing}; pass an explicit nets list for a reduced run'
     n = len(nets)

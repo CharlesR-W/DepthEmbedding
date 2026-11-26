@@ -1,0 +1,154 @@
+<section class="experiment" id="x-ae-objective">
+<h2>Does a network trained to reconstruct represent images like one trained to classify?</h2>
+<p class="x-scope"><b>Tested:</b> the classifiers' ResNet-20, trained on CIFAR-10 by the same code with the same recipe, either to predict the label (two classifiers, seeds 0 and 1) or to reconstruct its input through a decoder (four autoencoders: a 10-number or 64-number code, seeds 0 and 1). Within a seed, both kinds share the initialisation code, batch order and crops. Final checkpoints, measured on the viewer's probe of {{fact:x.ae-objective.sample.probe}} CIFAR-10 test images.</p>
+<p class="x-answer"><strong>No, and the difference is already there at the first measured site: an autoencoder and a classifier share {{fact:x.ae-objective.nn.ae10_clf_diff.stem}} of each image's 15 nearest neighbours at the stem and {{fact:x.ae-objective.nn.ae10_clf_diff.b9}} at b9, which is {{fact:x.ae-objective.ratio.ae10.stem}} and {{fact:x.ae-objective.ratio.ae10.b9}} of what two classifiers share at the same sites.</strong> Two autoencoders share {{fact:x.ae-objective.nn.ae10_seeds.stem}} and {{fact:x.ae-objective.nn.ae10_seeds.b9}}. In the classifiers the share of an image's neighbours that have its class rises from {{fact:x.ae-objective.readout.clf.stem}} at the stem to {{fact:x.ae-objective.readout.clf.b9}} at b9; in the autoencoders it stays near {{fact:x.ae-objective.readout.ae10.b9}} (random neighbours: {{fact:x.ae-objective.readout.chance}}), the level of images that look alike as 4 × 4 thumbnails. At b9, {{fact:x.ae-objective.thumb.ae10.b9}} of a 10-number autoencoder's neighbours are also its nearest thumbnails, against {{fact:x.ae-objective.thumb.clf.b9}} for a classifier.</p>
+
+<figure class="live" data-live="lines" data-src="assets/x/ae-objective.json#overlap" data-height="300">
+  <div class="live-body"></div>
+  <figcaption><b>Plotted:</b> for a pair of networks, the share of each probe image's 15 nearest neighbours that both networks have in common at the same site, averaged over the {{fact:x.ae-objective.sample.probe}} images (neighbours by cosine of the centred activations; 1 = identical neighbour lists, two random lists share {{fact:x.ae-objective.sample.chance}}). x: the site, from the stem through the nine residual blocks (b1–b9) to the pooled features. The point set apart on the right is the last layer, the 10 logits of a classifier and the code of an autoencoder, which are not comparable (see “The two networks”). Thick orange: a 10-number autoencoder against the classifier of the other seed, the mean of the two such pairs, shaded between them. Blue: the two classifiers. Green: the two 10-number autoencoders. Grey dotted: a classifier against an untrained network of the same architecture, the mean of four pairs, shaded between the lowest and highest.</figcaption>
+</figure>
+
+<div class="x-numbers">
+  <div class="x-num"><b>{{fact:x.ae-objective.nn.ae10_clf_diff.stem}}</b><span>neighbours shared by an autoencoder and a classifier at the stem</span><small>two classifiers: {{fact:x.ae-objective.nn.clf_seeds.stem}} · 10-number code, other seed</small></div>
+  <div class="x-num"><b>{{fact:x.ae-objective.nn.ae10_clf_diff.b9}}</b><span>the same at b9, the last residual block</span><small>two classifiers: {{fact:x.ae-objective.nn.clf_seeds.b9}} · chance {{fact:x.ae-objective.sample.chance}}</small></div>
+  <div class="x-num"><b>{{fact:x.ae-objective.readout.ae10.b9}}</b><span>of an autoencoder's neighbours at b9 share the image's class</span><small>classifiers: {{fact:x.ae-objective.readout.clf.b9}} · random: {{fact:x.ae-objective.readout.chance}} · nearest thumbnails: {{fact:x.ae-objective.thumb.purity}}</small></div>
+  <div class="x-num"><b>{{fact:x.ae-objective.psnr.ae10_s0}} dB</b><span>reconstruction quality (test PSNR), 10-number code</span><small>rank-10 PCA: {{fact:x.ae-objective.psnr.pca10}} dB · mean image: {{fact:x.ae-objective.psnr.mean_image}} dB</small></div>
+</div>
+
+<h3>The gap, site by site</h3>
+<p>Two classifiers also agree less with depth, so a falling curve alone does not show that the objectives diverge. What matters is how far the autoencoder–classifier pairs sit below the classifier pair at the same site (autoencoders with the 10-number code):</p>
+<div class="x-tablewrap"><table class="x-mini">
+  <thead><tr><th>Shared neighbours</th><th>stem</th><th>b3</th><th>b6</th><th>b9</th><th>pool</th></tr></thead>
+  <tbody>
+    <tr><th style="white-space:normal">Two classifiers</th><td>{{fact:x.ae-objective.nn.clf_seeds.stem}}</td><td>{{fact:x.ae-objective.nn.clf_seeds.b3}}</td><td>{{fact:x.ae-objective.nn.clf_seeds.b6}}</td><td>{{fact:x.ae-objective.nn.clf_seeds.b9}}</td><td>{{fact:x.ae-objective.nn.clf_seeds.pool}}</td></tr>
+    <tr><th style="white-space:normal">Two autoencoders</th><td>{{fact:x.ae-objective.nn.ae10_seeds.stem}}</td><td>{{fact:x.ae-objective.nn.ae10_seeds.b3}}</td><td>{{fact:x.ae-objective.nn.ae10_seeds.b6}}</td><td>{{fact:x.ae-objective.nn.ae10_seeds.b9}}</td><td>{{fact:x.ae-objective.nn.ae10_seeds.pool}}</td></tr>
+    <tr><th style="white-space:normal">Autoencoder × classifier, other seed</th><td>{{fact:x.ae-objective.nn.ae10_clf_diff.stem}}</td><td>{{fact:x.ae-objective.nn.ae10_clf_diff.b3}}</td><td>{{fact:x.ae-objective.nn.ae10_clf_diff.b6}}</td><td>{{fact:x.ae-objective.nn.ae10_clf_diff.b9}}</td><td>{{fact:x.ae-objective.nn.ae10_clf_diff.pool}}</td></tr>
+    <tr><th style="white-space:normal">Autoencoder × classifier, same seed</th><td>{{fact:x.ae-objective.nn.ae10_clf_same.stem}}</td><td>{{fact:x.ae-objective.nn.ae10_clf_same.b3}}</td><td>{{fact:x.ae-objective.nn.ae10_clf_same.b6}}</td><td>{{fact:x.ae-objective.nn.ae10_clf_same.b9}}</td><td>{{fact:x.ae-objective.nn.ae10_clf_same.pool}}</td></tr>
+    <tr><th style="white-space:normal">Gap: two classifiers − other seed</th><td>{{fact:x.ae-objective.gap.ae10.stem}}</td><td>{{fact:x.ae-objective.gap.ae10.b3}}</td><td>{{fact:x.ae-objective.gap.ae10.b6}}</td><td>{{fact:x.ae-objective.gap.ae10.b9}}</td><td>{{fact:x.ae-objective.gap.ae10.pool}}</td></tr>
+    <tr><th style="white-space:normal">Ratio: other seed ÷ two classifiers</th><td>{{fact:x.ae-objective.ratio.ae10.stem}}</td><td>{{fact:x.ae-objective.ratio.ae10.b3}}</td><td>{{fact:x.ae-objective.ratio.ae10.b6}}</td><td>{{fact:x.ae-objective.ratio.ae10.b9}}</td><td>{{fact:x.ae-objective.ratio.ae10.pool}}</td></tr>
+  </tbody>
+</table></div>
+<p>The gap is large at every site and does not grow steadily (it is largest at b6); the ratio falls from {{fact:x.ae-objective.ratio.ae10.stem}} at the stem to {{fact:x.ae-objective.ratio.ae10.b9}} at b9. In these two seeds, matching the seed scarcely changed the mean overlap: same-seed and other-seed pairs differ by at most {{fact:x.ae-objective.nn.same_minus_diff.max}} at the five sites above and {{fact:x.ae-objective.nn.same_minus_diff.all_max}} at any site. Matching the seed also matches batches and crops, so this is not a test of shared weights alone. For scale, an untrained network shares {{fact:x.ae-objective.nn.clf_init.stem}} of the neighbours with a classifier at the stem, about as much as an autoencoder does, but {{fact:x.ae-objective.nn.ae10_init.stem}} with an autoencoder: the autoencoders' stem retained more of the untrained networks' neighbours. The 64-number autoencoders give the same picture (other-seed ratio {{fact:x.ae-objective.ratio.ae64.stem}} at the stem, {{fact:x.ae-objective.ratio.ae64.b9}} at b9; figure under “More figures”).</p>
+
+<h3>What the autoencoders group by</h3>
+<figure class="live" data-live="lines" data-src="assets/x/ae-objective.json#readouts" data-height="250">
+  <div class="live-body"></div>
+  <figcaption><b>Plotted:</b> two properties of one network's 15 nearest neighbours at each site, averaged over the probe images; each line is the mean of the two networks of one kind (two seeds), shaded between them. <b>Label readout</b>: the share of an image's neighbours that have its own class. Random neighbours give {{fact:x.ae-objective.readout.chance}}; the flat dashed line is the share for the image's 15 nearest 4 × 4 thumbnails ({{fact:x.ae-objective.thumb.purity}}). <b>Thumbnail readout</b>: the share of an image's neighbours that are also among its 15 nearest images as 4 × 4 thumbnails (each colour channel averaged over 8 × 8-pixel blocks, 48 numbers per image, compared by centred cosine). With the thumbnails' image identities shuffled once, it is at most about {{fact:x.ae-objective.thumb.perm.max}}. The last point is the logits or the code, as above.</figcaption>
+</figure>
+<p>A classifier's neighbourhoods fill up with the image's own class, from {{fact:x.ae-objective.readout.clf.stem}} at the stem to {{fact:x.ae-objective.readout.clf.b9}} at b9. The autoencoders' stay between {{fact:x.ae-objective.readout.ae.min}} and {{fact:x.ae-objective.readout.ae.max}} at every site: above random ({{fact:x.ae-objective.readout.chance}}), at about the class purity of images that look alike at 4 × 4 pixels. This is a property of the neighbourhoods, not a classification accuracy: it does not show that the label cannot be read from the autoencoders' activations, only that an image's nearest images are not mostly of its class.</p>
+<p>The autoencoders' neighbours lean towards coarse appearance. In the 10-number autoencoders {{fact:x.ae-objective.thumb.ae10.stem}} of an image's neighbours are also among its nearest thumbnails at the stem, {{fact:x.ae-objective.thumb.ae10.b3}} at b3 and {{fact:x.ae-objective.thumb.ae10.b9}} at b9; in the classifiers the share starts at {{fact:x.ae-objective.thumb.clf.stem}} and falls to {{fact:x.ae-objective.thumb.clf.b9}}. This is a preference, not an account of every neighbour: most of an autoencoder's b9 neighbours are not nearest thumbnails.</p>
+
+<h3>What the autoencoders keep</h3>
+<figure class="x-static x-wide">
+  <p class="x-figtitle">The first probe image of each class, and its reconstruction</p>
+  <div class="x-panels" style="--cols:1;--cols-md:1;--cols-sm:1">
+    <div class="x-panel"><div class="x-panel-label"><b>Original</b> (as the probe stores it)</div><img src="assets/fig/x_ae-objective_recon_orig.webp" alt="Ten CIFAR-10 test images: an airplane, a car, a bird, a cat, a deer, a dog, a frog, a horse, a ship and a truck" width="667" height="64"></div>
+    <div class="x-panel"><div class="x-panel-label"><b>Autoencoder, 10-number code</b> (seed 0; test PSNR {{fact:x.ae-objective.psnr.ae10_s0}} dB over 10,000 test images)</div><img src="assets/fig/x_ae-objective_recon_ae10.webp" alt="The ten reconstructions from a 10-number code: blurred colour layouts with an object-coloured blob" width="667" height="64"></div>
+    <div class="x-panel"><div class="x-panel-label"><b>Autoencoder, 64-number code</b> (seed 0; test PSNR {{fact:x.ae-objective.psnr.ae64_s0}} dB over 10,000 test images)</div><img src="assets/fig/x_ae-objective_recon_ae64.webp" alt="The ten reconstructions from a 64-number code: blurred, but with rough object outlines" width="667" height="64"></div>
+  </div>
+  <figcaption>Columns: {{fact:x.ae-objective.recon.classes}} (probe positions {{fact:x.ae-objective.recon.positions}}, the first of each class in probe order). Each reconstruction is the network's output for the unaugmented image, clipped to the pixel range.</figcaption>
+</figure>
+<p>These are weak autoencoders. Test PSNR (peak signal-to-noise ratio of the reconstruction; higher is better) is {{fact:x.ae-objective.psnr.ae10_s0}} dB with a 10-number code and {{fact:x.ae-objective.psnr.ae64_s0}} dB with 64 numbers. That is barely above principal component analysis of the same rank ({{fact:x.ae-objective.psnr.pca10}} and {{fact:x.ae-objective.psnr.pca64}} dB) and well above outputting the mean training image ({{fact:x.ae-objective.psnr.mean_image}} dB). PCA is a reference, not a target: it is a linear map of the pixels themselves, positions included, while the code passes through a pool that averages positions away. In these examples the 10-number code keeps the colour layout (sky, ground, a dark or bright blob where the object is) and little shape; 64 numbers add rough outlines.</p>
+<table class="x-mini">
+  <thead><tr><th>Test PSNR, dB</th><th>seed 0</th><th>seed 1</th><th>PCA, same rank</th></tr></thead>
+  <tbody>
+    <tr><th>10-number code</th><td>{{fact:x.ae-objective.psnr.ae10_s0}}</td><td>{{fact:x.ae-objective.psnr.ae10_s1}}</td><td>{{fact:x.ae-objective.psnr.pca10}}</td></tr>
+    <tr><th>64-number code</th><td>{{fact:x.ae-objective.psnr.ae64_s0}}</td><td>{{fact:x.ae-objective.psnr.ae64_s1}}</td><td>{{fact:x.ae-objective.psnr.pca64}}</td></tr>
+  </tbody>
+</table>
+
+<h3>Pictures of the probe at b9 and the stem</h3>
+<figure class="emb-fig" data-emb="assets/x/ae-objective.json#emb">
+  <figcaption><b>Plotted:</b> the {{fact:x.ae-objective.sample.probe}} probe images, coloured by class, in the first two diffusion-map coordinates of the selected site alone (site-local coordinates: computed from that site's own 15-nearest-neighbour walk, so no other site enters; each panel has its own axes, and no rotation between networks is fitted). Left: classifier, seed 0. Right: the 10-number autoencoder, seed 0; the menu swaps in the other autoencoders or an untrained network. The number under each panel name is that network's label readout at the site. The figure opens at b9; move the slider to the stem for the first site. The slider is labelled with the classifier's sites, so its last stop shows the autoencoder's code under the name “logits”. The picture is an illustration; the numbers above use the full activations.</figcaption>
+</figure>
+<p>At b9 the classifier's map separates the classes, while the autoencoder's mixes them. At the stem both maps mix the classes; in both, airplanes and ships lie toward one side and deer and frogs toward another.</p>
+<details class="x-more">
+  <summary>The same probe on the classifier's axes (joint coordinates)</summary>
+  <figure class="emb-fig" data-emb="assets/x/ae-objective.json#emb_joint">
+    <figcaption><b>Plotted:</b> the probe in each network's joint coordinates (16 modes of one 15-nearest-neighbour walk over all 12 sites, as in the Viewer), with the right-hand network turned by one rotation onto the classifier's coordinates, fitted on half of the probe images, and both drawn on the classifier's first two principal axes. The number under each panel name is the cosine between the two networks' coordinates at the selected site, on the half of the images not used for the fit. Joint coordinates at one site depend on every site, so this view cannot by itself locate where the networks part. It opens at b9; move the slider to the stem for the first site.</figcaption>
+  </figure>
+  <p>As a separate held-out check, with joint coordinates fitted on the stem to b9 only, the held-out cosine at b9 is {{fact:x.ae-objective.joint_trunk_cos.ae10_clf_diff.b9}} for other-seed autoencoder–classifier pairs against {{fact:x.ae-objective.joint_trunk_cos.clf_seeds.b9}} for the classifier seeds; on the full 12-site chain it is {{fact:x.ae-objective.joint_full_cos.ae10_clf_diff.b9}} against {{fact:x.ae-objective.joint_full_cos.clf_seeds.b9}}. The output sites are not what separates the two kinds.</p>
+</details>
+
+<h3>The two networks</h3>
+<figure class="x-static">
+  <div class="x-flow">
+    <div class="x-flow-step"><span>CIFAR-10 image, randomly cropped and flipped</span></div>
+    <div class="x-flow-step"><span><b>ResNet-20 trunk</b>: stem, blocks b1 … b9. Same architecture and optimiser in both</span></div>
+    <div class="x-flow-step"><span><b>pool</b>: b9 averaged over positions, 64 numbers</span></div>
+    <div class="x-flow-step"><span><b>last layer</b> (linear): 10 logits, or a code of 10 or 64 numbers</span></div>
+    <div class="x-flow-step"><span><b>classifier</b>: cross-entropy with the label<br><b>autoencoder</b>: a decoder redraws the image; squared error to the input</span></div>
+  </div>
+  <figcaption>Every site measured on this page from the stem to pool has the same shape and position in both kinds of network.</figcaption>
+</figure>
+<p>Within each seed, both kinds were built by the same initialisation code and trained on the same batch order with the same crops and flips, under the classifier's optimiser settings (SGD, learning rate {{fact:x.ae-objective.train.lr}}, {{fact:x.ae-objective.train.steps}} steps). Before training, a fresh same-seed classifier build matched the 10-number autoencoder's network tensor by tensor ({{fact:x.ae-objective.preflight.init.tensors_10}} tensors, last layer included) and the 64-number one's through the trunk ({{fact:x.ae-objective.preflight.init.tensors_64}} tensors; its last layer is new); both also matched the zoo's step-0 checkpoints. The retrained classifiers' own starting states were not saved. Pairs of different seeds, which carry the headline, share neither starting weights nor batch order.</p>
+<p>What differs is what follows the last layer. The autoencoder's decoder ({{fact:x.ae-objective.params.dec10}} parameters, against {{fact:x.ae-objective.params.enc10}} in the ResNet) must redraw the crop it was given from the code alone. The code is computed from b9 averaged over image positions, so where things are survives only as far as the channels themselves encode it; the decoder has to rebuild the layout from 10 or 64 numbers.</p>
+<p>The last layer is shown apart in the figures. The decoder starts with a linear layer, which can absorb any invertible linear change of the code, so the code's geometry is not fixed by the objective and comparing it with a classifier's logits says little.</p>
+
+<h3>What was computed</h3>
+<div class="x-tablewrap"><table class="x-defs">
+  <thead><tr><th>Quantity</th><th>Definition</th><th>Symbols and choices</th><th>Code</th></tr></thead>
+  <tbody>
+    <tr><th>Neighbours</th><td>$N_{A,l}(i)=\operatorname{top15}_{j\ne i}\ \langle \hat a_{l,i},\hat a_{l,j}\rangle,\quad \hat a=\dfrac{a-\bar a}{\lVert a-\bar a\rVert}$</td><td>$a_{l,i}$: network A's flattened activations at site $l$ for probe image $i$; $\bar a$: their mean over the probe. Centred cosine ignores each activation's length. The same neighbour lists build the viewer's walks.</td><td><code>xp/modal_xp.py:embed</code><br><code>xp/xlib.py:probe_gram</code></td></tr>
+    <tr><th>Neighbour overlap</th><td>$\mathrm{ov}_l(A,B)=\dfrac{1}{15N}\sum_i \lvert N_{A,l}(i)\cap N_{B,l}(i)\rvert$</td><td>$N$ = {{fact:x.ae-objective.sample.probe}}; same site $l$ in both networks; chance $15/(N-1)$ = {{fact:x.ae-objective.sample.chance}}. A line for several pairs is their mean, shaded from the lowest to the highest pair (two or four pairs; a range, not a confidence interval). One shuffle of B's images gives {{fact:x.ae-objective.perm.ae10_clf_diff.b9}} at b9.</td><td><code>xp/stage_compare.py:run</code> (<code>nn</code>), recomputed in <code>site/xsite/gen_ae.py</code></td></tr>
+    <tr><th>Gap and ratio</th><td>$\mathrm{ov}_l(C,C')-\mathrm{ov}_l(\mathrm{AE},C'),\quad \mathrm{ov}_l(\mathrm{AE},C')\,/\,\mathrm{ov}_l(C,C')$</td><td>$\mathrm{ov}_l(\mathrm{AE},C')$: mean over the two autoencoder–classifier pairs with different seeds; $\mathrm{ov}_l(C,C')$: the classifier seed pair; same site.</td><td><code>site/xsite/gen_ae.py</code></td></tr>
+    <tr><th>Label readout</th><td>$\dfrac{1}{15N}\sum_i\sum_{j\in N_{A,l}(i)}[\,y_j=y_i\,]$</td><td>$y$: true class. Purity of one network's neighbourhoods, not classification accuracy. Random neighbours give $\frac1N\sum_i (n_{y_i}-1)/(N-1)$ = {{fact:x.ae-objective.readout.chance}}, with $n_c$ the probe images of class $c$.</td><td><code>xp/stage_compare.py:run</code> (<code>readout</code>)</td></tr>
+    <tr><th>Thumbnail readout</th><td>$\dfrac{1}{15N}\sum_i \lvert N_{A,l}(i)\cap T(i)\rvert$</td><td>$T(i)$: the 15 nearest probe images to $i$ by centred cosine of their thumbnails $t$, where $t_i$ is image $i$ (pixels in [0, 1]) averaged over 8 × 8-pixel blocks in each colour channel, 48 numbers.</td><td><code>site/xsite/gen_ae.py:thumbnails, centred_knn</code></td></tr>
+    <tr><th>Reconstruction PSNR</th><td>$-10\log_{10}\dfrac{1}{M\cdot 3\cdot 32^2}\sum\big(\operatorname{clip}(\hat x)-x\big)^2$</td><td>Pixels in [0, 1]; $M$ = 10,000 CIFAR-10 test images, unaugmented. PCA: the best rank-$d$ linear reconstruction, fitted on the 50,000 training images. Mean image: the training mean as the output for every image.</td><td><code>xp/modal_train.py:train</code></td></tr>
+  </tbody>
+</table></div>
+
+<h3>Caveats</h3>
+<ul class="x-caveats">
+  <li><b>More changed than the loss.</b> The comparison is class prediction against reconstruction of the augmented crop through a learned decoder behind a pooled bottleneck. The 64-number code is a check on the code's width, not a test of whether the loss or the bottleneck causes the difference.</li>
+  <li><b>Weak autoencoders.</b> They barely beat PCA. A stronger one, for example with a decoder that reads b9 before pooling, might organise its trunk differently.</li>
+  <li><b>Two seeds of each kind.</b> Bands are ranges over two or four pairs, or over two networks; permutation references are single draws; nothing here is a significance test.</li>
+  <li><b>One probe, one architecture, one checkpoint.</b> {{fact:x.ae-objective.sample.probe}} CIFAR-10 test images, ResNet-20, final weights only.</li>
+  <li><b>One notion of neighbour.</b> 15 nearest by centred cosine, which discards the length of each activation; other neighbourhood sizes and distances were not tried.</li>
+  <li><b>The label readout is not a probe.</b> Low purity does not mean the class cannot be decoded from the autoencoders' activations.</li>
+</ul>
+
+<details class="x-more">
+  <summary>Decisions made on the owner's behalf <span class="x-count">(9)</span></summary>
+  <div class="x-tablewrap">
+  <table class="x-decisions">
+    <thead><tr><th>#</th><th>Decision</th><th>Chosen</th><th>Alternative</th><th>Why</th></tr></thead>
+    <tbody>
+    <tr><td>1</td><td>Kind of autoencoder</td><td>Plain, deterministic, squared error</td><td>Denoising, masked or variational</td><td>Changes only the loss and what follows the last layer</td></tr>
+    <tr><td>2</td><td>Code width</td><td>10 (the classifier's last-layer width) and 64 (the pool's width)</td><td>One width, or a sweep</td><td>The narrow code is the obvious confound; 64 removes the narrowing after pool</td></tr>
+    <tr><td>3</td><td>Bottleneck</td><td>The decoder reads only the last layer, computed from pool</td><td>A decoder reading b9's spatial map</td><td>Sites through pool have matching shapes and positions in both kinds; whether pooling caused the weak reconstructions was not tested</td></tr>
+    <tr><td>4</td><td>Optimiser</td><td>The classifier's SGD: momentum 0.9, weight decay 10<sup>−4</sup>, batch 128, {{fact:x.ae-objective.train.steps}} steps, learning rate {{fact:x.ae-objective.train.lr}} divided by 10 at 50% and 75%</td><td>Adam, or a schedule tuned for reconstruction</td><td>No optimiser confound. A pilot (8,000 steps, 5,000 training images held out) gave held-out error {{fact:x.ae-objective.preflight.pilot.lr_0_1}} at rate 0.1, {{fact:x.ae-objective.preflight.pilot.lr_0_03}} at 0.03 and {{fact:x.ae-objective.preflight.pilot.lr_0_01}} at 0.01; the rule fixed in advance kept 0.1 unless another rate was more than 5% lower</td></tr>
+    <tr><td>5</td><td>Target</td><td>The augmented, normalised crop the encoder saw</td><td>The unaugmented image</td><td>Reconstruct exactly the input</td></tr>
+    <tr><td>6</td><td>Seeds</td><td>Same initialisation code, seed, batch order and augmentation as the classifier of the same seed</td><td>Independent runs</td><td>Lets same-seed pairs show whether a shared start (weights, batches and crops together) matters</td></tr>
+    <tr><td>7</td><td>Checkpoint</td><td>Final only</td><td>Follow the divergence through training</td><td>Budget; as for the other networks in the viewer</td></tr>
+    <tr><td>8</td><td>Thumbnail readout</td><td>4 × 4 block means, centred cosine, 15 nearest</td><td>Full-resolution pixels, other block sizes</td><td>Coarse appearance without detail; chosen when writing this page</td></tr>
+    <tr><td>9</td><td>Pictures</td><td>Site-local coordinates at matched sites, with the joint view on the classifier's axes as a second figure</td><td>Joint coordinates only</td><td>Joint coordinates are fitted over all sites, so a picture of them at b9 cannot locate where networks differ</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p>Checks, reported as measured. Before the full runs, one fixed batch of 128 images was fitted from squared error {{fact:x.ae-objective.preflight.batch.mse_from}} to {{fact:x.ae-objective.preflight.batch.mse_to}} in normalised pixel units. After training, eight test images reconstructed one at a time and inside a batch of 256 differed by at most {{fact:x.ae-objective.batch_dep.ae64_s1}} in normalised output units (largest of the four autoencoders); the smallest standard deviation of any code coordinate over the test images is {{fact:x.ae-objective.code_std_min.ae64_s1}}; and the saved reconstructions of all {{fact:x.ae-objective.sample.probe}} probe images score {{fact:x.ae-objective.psnr.probe.ae10_s0}} dB (10-number code) and {{fact:x.ae-objective.psnr.probe.ae64_s0}} dB (64-number code), seed 0. The two classifiers reach {{fact:x.ae-objective.acc.c10x_s0}} and {{fact:x.ae-objective.acc.c10x_s1}} test accuracy. See the <a href="https://github.com/CharlesR-W/DepthEmbedding/blob/experiments-site/ae/SPEC.md">specification and its revisions after review</a>.</p>
+</details>
+
+<details class="x-more">
+  <summary>More figures <span class="x-count">(5)</span></summary>
+  <div class="x-figs">
+  <figure class="live" data-live="lines" data-src="assets/x/ae-objective.json#same_seed" data-height="230"><div class="live-body"></div>
+    <figcaption><b>Plotted:</b> neighbour overlap as in the first figure, for the 10-number autoencoders against the classifier of the other seed (orange, as there) and of the same seed (blue dashed: the same initialisation code, batches and crops; different task). Each is the mean of two pairs, shaded between them. The means differ by at most {{fact:x.ae-objective.nn.same_minus_diff.all_max}} at any site.</figcaption>
+  </figure>
+  <figure class="live" data-live="lines" data-src="assets/x/ae-objective.json#width" data-height="230"><div class="live-body"></div>
+    <figcaption><b>Plotted:</b> neighbour overlap for the 64-number autoencoders: their two seeds (purple), against the 10-number autoencoder of the same seed (green dashed), against the classifier of the other seed (orange) and, for reference, the two classifiers (blue). Lines for two pairs are shaded between them. The two code widths agree closely up to b3 ({{fact:x.ae-objective.nn.ae10_ae64_same.b3}}) and much less at b9 ({{fact:x.ae-objective.nn.ae10_ae64_same.b9}}).</figcaption>
+  </figure>
+  <figure class="live" data-live="lines" data-src="assets/x/ae-objective.json#untrained" data-height="230"><div class="live-body"></div>
+    <figcaption><b>Plotted:</b> neighbour overlap with untrained networks (the same ResNet-20 at its initial weights, seeds 0 and 1), dotted: 10-number autoencoders against them (green, four pairs), classifiers against them (blue, four pairs), and the two untrained networks against each other (grey, one pair). The orange line repeats the autoencoder–classifier pairs. Shading spans the lowest to highest pair. These are reference levels, not bounds.</figcaption>
+  </figure>
+  <figure class="live" data-live="lines" data-src="assets/x/ae-objective.json#cka" data-height="230"><div class="live-body"></div>
+    <figcaption><b>Plotted:</b> linear CKA at the same site, for the pairs of the first figure. For each network, the 2,000 × 2,000 table of cosines between centred activations is double-centred (row and column means removed) and flattened; CKA is the cosine between the two flattened tables (1 = equal up to scale). {{fact:x.ae-objective.cka.ae10_clf_diff.stem}} for autoencoder × classifier at the stem against {{fact:x.ae-objective.cka.clf_seeds.stem}} for two classifiers; {{fact:x.ae-objective.cka.ae10_clf_diff.b9}} against {{fact:x.ae-objective.cka.clf_seeds.b9}} at b9.</figcaption>
+  </figure>
+  <figure class="live" data-live="lines" data-src="assets/x/ae-objective.json#joint" data-height="230"><div class="live-body"></div>
+    <figcaption><b>Plotted:</b> a separate held-out check on the joint coordinates (16 modes of the 15-nearest-neighbour walk over all 12 sites): one rotation of B's coordinates onto A's, fitted on half of the probe images and all sites together, scored as a cosine on the other half at each site. Because the modes mix all sites, this cannot say where the networks part.</figcaption>
+  </figure>
+  </div>
+</details>
+
+<p class="x-links"><a href="#embedding?m=modes&amp;lay=grid&amp;nets=r20s0.c10x-s0.ae10-s0.ae64-s0&amp;ref=r20s0&amp;step=64000&amp;v=own&amp;c=3&amp;K=16&amp;norm=site&amp;dm=frac&amp;al=1&amp;basis=pooled&amp;ax=0.1.2&amp;d3=0&amp;color=class&amp;depth=9">Open these networks in the Viewer at b9</a> · <a href="https://github.com/CharlesR-W/DepthEmbedding/blob/experiments-site/ae/SPEC.md">Specification</a> · <a href="https://github.com/CharlesR-W/DepthEmbedding/blob/experiments-site/xp/stage_compare.py">Comparison code</a> · <a href="https://github.com/CharlesR-W/DepthEmbedding/blob/experiments-site/site/xsite/gen_ae.py">Page generator</a> · <a class="x-top" href="#experiments/x-glance-title">At a glance</a></p>
+</section>

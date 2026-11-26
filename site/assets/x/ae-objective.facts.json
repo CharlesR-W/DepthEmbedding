@@ -1,0 +1,3338 @@
+{
+  "sample.probe": {
+    "value": 2000,
+    "text": "2,000",
+    "tier": "R",
+    "source": "crw-depth-xp-results/probes.npz:c10_idx length"
+  },
+  "sample.k": {
+    "value": 15,
+    "text": "15",
+    "tier": "S",
+    "source": "xp/modal_xp.py:embed topk(15)"
+  },
+  "sample.chance": {
+    "value": 0.007503751875937969,
+    "text": "0.0075",
+    "tier": "R",
+    "source": "15 / (N - 1): expected overlap of two random neighbour lists"
+  },
+  "nn.clf_seeds.stem": {
+    "value": 0.7633,
+    "text": "0.76",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at stem, mean over c10x-s0|c10x-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.clf_seeds.b1": {
+    "value": 0.6801333333333334,
+    "text": "0.68",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b1, mean over c10x-s0|c10x-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.clf_seeds.b2": {
+    "value": 0.6479,
+    "text": "0.65",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b2, mean over c10x-s0|c10x-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.clf_seeds.b3": {
+    "value": 0.5386666666666666,
+    "text": "0.54",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b3, mean over c10x-s0|c10x-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.clf_seeds.b4": {
+    "value": 0.6672999999999999,
+    "text": "0.67",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b4, mean over c10x-s0|c10x-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.clf_seeds.b5": {
+    "value": 0.6351,
+    "text": "0.64",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b5, mean over c10x-s0|c10x-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.clf_seeds.b6": {
+    "value": 0.6275333333333334,
+    "text": "0.63",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b6, mean over c10x-s0|c10x-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.clf_seeds.b7": {
+    "value": 0.6159333333333333,
+    "text": "0.62",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b7, mean over c10x-s0|c10x-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.clf_seeds.b8": {
+    "value": 0.5500666666666666,
+    "text": "0.55",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b8, mean over c10x-s0|c10x-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.clf_seeds.b9": {
+    "value": 0.4314666666666667,
+    "text": "0.43",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b9, mean over c10x-s0|c10x-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.clf_seeds.pool": {
+    "value": 0.2619,
+    "text": "0.26",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at pool, mean over c10x-s0|c10x-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.clf_seeds.last": {
+    "value": 0.22133333333333333,
+    "text": "0.22",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at last, mean over c10x-s0|c10x-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.zoo_seeds.stem": {
+    "value": 0.7167666666666667,
+    "text": "0.72",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at stem, mean over c10-s0|c10-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.zoo_seeds.b1": {
+    "value": 0.6211333333333333,
+    "text": "0.62",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b1, mean over c10-s0|c10-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.zoo_seeds.b2": {
+    "value": 0.5452,
+    "text": "0.55",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b2, mean over c10-s0|c10-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.zoo_seeds.b3": {
+    "value": 0.6649666666666667,
+    "text": "0.66",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b3, mean over c10-s0|c10-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.zoo_seeds.b4": {
+    "value": 0.6564,
+    "text": "0.66",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b4, mean over c10-s0|c10-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.zoo_seeds.b5": {
+    "value": 0.6470666666666667,
+    "text": "0.65",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b5, mean over c10-s0|c10-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.zoo_seeds.b6": {
+    "value": 0.6390333333333333,
+    "text": "0.64",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b6, mean over c10-s0|c10-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.zoo_seeds.b7": {
+    "value": 0.6150666666666668,
+    "text": "0.62",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b7, mean over c10-s0|c10-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.zoo_seeds.b8": {
+    "value": 0.5479,
+    "text": "0.55",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b8, mean over c10-s0|c10-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.zoo_seeds.b9": {
+    "value": 0.43063333333333337,
+    "text": "0.43",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b9, mean over c10-s0|c10-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.zoo_seeds.pool": {
+    "value": 0.26316666666666666,
+    "text": "0.26",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at pool, mean over c10-s0|c10-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.zoo_seeds.last": {
+    "value": 0.22116666666666665,
+    "text": "0.22",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at last, mean over c10-s0|c10-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae10_seeds.stem": {
+    "value": 0.8622,
+    "text": "0.86",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at stem, mean over ae10-s0|ae10-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae10_seeds.b1": {
+    "value": 0.8311666666666666,
+    "text": "0.83",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b1, mean over ae10-s0|ae10-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae10_seeds.b2": {
+    "value": 0.8002,
+    "text": "0.80",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b2, mean over ae10-s0|ae10-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae10_seeds.b3": {
+    "value": 0.8132,
+    "text": "0.81",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b3, mean over ae10-s0|ae10-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae10_seeds.b4": {
+    "value": 0.7841,
+    "text": "0.78",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b4, mean over ae10-s0|ae10-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae10_seeds.b5": {
+    "value": 0.7906333333333334,
+    "text": "0.79",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b5, mean over ae10-s0|ae10-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae10_seeds.b6": {
+    "value": 0.7979666666666667,
+    "text": "0.80",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b6, mean over ae10-s0|ae10-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae10_seeds.b7": {
+    "value": 0.8065,
+    "text": "0.81",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b7, mean over ae10-s0|ae10-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae10_seeds.b8": {
+    "value": 0.7502333333333334,
+    "text": "0.75",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b8, mean over ae10-s0|ae10-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae10_seeds.b9": {
+    "value": 0.6634,
+    "text": "0.66",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b9, mean over ae10-s0|ae10-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae10_seeds.pool": {
+    "value": 0.6324333333333333,
+    "text": "0.63",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at pool, mean over ae10-s0|ae10-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae10_seeds.last": {
+    "value": 0.6341333333333333,
+    "text": "0.63",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at last, mean over ae10-s0|ae10-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae64_seeds.stem": {
+    "value": 0.8232,
+    "text": "0.82",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at stem, mean over ae64-s0|ae64-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae64_seeds.b1": {
+    "value": 0.7315,
+    "text": "0.73",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b1, mean over ae64-s0|ae64-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae64_seeds.b2": {
+    "value": 0.7794333333333333,
+    "text": "0.78",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b2, mean over ae64-s0|ae64-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae64_seeds.b3": {
+    "value": 0.8440333333333334,
+    "text": "0.84",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b3, mean over ae64-s0|ae64-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae64_seeds.b4": {
+    "value": 0.8325333333333333,
+    "text": "0.83",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b4, mean over ae64-s0|ae64-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae64_seeds.b5": {
+    "value": 0.8035333333333334,
+    "text": "0.80",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b5, mean over ae64-s0|ae64-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae64_seeds.b6": {
+    "value": 0.7984333333333333,
+    "text": "0.80",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b6, mean over ae64-s0|ae64-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae64_seeds.b7": {
+    "value": 0.8177666666666668,
+    "text": "0.82",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b7, mean over ae64-s0|ae64-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae64_seeds.b8": {
+    "value": 0.7687,
+    "text": "0.77",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b8, mean over ae64-s0|ae64-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae64_seeds.b9": {
+    "value": 0.6730666666666667,
+    "text": "0.67",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b9, mean over ae64-s0|ae64-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae64_seeds.pool": {
+    "value": 0.5978333333333333,
+    "text": "0.60",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at pool, mean over ae64-s0|ae64-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae64_seeds.last": {
+    "value": 0.7694666666666666,
+    "text": "0.77",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at last, mean over ae64-s0|ae64-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae10_clf_diff.stem": {
+    "value": 0.3022166666666667,
+    "text": "0.30",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at stem, mean over ae10-s0|c10x-s1, ae10-s1|c10x-s0; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae10_clf_diff.stem_lo": {
+    "value": 0.2715666666666667,
+    "text": "0.27",
+    "tier": "R",
+    "source": "min over ae10-s0|c10x-s1, ae10-s1|c10x-s0 of the same"
+  },
+  "nn.ae10_clf_diff.stem_hi": {
+    "value": 0.3328666666666667,
+    "text": "0.33",
+    "tier": "R",
+    "source": "max over ae10-s0|c10x-s1, ae10-s1|c10x-s0 of the same"
+  },
+  "nn.ae10_clf_diff.b1": {
+    "value": 0.24760000000000001,
+    "text": "0.25",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b1, mean over ae10-s0|c10x-s1, ae10-s1|c10x-s0; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae10_clf_diff.b2": {
+    "value": 0.20395000000000002,
+    "text": "0.20",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b2, mean over ae10-s0|c10x-s1, ae10-s1|c10x-s0; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae10_clf_diff.b3": {
+    "value": 0.18268333333333336,
+    "text": "0.18",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b3, mean over ae10-s0|c10x-s1, ae10-s1|c10x-s0; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae10_clf_diff.b3_lo": {
+    "value": 0.17173333333333335,
+    "text": "0.17",
+    "tier": "R",
+    "source": "min over ae10-s0|c10x-s1, ae10-s1|c10x-s0 of the same"
+  },
+  "nn.ae10_clf_diff.b3_hi": {
+    "value": 0.19363333333333335,
+    "text": "0.19",
+    "tier": "R",
+    "source": "max over ae10-s0|c10x-s1, ae10-s1|c10x-s0 of the same"
+  },
+  "nn.ae10_clf_diff.b4": {
+    "value": 0.15731666666666666,
+    "text": "0.16",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b4, mean over ae10-s0|c10x-s1, ae10-s1|c10x-s0; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae10_clf_diff.b5": {
+    "value": 0.13366666666666666,
+    "text": "0.13",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b5, mean over ae10-s0|c10x-s1, ae10-s1|c10x-s0; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae10_clf_diff.b6": {
+    "value": 0.11256666666666668,
+    "text": "0.11",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b6, mean over ae10-s0|c10x-s1, ae10-s1|c10x-s0; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae10_clf_diff.b6_lo": {
+    "value": 0.111,
+    "text": "0.11",
+    "tier": "R",
+    "source": "min over ae10-s0|c10x-s1, ae10-s1|c10x-s0 of the same"
+  },
+  "nn.ae10_clf_diff.b6_hi": {
+    "value": 0.11413333333333334,
+    "text": "0.11",
+    "tier": "R",
+    "source": "max over ae10-s0|c10x-s1, ae10-s1|c10x-s0 of the same"
+  },
+  "nn.ae10_clf_diff.b7": {
+    "value": 0.09343333333333334,
+    "text": "0.09",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b7, mean over ae10-s0|c10x-s1, ae10-s1|c10x-s0; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae10_clf_diff.b8": {
+    "value": 0.0806,
+    "text": "0.08",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b8, mean over ae10-s0|c10x-s1, ae10-s1|c10x-s0; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae10_clf_diff.b9": {
+    "value": 0.05261666666666667,
+    "text": "0.05",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b9, mean over ae10-s0|c10x-s1, ae10-s1|c10x-s0; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae10_clf_diff.b9_lo": {
+    "value": 0.05196666666666667,
+    "text": "0.05",
+    "tier": "R",
+    "source": "min over ae10-s0|c10x-s1, ae10-s1|c10x-s0 of the same"
+  },
+  "nn.ae10_clf_diff.b9_hi": {
+    "value": 0.05326666666666667,
+    "text": "0.05",
+    "tier": "R",
+    "source": "max over ae10-s0|c10x-s1, ae10-s1|c10x-s0 of the same"
+  },
+  "nn.ae10_clf_diff.pool": {
+    "value": 0.03791666666666667,
+    "text": "0.04",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at pool, mean over ae10-s0|c10x-s1, ae10-s1|c10x-s0; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae10_clf_diff.pool_lo": {
+    "value": 0.03693333333333334,
+    "text": "0.04",
+    "tier": "R",
+    "source": "min over ae10-s0|c10x-s1, ae10-s1|c10x-s0 of the same"
+  },
+  "nn.ae10_clf_diff.pool_hi": {
+    "value": 0.038900000000000004,
+    "text": "0.04",
+    "tier": "R",
+    "source": "max over ae10-s0|c10x-s1, ae10-s1|c10x-s0 of the same"
+  },
+  "nn.ae10_clf_diff.last": {
+    "value": 0.028333333333333332,
+    "text": "0.03",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at last, mean over ae10-s0|c10x-s1, ae10-s1|c10x-s0; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae10_clf_diff.last_lo": {
+    "value": 0.027966666666666664,
+    "text": "0.03",
+    "tier": "R",
+    "source": "min over ae10-s0|c10x-s1, ae10-s1|c10x-s0 of the same"
+  },
+  "nn.ae10_clf_diff.last_hi": {
+    "value": 0.0287,
+    "text": "0.03",
+    "tier": "R",
+    "source": "max over ae10-s0|c10x-s1, ae10-s1|c10x-s0 of the same"
+  },
+  "nn.ae10_clf_same.stem": {
+    "value": 0.3033166666666667,
+    "text": "0.30",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at stem, mean over ae10-s0|c10x-s0, ae10-s1|c10x-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae10_clf_same.stem_lo": {
+    "value": 0.3025333333333334,
+    "text": "0.30",
+    "tier": "R",
+    "source": "min over ae10-s0|c10x-s0, ae10-s1|c10x-s1 of the same"
+  },
+  "nn.ae10_clf_same.stem_hi": {
+    "value": 0.3041,
+    "text": "0.30",
+    "tier": "R",
+    "source": "max over ae10-s0|c10x-s0, ae10-s1|c10x-s1 of the same"
+  },
+  "nn.ae10_clf_same.b1": {
+    "value": 0.2491833333333333,
+    "text": "0.25",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b1, mean over ae10-s0|c10x-s0, ae10-s1|c10x-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae10_clf_same.b2": {
+    "value": 0.20336666666666664,
+    "text": "0.20",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b2, mean over ae10-s0|c10x-s0, ae10-s1|c10x-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae10_clf_same.b3": {
+    "value": 0.1824,
+    "text": "0.18",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b3, mean over ae10-s0|c10x-s0, ae10-s1|c10x-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae10_clf_same.b3_lo": {
+    "value": 0.1651,
+    "text": "0.17",
+    "tier": "R",
+    "source": "min over ae10-s0|c10x-s0, ae10-s1|c10x-s1 of the same"
+  },
+  "nn.ae10_clf_same.b3_hi": {
+    "value": 0.1997,
+    "text": "0.20",
+    "tier": "R",
+    "source": "max over ae10-s0|c10x-s0, ae10-s1|c10x-s1 of the same"
+  },
+  "nn.ae10_clf_same.b4": {
+    "value": 0.15728333333333333,
+    "text": "0.16",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b4, mean over ae10-s0|c10x-s0, ae10-s1|c10x-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae10_clf_same.b5": {
+    "value": 0.1335,
+    "text": "0.13",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b5, mean over ae10-s0|c10x-s0, ae10-s1|c10x-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae10_clf_same.b6": {
+    "value": 0.11331666666666668,
+    "text": "0.11",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b6, mean over ae10-s0|c10x-s0, ae10-s1|c10x-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae10_clf_same.b6_lo": {
+    "value": 0.11236666666666667,
+    "text": "0.11",
+    "tier": "R",
+    "source": "min over ae10-s0|c10x-s0, ae10-s1|c10x-s1 of the same"
+  },
+  "nn.ae10_clf_same.b6_hi": {
+    "value": 0.11426666666666667,
+    "text": "0.11",
+    "tier": "R",
+    "source": "max over ae10-s0|c10x-s0, ae10-s1|c10x-s1 of the same"
+  },
+  "nn.ae10_clf_same.b7": {
+    "value": 0.09338333333333333,
+    "text": "0.09",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b7, mean over ae10-s0|c10x-s0, ae10-s1|c10x-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae10_clf_same.b8": {
+    "value": 0.08065,
+    "text": "0.08",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b8, mean over ae10-s0|c10x-s0, ae10-s1|c10x-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae10_clf_same.b9": {
+    "value": 0.05355,
+    "text": "0.05",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b9, mean over ae10-s0|c10x-s0, ae10-s1|c10x-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae10_clf_same.b9_lo": {
+    "value": 0.05296666666666667,
+    "text": "0.05",
+    "tier": "R",
+    "source": "min over ae10-s0|c10x-s0, ae10-s1|c10x-s1 of the same"
+  },
+  "nn.ae10_clf_same.b9_hi": {
+    "value": 0.05413333333333334,
+    "text": "0.05",
+    "tier": "R",
+    "source": "max over ae10-s0|c10x-s0, ae10-s1|c10x-s1 of the same"
+  },
+  "nn.ae10_clf_same.pool": {
+    "value": 0.03843333333333333,
+    "text": "0.04",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at pool, mean over ae10-s0|c10x-s0, ae10-s1|c10x-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae10_clf_same.pool_lo": {
+    "value": 0.037599999999999995,
+    "text": "0.04",
+    "tier": "R",
+    "source": "min over ae10-s0|c10x-s0, ae10-s1|c10x-s1 of the same"
+  },
+  "nn.ae10_clf_same.pool_hi": {
+    "value": 0.039266666666666665,
+    "text": "0.04",
+    "tier": "R",
+    "source": "max over ae10-s0|c10x-s0, ae10-s1|c10x-s1 of the same"
+  },
+  "nn.ae10_clf_same.last": {
+    "value": 0.028033333333333334,
+    "text": "0.03",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at last, mean over ae10-s0|c10x-s0, ae10-s1|c10x-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae10_clf_same.last_lo": {
+    "value": 0.027866666666666665,
+    "text": "0.03",
+    "tier": "R",
+    "source": "min over ae10-s0|c10x-s0, ae10-s1|c10x-s1 of the same"
+  },
+  "nn.ae10_clf_same.last_hi": {
+    "value": 0.0282,
+    "text": "0.03",
+    "tier": "R",
+    "source": "max over ae10-s0|c10x-s0, ae10-s1|c10x-s1 of the same"
+  },
+  "nn.ae64_clf_diff.stem": {
+    "value": 0.28018333333333334,
+    "text": "0.28",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at stem, mean over ae64-s0|c10x-s1, ae64-s1|c10x-s0; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae64_clf_diff.stem_lo": {
+    "value": 0.2661,
+    "text": "0.27",
+    "tier": "R",
+    "source": "min over ae64-s0|c10x-s1, ae64-s1|c10x-s0 of the same"
+  },
+  "nn.ae64_clf_diff.stem_hi": {
+    "value": 0.2942666666666666,
+    "text": "0.29",
+    "tier": "R",
+    "source": "max over ae64-s0|c10x-s1, ae64-s1|c10x-s0 of the same"
+  },
+  "nn.ae64_clf_diff.b1": {
+    "value": 0.2574166666666667,
+    "text": "0.26",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b1, mean over ae64-s0|c10x-s1, ae64-s1|c10x-s0; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae64_clf_diff.b2": {
+    "value": 0.21813333333333335,
+    "text": "0.22",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b2, mean over ae64-s0|c10x-s1, ae64-s1|c10x-s0; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae64_clf_diff.b3": {
+    "value": 0.20043333333333332,
+    "text": "0.20",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b3, mean over ae64-s0|c10x-s1, ae64-s1|c10x-s0; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae64_clf_diff.b3_lo": {
+    "value": 0.19113333333333332,
+    "text": "0.19",
+    "tier": "R",
+    "source": "min over ae64-s0|c10x-s1, ae64-s1|c10x-s0 of the same"
+  },
+  "nn.ae64_clf_diff.b3_hi": {
+    "value": 0.20973333333333333,
+    "text": "0.21",
+    "tier": "R",
+    "source": "max over ae64-s0|c10x-s1, ae64-s1|c10x-s0 of the same"
+  },
+  "nn.ae64_clf_diff.b4": {
+    "value": 0.18713333333333332,
+    "text": "0.19",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b4, mean over ae64-s0|c10x-s1, ae64-s1|c10x-s0; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae64_clf_diff.b5": {
+    "value": 0.15626666666666666,
+    "text": "0.16",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b5, mean over ae64-s0|c10x-s1, ae64-s1|c10x-s0; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae64_clf_diff.b6": {
+    "value": 0.12938333333333335,
+    "text": "0.13",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b6, mean over ae64-s0|c10x-s1, ae64-s1|c10x-s0; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae64_clf_diff.b6_lo": {
+    "value": 0.12906666666666666,
+    "text": "0.13",
+    "tier": "R",
+    "source": "min over ae64-s0|c10x-s1, ae64-s1|c10x-s0 of the same"
+  },
+  "nn.ae64_clf_diff.b6_hi": {
+    "value": 0.1297,
+    "text": "0.13",
+    "tier": "R",
+    "source": "max over ae64-s0|c10x-s1, ae64-s1|c10x-s0 of the same"
+  },
+  "nn.ae64_clf_diff.b7": {
+    "value": 0.10451666666666667,
+    "text": "0.10",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b7, mean over ae64-s0|c10x-s1, ae64-s1|c10x-s0; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae64_clf_diff.b8": {
+    "value": 0.09571666666666667,
+    "text": "0.10",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b8, mean over ae64-s0|c10x-s1, ae64-s1|c10x-s0; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae64_clf_diff.b9": {
+    "value": 0.05898333333333333,
+    "text": "0.06",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b9, mean over ae64-s0|c10x-s1, ae64-s1|c10x-s0; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae64_clf_diff.b9_lo": {
+    "value": 0.05683333333333333,
+    "text": "0.06",
+    "tier": "R",
+    "source": "min over ae64-s0|c10x-s1, ae64-s1|c10x-s0 of the same"
+  },
+  "nn.ae64_clf_diff.b9_hi": {
+    "value": 0.06113333333333334,
+    "text": "0.06",
+    "tier": "R",
+    "source": "max over ae64-s0|c10x-s1, ae64-s1|c10x-s0 of the same"
+  },
+  "nn.ae64_clf_diff.pool": {
+    "value": 0.03818333333333333,
+    "text": "0.04",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at pool, mean over ae64-s0|c10x-s1, ae64-s1|c10x-s0; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae64_clf_diff.pool_lo": {
+    "value": 0.038033333333333336,
+    "text": "0.04",
+    "tier": "R",
+    "source": "min over ae64-s0|c10x-s1, ae64-s1|c10x-s0 of the same"
+  },
+  "nn.ae64_clf_diff.pool_hi": {
+    "value": 0.03833333333333333,
+    "text": "0.04",
+    "tier": "R",
+    "source": "max over ae64-s0|c10x-s1, ae64-s1|c10x-s0 of the same"
+  },
+  "nn.ae64_clf_diff.last": {
+    "value": 0.031849999999999996,
+    "text": "0.03",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at last, mean over ae64-s0|c10x-s1, ae64-s1|c10x-s0; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae64_clf_diff.last_lo": {
+    "value": 0.030966666666666667,
+    "text": "0.03",
+    "tier": "R",
+    "source": "min over ae64-s0|c10x-s1, ae64-s1|c10x-s0 of the same"
+  },
+  "nn.ae64_clf_diff.last_hi": {
+    "value": 0.03273333333333333,
+    "text": "0.03",
+    "tier": "R",
+    "source": "max over ae64-s0|c10x-s1, ae64-s1|c10x-s0 of the same"
+  },
+  "nn.ae64_clf_same.stem": {
+    "value": 0.28251666666666664,
+    "text": "0.28",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at stem, mean over ae64-s0|c10x-s0, ae64-s1|c10x-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae64_clf_same.stem_lo": {
+    "value": 0.2637,
+    "text": "0.26",
+    "tier": "R",
+    "source": "min over ae64-s0|c10x-s0, ae64-s1|c10x-s1 of the same"
+  },
+  "nn.ae64_clf_same.stem_hi": {
+    "value": 0.3013333333333333,
+    "text": "0.30",
+    "tier": "R",
+    "source": "max over ae64-s0|c10x-s0, ae64-s1|c10x-s1 of the same"
+  },
+  "nn.ae64_clf_same.b1": {
+    "value": 0.25753333333333334,
+    "text": "0.26",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b1, mean over ae64-s0|c10x-s0, ae64-s1|c10x-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae64_clf_same.b2": {
+    "value": 0.21831666666666666,
+    "text": "0.22",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b2, mean over ae64-s0|c10x-s0, ae64-s1|c10x-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae64_clf_same.b3": {
+    "value": 0.20221666666666666,
+    "text": "0.20",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b3, mean over ae64-s0|c10x-s0, ae64-s1|c10x-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae64_clf_same.b3_lo": {
+    "value": 0.17729999999999999,
+    "text": "0.18",
+    "tier": "R",
+    "source": "min over ae64-s0|c10x-s0, ae64-s1|c10x-s1 of the same"
+  },
+  "nn.ae64_clf_same.b3_hi": {
+    "value": 0.22713333333333333,
+    "text": "0.23",
+    "tier": "R",
+    "source": "max over ae64-s0|c10x-s0, ae64-s1|c10x-s1 of the same"
+  },
+  "nn.ae64_clf_same.b4": {
+    "value": 0.1865,
+    "text": "0.19",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b4, mean over ae64-s0|c10x-s0, ae64-s1|c10x-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae64_clf_same.b5": {
+    "value": 0.15588333333333332,
+    "text": "0.16",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b5, mean over ae64-s0|c10x-s0, ae64-s1|c10x-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae64_clf_same.b6": {
+    "value": 0.12976666666666667,
+    "text": "0.13",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b6, mean over ae64-s0|c10x-s0, ae64-s1|c10x-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae64_clf_same.b6_lo": {
+    "value": 0.12910000000000002,
+    "text": "0.13",
+    "tier": "R",
+    "source": "min over ae64-s0|c10x-s0, ae64-s1|c10x-s1 of the same"
+  },
+  "nn.ae64_clf_same.b6_hi": {
+    "value": 0.13043333333333332,
+    "text": "0.13",
+    "tier": "R",
+    "source": "max over ae64-s0|c10x-s0, ae64-s1|c10x-s1 of the same"
+  },
+  "nn.ae64_clf_same.b7": {
+    "value": 0.10469999999999999,
+    "text": "0.10",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b7, mean over ae64-s0|c10x-s0, ae64-s1|c10x-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae64_clf_same.b8": {
+    "value": 0.09548333333333334,
+    "text": "0.10",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b8, mean over ae64-s0|c10x-s0, ae64-s1|c10x-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae64_clf_same.b9": {
+    "value": 0.05875,
+    "text": "0.06",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b9, mean over ae64-s0|c10x-s0, ae64-s1|c10x-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae64_clf_same.b9_lo": {
+    "value": 0.0579,
+    "text": "0.06",
+    "tier": "R",
+    "source": "min over ae64-s0|c10x-s0, ae64-s1|c10x-s1 of the same"
+  },
+  "nn.ae64_clf_same.b9_hi": {
+    "value": 0.0596,
+    "text": "0.06",
+    "tier": "R",
+    "source": "max over ae64-s0|c10x-s0, ae64-s1|c10x-s1 of the same"
+  },
+  "nn.ae64_clf_same.pool": {
+    "value": 0.03796666666666666,
+    "text": "0.04",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at pool, mean over ae64-s0|c10x-s0, ae64-s1|c10x-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae64_clf_same.pool_lo": {
+    "value": 0.03713333333333334,
+    "text": "0.04",
+    "tier": "R",
+    "source": "min over ae64-s0|c10x-s0, ae64-s1|c10x-s1 of the same"
+  },
+  "nn.ae64_clf_same.pool_hi": {
+    "value": 0.038799999999999994,
+    "text": "0.04",
+    "tier": "R",
+    "source": "max over ae64-s0|c10x-s0, ae64-s1|c10x-s1 of the same"
+  },
+  "nn.ae64_clf_same.last": {
+    "value": 0.03163333333333333,
+    "text": "0.03",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at last, mean over ae64-s0|c10x-s0, ae64-s1|c10x-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae64_clf_same.last_lo": {
+    "value": 0.030966666666666667,
+    "text": "0.03",
+    "tier": "R",
+    "source": "min over ae64-s0|c10x-s0, ae64-s1|c10x-s1 of the same"
+  },
+  "nn.ae64_clf_same.last_hi": {
+    "value": 0.0323,
+    "text": "0.03",
+    "tier": "R",
+    "source": "max over ae64-s0|c10x-s0, ae64-s1|c10x-s1 of the same"
+  },
+  "nn.ae10_ae64_same.stem": {
+    "value": 0.8382833333333334,
+    "text": "0.84",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at stem, mean over ae10-s0|ae64-s0, ae10-s1|ae64-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae10_ae64_same.stem_lo": {
+    "value": 0.8023,
+    "text": "0.80",
+    "tier": "R",
+    "source": "min over ae10-s0|ae64-s0, ae10-s1|ae64-s1 of the same"
+  },
+  "nn.ae10_ae64_same.stem_hi": {
+    "value": 0.8742666666666667,
+    "text": "0.87",
+    "tier": "R",
+    "source": "max over ae10-s0|ae64-s0, ae10-s1|ae64-s1 of the same"
+  },
+  "nn.ae10_ae64_same.b1": {
+    "value": 0.7796666666666667,
+    "text": "0.78",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b1, mean over ae10-s0|ae64-s0, ae10-s1|ae64-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae10_ae64_same.b2": {
+    "value": 0.76945,
+    "text": "0.77",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b2, mean over ae10-s0|ae64-s0, ae10-s1|ae64-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae10_ae64_same.b3": {
+    "value": 0.7763333333333333,
+    "text": "0.78",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b3, mean over ae10-s0|ae64-s0, ae10-s1|ae64-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae10_ae64_same.b3_lo": {
+    "value": 0.7444333333333333,
+    "text": "0.74",
+    "tier": "R",
+    "source": "min over ae10-s0|ae64-s0, ae10-s1|ae64-s1 of the same"
+  },
+  "nn.ae10_ae64_same.b3_hi": {
+    "value": 0.8082333333333334,
+    "text": "0.81",
+    "tier": "R",
+    "source": "max over ae10-s0|ae64-s0, ae10-s1|ae64-s1 of the same"
+  },
+  "nn.ae10_ae64_same.b4": {
+    "value": 0.6813833333333335,
+    "text": "0.68",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b4, mean over ae10-s0|ae64-s0, ae10-s1|ae64-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae10_ae64_same.b5": {
+    "value": 0.6504833333333333,
+    "text": "0.65",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b5, mean over ae10-s0|ae64-s0, ae10-s1|ae64-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae10_ae64_same.b6": {
+    "value": 0.5791499999999999,
+    "text": "0.58",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b6, mean over ae10-s0|ae64-s0, ae10-s1|ae64-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae10_ae64_same.b6_lo": {
+    "value": 0.5667666666666666,
+    "text": "0.57",
+    "tier": "R",
+    "source": "min over ae10-s0|ae64-s0, ae10-s1|ae64-s1 of the same"
+  },
+  "nn.ae10_ae64_same.b6_hi": {
+    "value": 0.5915333333333332,
+    "text": "0.59",
+    "tier": "R",
+    "source": "max over ae10-s0|ae64-s0, ae10-s1|ae64-s1 of the same"
+  },
+  "nn.ae10_ae64_same.b7": {
+    "value": 0.4365833333333333,
+    "text": "0.44",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b7, mean over ae10-s0|ae64-s0, ae10-s1|ae64-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae10_ae64_same.b8": {
+    "value": 0.35133333333333333,
+    "text": "0.35",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b8, mean over ae10-s0|ae64-s0, ae10-s1|ae64-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae10_ae64_same.b9": {
+    "value": 0.22438333333333332,
+    "text": "0.22",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b9, mean over ae10-s0|ae64-s0, ae10-s1|ae64-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae10_ae64_same.b9_lo": {
+    "value": 0.2213,
+    "text": "0.22",
+    "tier": "R",
+    "source": "min over ae10-s0|ae64-s0, ae10-s1|ae64-s1 of the same"
+  },
+  "nn.ae10_ae64_same.b9_hi": {
+    "value": 0.22746666666666665,
+    "text": "0.23",
+    "tier": "R",
+    "source": "max over ae10-s0|ae64-s0, ae10-s1|ae64-s1 of the same"
+  },
+  "nn.ae10_ae64_same.pool": {
+    "value": 0.1856,
+    "text": "0.19",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at pool, mean over ae10-s0|ae64-s0, ae10-s1|ae64-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae10_ae64_same.pool_lo": {
+    "value": 0.18396666666666667,
+    "text": "0.18",
+    "tier": "R",
+    "source": "min over ae10-s0|ae64-s0, ae10-s1|ae64-s1 of the same"
+  },
+  "nn.ae10_ae64_same.pool_hi": {
+    "value": 0.18723333333333333,
+    "text": "0.19",
+    "tier": "R",
+    "source": "max over ae10-s0|ae64-s0, ae10-s1|ae64-s1 of the same"
+  },
+  "nn.ae10_ae64_same.last": {
+    "value": 0.20975,
+    "text": "0.21",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at last, mean over ae10-s0|ae64-s0, ae10-s1|ae64-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae10_ae64_same.last_lo": {
+    "value": 0.20973333333333333,
+    "text": "0.21",
+    "tier": "R",
+    "source": "min over ae10-s0|ae64-s0, ae10-s1|ae64-s1 of the same"
+  },
+  "nn.ae10_ae64_same.last_hi": {
+    "value": 0.20976666666666668,
+    "text": "0.21",
+    "tier": "R",
+    "source": "max over ae10-s0|ae64-s0, ae10-s1|ae64-s1 of the same"
+  },
+  "nn.ae10_ae64_diff.stem": {
+    "value": 0.8227833333333334,
+    "text": "0.82",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at stem, mean over ae10-s0|ae64-s1, ae10-s1|ae64-s0; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae10_ae64_diff.stem_lo": {
+    "value": 0.7905333333333334,
+    "text": "0.79",
+    "tier": "R",
+    "source": "min over ae10-s0|ae64-s1, ae10-s1|ae64-s0 of the same"
+  },
+  "nn.ae10_ae64_diff.stem_hi": {
+    "value": 0.8550333333333333,
+    "text": "0.86",
+    "tier": "R",
+    "source": "max over ae10-s0|ae64-s1, ae10-s1|ae64-s0 of the same"
+  },
+  "nn.ae10_ae64_diff.b1": {
+    "value": 0.7710833333333333,
+    "text": "0.77",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b1, mean over ae10-s0|ae64-s1, ae10-s1|ae64-s0; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae10_ae64_diff.b2": {
+    "value": 0.7838666666666667,
+    "text": "0.78",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b2, mean over ae10-s0|ae64-s1, ae10-s1|ae64-s0; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae10_ae64_diff.b3": {
+    "value": 0.76575,
+    "text": "0.77",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b3, mean over ae10-s0|ae64-s1, ae10-s1|ae64-s0; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae10_ae64_diff.b3_lo": {
+    "value": 0.7459,
+    "text": "0.75",
+    "tier": "R",
+    "source": "min over ae10-s0|ae64-s1, ae10-s1|ae64-s0 of the same"
+  },
+  "nn.ae10_ae64_diff.b3_hi": {
+    "value": 0.7856000000000001,
+    "text": "0.79",
+    "tier": "R",
+    "source": "max over ae10-s0|ae64-s1, ae10-s1|ae64-s0 of the same"
+  },
+  "nn.ae10_ae64_diff.b4": {
+    "value": 0.67085,
+    "text": "0.67",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b4, mean over ae10-s0|ae64-s1, ae10-s1|ae64-s0; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae10_ae64_diff.b5": {
+    "value": 0.6382000000000001,
+    "text": "0.64",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b5, mean over ae10-s0|ae64-s1, ae10-s1|ae64-s0; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae10_ae64_diff.b6": {
+    "value": 0.57055,
+    "text": "0.57",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b6, mean over ae10-s0|ae64-s1, ae10-s1|ae64-s0; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae10_ae64_diff.b6_lo": {
+    "value": 0.5668666666666666,
+    "text": "0.57",
+    "tier": "R",
+    "source": "min over ae10-s0|ae64-s1, ae10-s1|ae64-s0 of the same"
+  },
+  "nn.ae10_ae64_diff.b6_hi": {
+    "value": 0.5742333333333334,
+    "text": "0.57",
+    "tier": "R",
+    "source": "max over ae10-s0|ae64-s1, ae10-s1|ae64-s0 of the same"
+  },
+  "nn.ae10_ae64_diff.b7": {
+    "value": 0.4379666666666667,
+    "text": "0.44",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b7, mean over ae10-s0|ae64-s1, ae10-s1|ae64-s0; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae10_ae64_diff.b8": {
+    "value": 0.35033333333333333,
+    "text": "0.35",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b8, mean over ae10-s0|ae64-s1, ae10-s1|ae64-s0; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae10_ae64_diff.b9": {
+    "value": 0.2248,
+    "text": "0.22",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b9, mean over ae10-s0|ae64-s1, ae10-s1|ae64-s0; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae10_ae64_diff.b9_lo": {
+    "value": 0.217,
+    "text": "0.22",
+    "tier": "R",
+    "source": "min over ae10-s0|ae64-s1, ae10-s1|ae64-s0 of the same"
+  },
+  "nn.ae10_ae64_diff.b9_hi": {
+    "value": 0.2326,
+    "text": "0.23",
+    "tier": "R",
+    "source": "max over ae10-s0|ae64-s1, ae10-s1|ae64-s0 of the same"
+  },
+  "nn.ae10_ae64_diff.pool": {
+    "value": 0.18551666666666666,
+    "text": "0.19",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at pool, mean over ae10-s0|ae64-s1, ae10-s1|ae64-s0; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae10_ae64_diff.pool_lo": {
+    "value": 0.1792,
+    "text": "0.18",
+    "tier": "R",
+    "source": "min over ae10-s0|ae64-s1, ae10-s1|ae64-s0 of the same"
+  },
+  "nn.ae10_ae64_diff.pool_hi": {
+    "value": 0.19183333333333333,
+    "text": "0.19",
+    "tier": "R",
+    "source": "max over ae10-s0|ae64-s1, ae10-s1|ae64-s0 of the same"
+  },
+  "nn.ae10_ae64_diff.last": {
+    "value": 0.20991666666666664,
+    "text": "0.21",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at last, mean over ae10-s0|ae64-s1, ae10-s1|ae64-s0; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae10_ae64_diff.last_lo": {
+    "value": 0.20693333333333333,
+    "text": "0.21",
+    "tier": "R",
+    "source": "min over ae10-s0|ae64-s1, ae10-s1|ae64-s0 of the same"
+  },
+  "nn.ae10_ae64_diff.last_hi": {
+    "value": 0.21289999999999998,
+    "text": "0.21",
+    "tier": "R",
+    "source": "max over ae10-s0|ae64-s1, ae10-s1|ae64-s0 of the same"
+  },
+  "nn.clf_init.stem": {
+    "value": 0.267625,
+    "text": "0.27",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at stem, mean over c10x-s0|init-s0, c10x-s0|init-s1, c10x-s1|init-s0, c10x-s1|init-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.clf_init.stem_lo": {
+    "value": 0.24203333333333335,
+    "text": "0.24",
+    "tier": "R",
+    "source": "min over c10x-s0|init-s0, c10x-s0|init-s1, c10x-s1|init-s0, c10x-s1|init-s1 of the same"
+  },
+  "nn.clf_init.stem_hi": {
+    "value": 0.29646666666666666,
+    "text": "0.30",
+    "tier": "R",
+    "source": "max over c10x-s0|init-s0, c10x-s0|init-s1, c10x-s1|init-s0, c10x-s1|init-s1 of the same"
+  },
+  "nn.clf_init.b1": {
+    "value": 0.22267499999999998,
+    "text": "0.22",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b1, mean over c10x-s0|init-s0, c10x-s0|init-s1, c10x-s1|init-s0, c10x-s1|init-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.clf_init.b2": {
+    "value": 0.17046666666666666,
+    "text": "0.17",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b2, mean over c10x-s0|init-s0, c10x-s0|init-s1, c10x-s1|init-s0, c10x-s1|init-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.clf_init.b3": {
+    "value": 0.13782499999999998,
+    "text": "0.14",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b3, mean over c10x-s0|init-s0, c10x-s0|init-s1, c10x-s1|init-s0, c10x-s1|init-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.clf_init.b3_lo": {
+    "value": 0.11133333333333333,
+    "text": "0.11",
+    "tier": "R",
+    "source": "min over c10x-s0|init-s0, c10x-s0|init-s1, c10x-s1|init-s0, c10x-s1|init-s1 of the same"
+  },
+  "nn.clf_init.b3_hi": {
+    "value": 0.16683333333333333,
+    "text": "0.17",
+    "tier": "R",
+    "source": "max over c10x-s0|init-s0, c10x-s0|init-s1, c10x-s1|init-s0, c10x-s1|init-s1 of the same"
+  },
+  "nn.clf_init.b4": {
+    "value": 0.12035833333333334,
+    "text": "0.12",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b4, mean over c10x-s0|init-s0, c10x-s0|init-s1, c10x-s1|init-s0, c10x-s1|init-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.clf_init.b5": {
+    "value": 0.09786666666666666,
+    "text": "0.10",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b5, mean over c10x-s0|init-s0, c10x-s0|init-s1, c10x-s1|init-s0, c10x-s1|init-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.clf_init.b6": {
+    "value": 0.084525,
+    "text": "0.08",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b6, mean over c10x-s0|init-s0, c10x-s0|init-s1, c10x-s1|init-s0, c10x-s1|init-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.clf_init.b6_lo": {
+    "value": 0.0805,
+    "text": "0.08",
+    "tier": "R",
+    "source": "min over c10x-s0|init-s0, c10x-s0|init-s1, c10x-s1|init-s0, c10x-s1|init-s1 of the same"
+  },
+  "nn.clf_init.b6_hi": {
+    "value": 0.0873,
+    "text": "0.09",
+    "tier": "R",
+    "source": "max over c10x-s0|init-s0, c10x-s0|init-s1, c10x-s1|init-s0, c10x-s1|init-s1 of the same"
+  },
+  "nn.clf_init.b7": {
+    "value": 0.06576666666666667,
+    "text": "0.07",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b7, mean over c10x-s0|init-s0, c10x-s0|init-s1, c10x-s1|init-s0, c10x-s1|init-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.clf_init.b8": {
+    "value": 0.05013333333333333,
+    "text": "0.05",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b8, mean over c10x-s0|init-s0, c10x-s0|init-s1, c10x-s1|init-s0, c10x-s1|init-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.clf_init.b9": {
+    "value": 0.03445833333333333,
+    "text": "0.03",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b9, mean over c10x-s0|init-s0, c10x-s0|init-s1, c10x-s1|init-s0, c10x-s1|init-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.clf_init.b9_lo": {
+    "value": 0.03373333333333333,
+    "text": "0.03",
+    "tier": "R",
+    "source": "min over c10x-s0|init-s0, c10x-s0|init-s1, c10x-s1|init-s0, c10x-s1|init-s1 of the same"
+  },
+  "nn.clf_init.b9_hi": {
+    "value": 0.0351,
+    "text": "0.04",
+    "tier": "R",
+    "source": "max over c10x-s0|init-s0, c10x-s0|init-s1, c10x-s1|init-s0, c10x-s1|init-s1 of the same"
+  },
+  "nn.clf_init.pool": {
+    "value": 0.023450000000000002,
+    "text": "0.02",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at pool, mean over c10x-s0|init-s0, c10x-s0|init-s1, c10x-s1|init-s0, c10x-s1|init-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.clf_init.pool_lo": {
+    "value": 0.022633333333333335,
+    "text": "0.02",
+    "tier": "R",
+    "source": "min over c10x-s0|init-s0, c10x-s0|init-s1, c10x-s1|init-s0, c10x-s1|init-s1 of the same"
+  },
+  "nn.clf_init.pool_hi": {
+    "value": 0.024566666666666667,
+    "text": "0.02",
+    "tier": "R",
+    "source": "max over c10x-s0|init-s0, c10x-s0|init-s1, c10x-s1|init-s0, c10x-s1|init-s1 of the same"
+  },
+  "nn.clf_init.last": {
+    "value": 0.016775,
+    "text": "0.02",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at last, mean over c10x-s0|init-s0, c10x-s0|init-s1, c10x-s1|init-s0, c10x-s1|init-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.clf_init.last_lo": {
+    "value": 0.015933333333333334,
+    "text": "0.02",
+    "tier": "R",
+    "source": "min over c10x-s0|init-s0, c10x-s0|init-s1, c10x-s1|init-s0, c10x-s1|init-s1 of the same"
+  },
+  "nn.clf_init.last_hi": {
+    "value": 0.017266666666666666,
+    "text": "0.02",
+    "tier": "R",
+    "source": "max over c10x-s0|init-s0, c10x-s0|init-s1, c10x-s1|init-s0, c10x-s1|init-s1 of the same"
+  },
+  "nn.ae10_init.stem": {
+    "value": 0.5577000000000001,
+    "text": "0.56",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at stem, mean over ae10-s0|init-s0, ae10-s0|init-s1, ae10-s1|init-s0, ae10-s1|init-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae10_init.stem_lo": {
+    "value": 0.5147666666666667,
+    "text": "0.51",
+    "tier": "R",
+    "source": "min over ae10-s0|init-s0, ae10-s0|init-s1, ae10-s1|init-s0, ae10-s1|init-s1 of the same"
+  },
+  "nn.ae10_init.stem_hi": {
+    "value": 0.6150666666666668,
+    "text": "0.62",
+    "tier": "R",
+    "source": "max over ae10-s0|init-s0, ae10-s0|init-s1, ae10-s1|init-s0, ae10-s1|init-s1 of the same"
+  },
+  "nn.ae10_init.b1": {
+    "value": 0.4377,
+    "text": "0.44",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b1, mean over ae10-s0|init-s0, ae10-s0|init-s1, ae10-s1|init-s0, ae10-s1|init-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae10_init.b2": {
+    "value": 0.3391916666666666,
+    "text": "0.34",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b2, mean over ae10-s0|init-s0, ae10-s0|init-s1, ae10-s1|init-s0, ae10-s1|init-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae10_init.b3": {
+    "value": 0.2757,
+    "text": "0.28",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b3, mean over ae10-s0|init-s0, ae10-s0|init-s1, ae10-s1|init-s0, ae10-s1|init-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae10_init.b3_lo": {
+    "value": 0.24006666666666668,
+    "text": "0.24",
+    "tier": "R",
+    "source": "min over ae10-s0|init-s0, ae10-s0|init-s1, ae10-s1|init-s0, ae10-s1|init-s1 of the same"
+  },
+  "nn.ae10_init.b3_hi": {
+    "value": 0.3217333333333333,
+    "text": "0.32",
+    "tier": "R",
+    "source": "max over ae10-s0|init-s0, ae10-s0|init-s1, ae10-s1|init-s0, ae10-s1|init-s1 of the same"
+  },
+  "nn.ae10_init.b4": {
+    "value": 0.27489166666666665,
+    "text": "0.27",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b4, mean over ae10-s0|init-s0, ae10-s0|init-s1, ae10-s1|init-s0, ae10-s1|init-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae10_init.b5": {
+    "value": 0.25334999999999996,
+    "text": "0.25",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b5, mean over ae10-s0|init-s0, ae10-s0|init-s1, ae10-s1|init-s0, ae10-s1|init-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae10_init.b6": {
+    "value": 0.21343333333333334,
+    "text": "0.21",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b6, mean over ae10-s0|init-s0, ae10-s0|init-s1, ae10-s1|init-s0, ae10-s1|init-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae10_init.b6_lo": {
+    "value": 0.17043333333333335,
+    "text": "0.17",
+    "tier": "R",
+    "source": "min over ae10-s0|init-s0, ae10-s0|init-s1, ae10-s1|init-s0, ae10-s1|init-s1 of the same"
+  },
+  "nn.ae10_init.b6_hi": {
+    "value": 0.255,
+    "text": "0.26",
+    "tier": "R",
+    "source": "max over ae10-s0|init-s0, ae10-s0|init-s1, ae10-s1|init-s0, ae10-s1|init-s1 of the same"
+  },
+  "nn.ae10_init.b7": {
+    "value": 0.19756666666666667,
+    "text": "0.20",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b7, mean over ae10-s0|init-s0, ae10-s0|init-s1, ae10-s1|init-s0, ae10-s1|init-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae10_init.b8": {
+    "value": 0.16752499999999998,
+    "text": "0.17",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b8, mean over ae10-s0|init-s0, ae10-s0|init-s1, ae10-s1|init-s0, ae10-s1|init-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae10_init.b9": {
+    "value": 0.12900833333333334,
+    "text": "0.13",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b9, mean over ae10-s0|init-s0, ae10-s0|init-s1, ae10-s1|init-s0, ae10-s1|init-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae10_init.b9_lo": {
+    "value": 0.10343333333333334,
+    "text": "0.10",
+    "tier": "R",
+    "source": "min over ae10-s0|init-s0, ae10-s0|init-s1, ae10-s1|init-s0, ae10-s1|init-s1 of the same"
+  },
+  "nn.ae10_init.b9_hi": {
+    "value": 0.15776666666666667,
+    "text": "0.16",
+    "tier": "R",
+    "source": "max over ae10-s0|init-s0, ae10-s0|init-s1, ae10-s1|init-s0, ae10-s1|init-s1 of the same"
+  },
+  "nn.ae10_init.pool": {
+    "value": 0.11396666666666666,
+    "text": "0.11",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at pool, mean over ae10-s0|init-s0, ae10-s0|init-s1, ae10-s1|init-s0, ae10-s1|init-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae10_init.pool_lo": {
+    "value": 0.10406666666666667,
+    "text": "0.10",
+    "tier": "R",
+    "source": "min over ae10-s0|init-s0, ae10-s0|init-s1, ae10-s1|init-s0, ae10-s1|init-s1 of the same"
+  },
+  "nn.ae10_init.pool_hi": {
+    "value": 0.1256,
+    "text": "0.13",
+    "tier": "R",
+    "source": "max over ae10-s0|init-s0, ae10-s0|init-s1, ae10-s1|init-s0, ae10-s1|init-s1 of the same"
+  },
+  "nn.ae10_init.last": {
+    "value": 0.05591666666666667,
+    "text": "0.06",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at last, mean over ae10-s0|init-s0, ae10-s0|init-s1, ae10-s1|init-s0, ae10-s1|init-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.ae10_init.last_lo": {
+    "value": 0.046,
+    "text": "0.05",
+    "tier": "R",
+    "source": "min over ae10-s0|init-s0, ae10-s0|init-s1, ae10-s1|init-s0, ae10-s1|init-s1 of the same"
+  },
+  "nn.ae10_init.last_hi": {
+    "value": 0.06763333333333334,
+    "text": "0.07",
+    "tier": "R",
+    "source": "max over ae10-s0|init-s0, ae10-s0|init-s1, ae10-s1|init-s0, ae10-s1|init-s1 of the same"
+  },
+  "nn.init_seeds.stem": {
+    "value": 0.5212333333333333,
+    "text": "0.52",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at stem, mean over init-s0|init-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.init_seeds.b1": {
+    "value": 0.41773333333333335,
+    "text": "0.42",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b1, mean over init-s0|init-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.init_seeds.b2": {
+    "value": 0.3002,
+    "text": "0.30",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b2, mean over init-s0|init-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.init_seeds.b3": {
+    "value": 0.17026666666666665,
+    "text": "0.17",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b3, mean over init-s0|init-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.init_seeds.b4": {
+    "value": 0.15843333333333334,
+    "text": "0.16",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b4, mean over init-s0|init-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.init_seeds.b5": {
+    "value": 0.13456666666666667,
+    "text": "0.13",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b5, mean over init-s0|init-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.init_seeds.b6": {
+    "value": 0.10996666666666667,
+    "text": "0.11",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b6, mean over init-s0|init-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.init_seeds.b7": {
+    "value": 0.10223333333333334,
+    "text": "0.10",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b7, mean over init-s0|init-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.init_seeds.b8": {
+    "value": 0.08803333333333334,
+    "text": "0.09",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b8, mean over init-s0|init-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.init_seeds.b9": {
+    "value": 0.08666666666666667,
+    "text": "0.09",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at b9, mean over init-s0|init-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.init_seeds.pool": {
+    "value": 0.08333333333333333,
+    "text": "0.08",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at pool, mean over init-s0|init-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "nn.init_seeds.last": {
+    "value": 0.04663333333333333,
+    "text": "0.05",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours): mean_i |N_A(i) & N_B(i)| / 15 at last, mean over init-s0|init-s1; = crw-depth-xp-results/compare_ae/c10.npz:nn[A,B,l,l]"
+  },
+  "ratio.ae10.stem": {
+    "value": 0.3959343202759946,
+    "text": "0.40",
+    "tier": "R",
+    "source": "nn.ae10_clf_diff.stem / nn.clf_seeds.stem"
+  },
+  "ratio.ae10.b1": {
+    "value": 0.3640462654381494,
+    "text": "0.36",
+    "tier": "R",
+    "source": "nn.ae10_clf_diff.b1 / nn.clf_seeds.b1"
+  },
+  "ratio.ae10.b2": {
+    "value": 0.3147862324432783,
+    "text": "0.31",
+    "tier": "R",
+    "source": "nn.ae10_clf_diff.b2 / nn.clf_seeds.b2"
+  },
+  "ratio.ae10.b3": {
+    "value": 0.3391398514851486,
+    "text": "0.34",
+    "tier": "R",
+    "source": "nn.ae10_clf_diff.b3 / nn.clf_seeds.b3"
+  },
+  "ratio.ae10.b4": {
+    "value": 0.23575103651531049,
+    "text": "0.24",
+    "tier": "R",
+    "source": "nn.ae10_clf_diff.b4 / nn.clf_seeds.b4"
+  },
+  "ratio.ae10.b5": {
+    "value": 0.21046554348396576,
+    "text": "0.21",
+    "tier": "R",
+    "source": "nn.ae10_clf_diff.b5 / nn.clf_seeds.b5"
+  },
+  "ratio.ae10.b6": {
+    "value": 0.17937958142993732,
+    "text": "0.18",
+    "tier": "R",
+    "source": "nn.ae10_clf_diff.b6 / nn.clf_seeds.b6"
+  },
+  "ratio.ae10.b7": {
+    "value": 0.151693906266912,
+    "text": "0.15",
+    "tier": "R",
+    "source": "nn.ae10_clf_diff.b7 / nn.clf_seeds.b7"
+  },
+  "ratio.ae10.b8": {
+    "value": 0.14652769361289544,
+    "text": "0.15",
+    "tier": "R",
+    "source": "nn.ae10_clf_diff.b8 / nn.clf_seeds.b8"
+  },
+  "ratio.ae10.b9": {
+    "value": 0.12194839307787392,
+    "text": "0.12",
+    "tier": "R",
+    "source": "nn.ae10_clf_diff.b9 / nn.clf_seeds.b9"
+  },
+  "ratio.ae10.pool": {
+    "value": 0.14477535955199186,
+    "text": "0.14",
+    "tier": "R",
+    "source": "nn.ae10_clf_diff.pool / nn.clf_seeds.pool"
+  },
+  "ratio.ae10.last": {
+    "value": 0.1280120481927711,
+    "text": "0.13",
+    "tier": "R",
+    "source": "nn.ae10_clf_diff.last / nn.clf_seeds.last"
+  },
+  "ratio.ae64.stem": {
+    "value": 0.36706843093584873,
+    "text": "0.37",
+    "tier": "R",
+    "source": "nn.ae64_clf_diff.stem / nn.clf_seeds.stem"
+  },
+  "ratio.ae64.b1": {
+    "value": 0.3784797098608116,
+    "text": "0.38",
+    "tier": "R",
+    "source": "nn.ae64_clf_diff.b1 / nn.clf_seeds.b1"
+  },
+  "ratio.ae64.b2": {
+    "value": 0.3366774708031075,
+    "text": "0.34",
+    "tier": "R",
+    "source": "nn.ae64_clf_diff.b2 / nn.clf_seeds.b2"
+  },
+  "ratio.ae64.b3": {
+    "value": 0.37209158415841587,
+    "text": "0.37",
+    "tier": "R",
+    "source": "nn.ae64_clf_diff.b3 / nn.clf_seeds.b3"
+  },
+  "ratio.ae64.b4": {
+    "value": 0.2804335880913133,
+    "text": "0.28",
+    "tier": "R",
+    "source": "nn.ae64_clf_diff.b4 / nn.clf_seeds.b4"
+  },
+  "ratio.ae64.b5": {
+    "value": 0.24605049073636698,
+    "text": "0.25",
+    "tier": "R",
+    "source": "nn.ae64_clf_diff.b5 / nn.clf_seeds.b5"
+  },
+  "ratio.ae64.b6": {
+    "value": 0.20617762668649742,
+    "text": "0.21",
+    "tier": "R",
+    "source": "nn.ae64_clf_diff.b6 / nn.clf_seeds.b6"
+  },
+  "ratio.ae64.b7": {
+    "value": 0.16968827795215935,
+    "text": "0.17",
+    "tier": "R",
+    "source": "nn.ae64_clf_diff.b7 / nn.clf_seeds.b7"
+  },
+  "ratio.ae64.b8": {
+    "value": 0.17400921100472674,
+    "text": "0.17",
+    "tier": "R",
+    "source": "nn.ae64_clf_diff.b8 / nn.clf_seeds.b8"
+  },
+  "ratio.ae64.b9": {
+    "value": 0.1367042645241038,
+    "text": "0.14",
+    "tier": "R",
+    "source": "nn.ae64_clf_diff.b9 / nn.clf_seeds.b9"
+  },
+  "ratio.ae64.pool": {
+    "value": 0.14579355988290696,
+    "text": "0.15",
+    "tier": "R",
+    "source": "nn.ae64_clf_diff.pool / nn.clf_seeds.pool"
+  },
+  "ratio.ae64.last": {
+    "value": 0.14390060240963853,
+    "text": "0.14",
+    "tier": "R",
+    "source": "nn.ae64_clf_diff.last / nn.clf_seeds.last"
+  },
+  "nn.same_minus_diff.max": {
+    "value": 0.0010999999999999899,
+    "text": "0.0011",
+    "tier": "R",
+    "source": "max over headline sites of |nn.ae10_clf_same - nn.ae10_clf_diff|"
+  },
+  "nn.same_minus_diff.all_max": {
+    "value": 0.0015833333333332977,
+    "text": "0.0016",
+    "tier": "R",
+    "source": "max over all 12 sites of |nn.ae10_clf_same - nn.ae10_clf_diff|"
+  },
+  "gap.ae10.stem": {
+    "value": 0.4610833333333333,
+    "text": "0.46",
+    "tier": "R",
+    "source": "nn.clf_seeds.stem - nn.ae10_clf_diff.stem"
+  },
+  "gap.ae10.b1": {
+    "value": 0.4325333333333333,
+    "text": "0.43",
+    "tier": "R",
+    "source": "nn.clf_seeds.b1 - nn.ae10_clf_diff.b1"
+  },
+  "gap.ae10.b2": {
+    "value": 0.44395,
+    "text": "0.44",
+    "tier": "R",
+    "source": "nn.clf_seeds.b2 - nn.ae10_clf_diff.b2"
+  },
+  "gap.ae10.b3": {
+    "value": 0.35598333333333326,
+    "text": "0.36",
+    "tier": "R",
+    "source": "nn.clf_seeds.b3 - nn.ae10_clf_diff.b3"
+  },
+  "gap.ae10.b4": {
+    "value": 0.5099833333333332,
+    "text": "0.51",
+    "tier": "R",
+    "source": "nn.clf_seeds.b4 - nn.ae10_clf_diff.b4"
+  },
+  "gap.ae10.b5": {
+    "value": 0.5014333333333334,
+    "text": "0.50",
+    "tier": "R",
+    "source": "nn.clf_seeds.b5 - nn.ae10_clf_diff.b5"
+  },
+  "gap.ae10.b6": {
+    "value": 0.5149666666666667,
+    "text": "0.51",
+    "tier": "R",
+    "source": "nn.clf_seeds.b6 - nn.ae10_clf_diff.b6"
+  },
+  "gap.ae10.b7": {
+    "value": 0.5225,
+    "text": "0.52",
+    "tier": "R",
+    "source": "nn.clf_seeds.b7 - nn.ae10_clf_diff.b7"
+  },
+  "gap.ae10.b8": {
+    "value": 0.4694666666666666,
+    "text": "0.47",
+    "tier": "R",
+    "source": "nn.clf_seeds.b8 - nn.ae10_clf_diff.b8"
+  },
+  "gap.ae10.b9": {
+    "value": 0.37885,
+    "text": "0.38",
+    "tier": "R",
+    "source": "nn.clf_seeds.b9 - nn.ae10_clf_diff.b9"
+  },
+  "gap.ae10.pool": {
+    "value": 0.22398333333333337,
+    "text": "0.22",
+    "tier": "R",
+    "source": "nn.clf_seeds.pool - nn.ae10_clf_diff.pool"
+  },
+  "gap.ae10.last": {
+    "value": 0.193,
+    "text": "0.19",
+    "tier": "R",
+    "source": "nn.clf_seeds.last - nn.ae10_clf_diff.last"
+  },
+  "perm.ae10_clf_diff.stem": {
+    "value": 0.007149999961256981,
+    "text": "0.007",
+    "tier": "P",
+    "source": "crw-depth-xp-results/compare_ae/c10.npz:nn_perm, mean over ae10_clf_diff pairs at stem"
+  },
+  "perm.ae10_clf_diff.b9": {
+    "value": 0.0069333333522081375,
+    "text": "0.007",
+    "tier": "P",
+    "source": "crw-depth-xp-results/compare_ae/c10.npz:nn_perm, mean over ae10_clf_diff pairs at b9"
+  },
+  "perm.ae10_clf_diff.pool": {
+    "value": 0.0069333333522081375,
+    "text": "0.007",
+    "tier": "P",
+    "source": "crw-depth-xp-results/compare_ae/c10.npz:nn_perm, mean over ae10_clf_diff pairs at pool"
+  },
+  "perm.clf_seeds.stem": {
+    "value": 0.00713333347812295,
+    "text": "0.007",
+    "tier": "P",
+    "source": "crw-depth-xp-results/compare_ae/c10.npz:nn_perm, mean over clf_seeds pairs at stem"
+  },
+  "perm.clf_seeds.b9": {
+    "value": 0.007266666740179062,
+    "text": "0.007",
+    "tier": "P",
+    "source": "crw-depth-xp-results/compare_ae/c10.npz:nn_perm, mean over clf_seeds pairs at b9"
+  },
+  "perm.clf_seeds.pool": {
+    "value": 0.007699999958276749,
+    "text": "0.008",
+    "tier": "P",
+    "source": "crw-depth-xp-results/compare_ae/c10.npz:nn_perm, mean over clf_seeds pairs at pool"
+  },
+  "within.ae10_clf_diff.stem": {
+    "value": 0.012649999931454659,
+    "text": "0.013",
+    "tier": "P",
+    "source": "crw-depth-xp-results/compare_ae/c10.npz:nn_within, mean over ae10_clf_diff pairs at stem"
+  },
+  "within.ae10_clf_diff.b9": {
+    "value": 0.01556666661053896,
+    "text": "0.016",
+    "tier": "P",
+    "source": "crw-depth-xp-results/compare_ae/c10.npz:nn_within, mean over ae10_clf_diff pairs at b9"
+  },
+  "within.ae10_clf_diff.pool": {
+    "value": 0.016249999403953552,
+    "text": "0.016",
+    "tier": "P",
+    "source": "crw-depth-xp-results/compare_ae/c10.npz:nn_within, mean over ae10_clf_diff pairs at pool"
+  },
+  "within.clf_seeds.stem": {
+    "value": 0.014933333732187748,
+    "text": "0.015",
+    "tier": "P",
+    "source": "crw-depth-xp-results/compare_ae/c10.npz:nn_within, mean over clf_seeds pairs at stem"
+  },
+  "within.clf_seeds.b9": {
+    "value": 0.05876666679978371,
+    "text": "0.059",
+    "tier": "P",
+    "source": "crw-depth-xp-results/compare_ae/c10.npz:nn_within, mean over clf_seeds pairs at b9"
+  },
+  "within.clf_seeds.pool": {
+    "value": 0.06106666848063469,
+    "text": "0.061",
+    "tier": "P",
+    "source": "crw-depth-xp-results/compare_ae/c10.npz:nn_within, mean over clf_seeds pairs at pool"
+  },
+  "cka.clf_seeds.stem": {
+    "value": 0.977415144443512,
+    "text": "0.98",
+    "tier": "S",
+    "source": "crw-depth-xp-results/compare_ae/c10.npz:cka, mean over clf_seeds pairs at stem"
+  },
+  "cka.clf_seeds.b9": {
+    "value": 0.843921959400177,
+    "text": "0.84",
+    "tier": "S",
+    "source": "crw-depth-xp-results/compare_ae/c10.npz:cka, mean over clf_seeds pairs at b9"
+  },
+  "joint_trunk_cos.clf_seeds.stem": {
+    "value": 0.9530364666086028,
+    "text": "0.95",
+    "tier": "S",
+    "source": "crw-depth-xp-results/compare_ae/c10.npz:knn15_trunk_cos, mean over clf_seeds pairs at stem"
+  },
+  "joint_trunk_cos.clf_seeds.b9": {
+    "value": 0.95174591703041,
+    "text": "0.95",
+    "tier": "S",
+    "source": "crw-depth-xp-results/compare_ae/c10.npz:knn15_trunk_cos, mean over clf_seeds pairs at b9"
+  },
+  "joint_full_cos.clf_seeds.stem": {
+    "value": 0.9578345985230603,
+    "text": "0.96",
+    "tier": "S",
+    "source": "crw-depth-xp-results/compare_ae/c10.npz:knn15_full_cos, mean over clf_seeds pairs at stem"
+  },
+  "joint_full_cos.clf_seeds.b9": {
+    "value": 0.9623052685004427,
+    "text": "0.96",
+    "tier": "S",
+    "source": "crw-depth-xp-results/compare_ae/c10.npz:knn15_full_cos, mean over clf_seeds pairs at b9"
+  },
+  "cka.ae10_seeds.stem": {
+    "value": 0.992400050163269,
+    "text": "0.99",
+    "tier": "S",
+    "source": "crw-depth-xp-results/compare_ae/c10.npz:cka, mean over ae10_seeds pairs at stem"
+  },
+  "cka.ae10_seeds.b9": {
+    "value": 0.952043890953064,
+    "text": "0.95",
+    "tier": "S",
+    "source": "crw-depth-xp-results/compare_ae/c10.npz:cka, mean over ae10_seeds pairs at b9"
+  },
+  "joint_trunk_cos.ae10_seeds.stem": {
+    "value": 0.9741941048096917,
+    "text": "0.97",
+    "tier": "S",
+    "source": "crw-depth-xp-results/compare_ae/c10.npz:knn15_trunk_cos, mean over ae10_seeds pairs at stem"
+  },
+  "joint_trunk_cos.ae10_seeds.b9": {
+    "value": 0.95664796724404,
+    "text": "0.96",
+    "tier": "S",
+    "source": "crw-depth-xp-results/compare_ae/c10.npz:knn15_trunk_cos, mean over ae10_seeds pairs at b9"
+  },
+  "joint_full_cos.ae10_seeds.stem": {
+    "value": 0.9709928268994759,
+    "text": "0.97",
+    "tier": "S",
+    "source": "crw-depth-xp-results/compare_ae/c10.npz:knn15_full_cos, mean over ae10_seeds pairs at stem"
+  },
+  "joint_full_cos.ae10_seeds.b9": {
+    "value": 0.9472460267193632,
+    "text": "0.95",
+    "tier": "S",
+    "source": "crw-depth-xp-results/compare_ae/c10.npz:knn15_full_cos, mean over ae10_seeds pairs at b9"
+  },
+  "cka.ae64_seeds.stem": {
+    "value": 0.9855141043663025,
+    "text": "0.99",
+    "tier": "S",
+    "source": "crw-depth-xp-results/compare_ae/c10.npz:cka, mean over ae64_seeds pairs at stem"
+  },
+  "cka.ae64_seeds.b9": {
+    "value": 0.9541104435920715,
+    "text": "0.95",
+    "tier": "S",
+    "source": "crw-depth-xp-results/compare_ae/c10.npz:cka, mean over ae64_seeds pairs at b9"
+  },
+  "joint_trunk_cos.ae64_seeds.stem": {
+    "value": 0.9155217253484272,
+    "text": "0.92",
+    "tier": "S",
+    "source": "crw-depth-xp-results/compare_ae/c10.npz:knn15_trunk_cos, mean over ae64_seeds pairs at stem"
+  },
+  "joint_trunk_cos.ae64_seeds.b9": {
+    "value": 0.8539807157755105,
+    "text": "0.85",
+    "tier": "S",
+    "source": "crw-depth-xp-results/compare_ae/c10.npz:knn15_trunk_cos, mean over ae64_seeds pairs at b9"
+  },
+  "joint_full_cos.ae64_seeds.stem": {
+    "value": 0.9527256952217026,
+    "text": "0.95",
+    "tier": "S",
+    "source": "crw-depth-xp-results/compare_ae/c10.npz:knn15_full_cos, mean over ae64_seeds pairs at stem"
+  },
+  "joint_full_cos.ae64_seeds.b9": {
+    "value": 0.9152844927024244,
+    "text": "0.92",
+    "tier": "S",
+    "source": "crw-depth-xp-results/compare_ae/c10.npz:knn15_full_cos, mean over ae64_seeds pairs at b9"
+  },
+  "cka.ae10_clf_diff.stem": {
+    "value": 0.7079451978206635,
+    "text": "0.71",
+    "tier": "S",
+    "source": "crw-depth-xp-results/compare_ae/c10.npz:cka, mean over ae10_clf_diff pairs at stem"
+  },
+  "cka.ae10_clf_diff.b9": {
+    "value": 0.18888740241527557,
+    "text": "0.19",
+    "tier": "S",
+    "source": "crw-depth-xp-results/compare_ae/c10.npz:cka, mean over ae10_clf_diff pairs at b9"
+  },
+  "joint_trunk_cos.ae10_clf_diff.stem": {
+    "value": 0.5340992887563352,
+    "text": "0.53",
+    "tier": "S",
+    "source": "crw-depth-xp-results/compare_ae/c10.npz:knn15_trunk_cos, mean over ae10_clf_diff pairs at stem"
+  },
+  "joint_trunk_cos.ae10_clf_diff.b9": {
+    "value": 0.31918399784023443,
+    "text": "0.32",
+    "tier": "S",
+    "source": "crw-depth-xp-results/compare_ae/c10.npz:knn15_trunk_cos, mean over ae10_clf_diff pairs at b9"
+  },
+  "joint_full_cos.ae10_clf_diff.stem": {
+    "value": 0.528790214831383,
+    "text": "0.53",
+    "tier": "S",
+    "source": "crw-depth-xp-results/compare_ae/c10.npz:knn15_full_cos, mean over ae10_clf_diff pairs at stem"
+  },
+  "joint_full_cos.ae10_clf_diff.b9": {
+    "value": 0.28062796925847694,
+    "text": "0.28",
+    "tier": "S",
+    "source": "crw-depth-xp-results/compare_ae/c10.npz:knn15_full_cos, mean over ae10_clf_diff pairs at b9"
+  },
+  "cka.ae10_clf_same.stem": {
+    "value": 0.7138720452785492,
+    "text": "0.71",
+    "tier": "S",
+    "source": "crw-depth-xp-results/compare_ae/c10.npz:cka, mean over ae10_clf_same pairs at stem"
+  },
+  "cka.ae10_clf_same.b9": {
+    "value": 0.18896842002868652,
+    "text": "0.19",
+    "tier": "S",
+    "source": "crw-depth-xp-results/compare_ae/c10.npz:cka, mean over ae10_clf_same pairs at b9"
+  },
+  "joint_trunk_cos.ae10_clf_same.stem": {
+    "value": 0.5299447227766847,
+    "text": "0.53",
+    "tier": "S",
+    "source": "crw-depth-xp-results/compare_ae/c10.npz:knn15_trunk_cos, mean over ae10_clf_same pairs at stem"
+  },
+  "joint_trunk_cos.ae10_clf_same.b9": {
+    "value": 0.31495052939157125,
+    "text": "0.31",
+    "tier": "S",
+    "source": "crw-depth-xp-results/compare_ae/c10.npz:knn15_trunk_cos, mean over ae10_clf_same pairs at b9"
+  },
+  "joint_full_cos.ae10_clf_same.stem": {
+    "value": 0.5308504622498041,
+    "text": "0.53",
+    "tier": "S",
+    "source": "crw-depth-xp-results/compare_ae/c10.npz:knn15_full_cos, mean over ae10_clf_same pairs at stem"
+  },
+  "joint_full_cos.ae10_clf_same.b9": {
+    "value": 0.2810588166000141,
+    "text": "0.28",
+    "tier": "S",
+    "source": "crw-depth-xp-results/compare_ae/c10.npz:knn15_full_cos, mean over ae10_clf_same pairs at b9"
+  },
+  "cka.ae64_clf_diff.stem": {
+    "value": 0.6670963764190674,
+    "text": "0.67",
+    "tier": "S",
+    "source": "crw-depth-xp-results/compare_ae/c10.npz:cka, mean over ae64_clf_diff pairs at stem"
+  },
+  "cka.ae64_clf_diff.b9": {
+    "value": 0.160082146525383,
+    "text": "0.16",
+    "tier": "S",
+    "source": "crw-depth-xp-results/compare_ae/c10.npz:cka, mean over ae64_clf_diff pairs at b9"
+  },
+  "joint_trunk_cos.ae64_clf_diff.stem": {
+    "value": 0.5163778823057008,
+    "text": "0.52",
+    "tier": "S",
+    "source": "crw-depth-xp-results/compare_ae/c10.npz:knn15_trunk_cos, mean over ae64_clf_diff pairs at stem"
+  },
+  "joint_trunk_cos.ae64_clf_diff.b9": {
+    "value": 0.3009252585149237,
+    "text": "0.30",
+    "tier": "S",
+    "source": "crw-depth-xp-results/compare_ae/c10.npz:knn15_trunk_cos, mean over ae64_clf_diff pairs at b9"
+  },
+  "joint_full_cos.ae64_clf_diff.stem": {
+    "value": 0.527705573873246,
+    "text": "0.53",
+    "tier": "S",
+    "source": "crw-depth-xp-results/compare_ae/c10.npz:knn15_full_cos, mean over ae64_clf_diff pairs at stem"
+  },
+  "joint_full_cos.ae64_clf_diff.b9": {
+    "value": 0.3237657395807467,
+    "text": "0.32",
+    "tier": "S",
+    "source": "crw-depth-xp-results/compare_ae/c10.npz:knn15_full_cos, mean over ae64_clf_diff pairs at b9"
+  },
+  "cka.clf_init.stem": {
+    "value": 0.6237839311361313,
+    "text": "0.62",
+    "tier": "S",
+    "source": "crw-depth-xp-results/compare_ae/c10.npz:cka, mean over clf_init pairs at stem"
+  },
+  "cka.clf_init.b9": {
+    "value": 0.10934558510780334,
+    "text": "0.11",
+    "tier": "S",
+    "source": "crw-depth-xp-results/compare_ae/c10.npz:cka, mean over clf_init pairs at b9"
+  },
+  "joint_trunk_cos.clf_init.stem": {
+    "value": 0.5084695960093624,
+    "text": "0.51",
+    "tier": "S",
+    "source": "crw-depth-xp-results/compare_ae/c10.npz:knn15_trunk_cos, mean over clf_init pairs at stem"
+  },
+  "joint_trunk_cos.clf_init.b9": {
+    "value": 0.16476672986848853,
+    "text": "0.16",
+    "tier": "S",
+    "source": "crw-depth-xp-results/compare_ae/c10.npz:knn15_trunk_cos, mean over clf_init pairs at b9"
+  },
+  "joint_full_cos.clf_init.stem": {
+    "value": 0.5004705038410187,
+    "text": "0.50",
+    "tier": "S",
+    "source": "crw-depth-xp-results/compare_ae/c10.npz:knn15_full_cos, mean over clf_init pairs at stem"
+  },
+  "joint_full_cos.clf_init.b9": {
+    "value": 0.16913641399771406,
+    "text": "0.17",
+    "tier": "S",
+    "source": "crw-depth-xp-results/compare_ae/c10.npz:knn15_full_cos, mean over clf_init pairs at b9"
+  },
+  "cka.ae10_init.stem": {
+    "value": 0.9134616702795029,
+    "text": "0.91",
+    "tier": "S",
+    "source": "crw-depth-xp-results/compare_ae/c10.npz:cka, mean over ae10_init pairs at stem"
+  },
+  "cka.ae10_init.b9": {
+    "value": 0.3638812452554703,
+    "text": "0.36",
+    "tier": "S",
+    "source": "crw-depth-xp-results/compare_ae/c10.npz:cka, mean over ae10_init pairs at b9"
+  },
+  "joint_trunk_cos.ae10_init.stem": {
+    "value": 0.7322231605827633,
+    "text": "0.73",
+    "tier": "S",
+    "source": "crw-depth-xp-results/compare_ae/c10.npz:knn15_trunk_cos, mean over ae10_init pairs at stem"
+  },
+  "joint_trunk_cos.ae10_init.b9": {
+    "value": 0.4203621843874479,
+    "text": "0.42",
+    "tier": "S",
+    "source": "crw-depth-xp-results/compare_ae/c10.npz:knn15_trunk_cos, mean over ae10_init pairs at b9"
+  },
+  "joint_full_cos.ae10_init.stem": {
+    "value": 0.7179827950146385,
+    "text": "0.72",
+    "tier": "S",
+    "source": "crw-depth-xp-results/compare_ae/c10.npz:knn15_full_cos, mean over ae10_init pairs at stem"
+  },
+  "joint_full_cos.ae10_init.b9": {
+    "value": 0.42601850363019345,
+    "text": "0.43",
+    "tier": "S",
+    "source": "crw-depth-xp-results/compare_ae/c10.npz:knn15_full_cos, mean over ae10_init pairs at b9"
+  },
+  "cka.ae10_ae64_same.stem": {
+    "value": 0.9896372854709625,
+    "text": "0.99",
+    "tier": "S",
+    "source": "crw-depth-xp-results/compare_ae/c10.npz:cka, mean over ae10_ae64_same pairs at stem"
+  },
+  "cka.ae10_ae64_same.b9": {
+    "value": 0.7173828184604645,
+    "text": "0.72",
+    "tier": "S",
+    "source": "crw-depth-xp-results/compare_ae/c10.npz:cka, mean over ae10_ae64_same pairs at b9"
+  },
+  "joint_trunk_cos.ae10_ae64_same.stem": {
+    "value": 0.937514537555957,
+    "text": "0.94",
+    "tier": "S",
+    "source": "crw-depth-xp-results/compare_ae/c10.npz:knn15_trunk_cos, mean over ae10_ae64_same pairs at stem"
+  },
+  "joint_trunk_cos.ae10_ae64_same.b9": {
+    "value": 0.7621599037834009,
+    "text": "0.76",
+    "tier": "S",
+    "source": "crw-depth-xp-results/compare_ae/c10.npz:knn15_trunk_cos, mean over ae10_ae64_same pairs at b9"
+  },
+  "joint_full_cos.ae10_ae64_same.stem": {
+    "value": 0.9342117868278323,
+    "text": "0.93",
+    "tier": "S",
+    "source": "crw-depth-xp-results/compare_ae/c10.npz:knn15_full_cos, mean over ae10_ae64_same pairs at stem"
+  },
+  "joint_full_cos.ae10_ae64_same.b9": {
+    "value": 0.699582785182586,
+    "text": "0.70",
+    "tier": "S",
+    "source": "crw-depth-xp-results/compare_ae/c10.npz:knn15_full_cos, mean over ae10_ae64_same pairs at b9"
+  },
+  "cka.zoo_seeds.stem": {
+    "value": 0.9659496545791626,
+    "text": "0.97",
+    "tier": "S",
+    "source": "crw-depth-xp-results/compare_ae/c10.npz:cka, mean over zoo_seeds pairs at stem"
+  },
+  "cka.zoo_seeds.b9": {
+    "value": 0.8494123816490173,
+    "text": "0.85",
+    "tier": "S",
+    "source": "crw-depth-xp-results/compare_ae/c10.npz:cka, mean over zoo_seeds pairs at b9"
+  },
+  "joint_trunk_cos.zoo_seeds.stem": {
+    "value": 0.927370376869277,
+    "text": "0.93",
+    "tier": "S",
+    "source": "crw-depth-xp-results/compare_ae/c10.npz:knn15_trunk_cos, mean over zoo_seeds pairs at stem"
+  },
+  "joint_trunk_cos.zoo_seeds.b9": {
+    "value": 0.9478029505400886,
+    "text": "0.95",
+    "tier": "S",
+    "source": "crw-depth-xp-results/compare_ae/c10.npz:knn15_trunk_cos, mean over zoo_seeds pairs at b9"
+  },
+  "joint_full_cos.zoo_seeds.stem": {
+    "value": 0.9471997115830498,
+    "text": "0.95",
+    "tier": "S",
+    "source": "crw-depth-xp-results/compare_ae/c10.npz:knn15_full_cos, mean over zoo_seeds pairs at stem"
+  },
+  "joint_full_cos.zoo_seeds.b9": {
+    "value": 0.9622463628120075,
+    "text": "0.96",
+    "tier": "S",
+    "source": "crw-depth-xp-results/compare_ae/c10.npz:knn15_full_cos, mean over zoo_seeds pairs at b9"
+  },
+  "readout.clf.stem": {
+    "value": 0.24458333333333332,
+    "text": "0.24",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_y; share of the 15 neighbours with the image's label at stem, mean over c10x-s0/c10x-s1"
+  },
+  "thumb.clf.stem": {
+    "value": 0.20640000000000003,
+    "text": "0.21",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_x; share of the 15 neighbours also among the 15 nearest 4x4 thumbnails at stem, mean over c10x-s0/c10x-s1"
+  },
+  "readout.clf.b1": {
+    "value": 0.2581,
+    "text": "0.26",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_y; share of the 15 neighbours with the image's label at b1, mean over c10x-s0/c10x-s1"
+  },
+  "thumb.clf.b1": {
+    "value": 0.16676666666666667,
+    "text": "0.17",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_x; share of the 15 neighbours also among the 15 nearest 4x4 thumbnails at b1, mean over c10x-s0/c10x-s1"
+  },
+  "readout.clf.b2": {
+    "value": 0.2738666666666667,
+    "text": "0.27",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_y; share of the 15 neighbours with the image's label at b2, mean over c10x-s0/c10x-s1"
+  },
+  "thumb.clf.b2": {
+    "value": 0.1404,
+    "text": "0.14",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_x; share of the 15 neighbours also among the 15 nearest 4x4 thumbnails at b2, mean over c10x-s0/c10x-s1"
+  },
+  "readout.clf.b3": {
+    "value": 0.34353333333333336,
+    "text": "0.34",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_y; share of the 15 neighbours with the image's label at b3, mean over c10x-s0/c10x-s1"
+  },
+  "thumb.clf.b3": {
+    "value": 0.13128333333333334,
+    "text": "0.13",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_x; share of the 15 neighbours also among the 15 nearest 4x4 thumbnails at b3, mean over c10x-s0/c10x-s1"
+  },
+  "readout.clf.b4": {
+    "value": 0.39765,
+    "text": "0.40",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_y; share of the 15 neighbours with the image's label at b4, mean over c10x-s0/c10x-s1"
+  },
+  "thumb.clf.b4": {
+    "value": 0.11395,
+    "text": "0.11",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_x; share of the 15 neighbours also among the 15 nearest 4x4 thumbnails at b4, mean over c10x-s0/c10x-s1"
+  },
+  "readout.clf.b5": {
+    "value": 0.4290833333333333,
+    "text": "0.43",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_y; share of the 15 neighbours with the image's label at b5, mean over c10x-s0/c10x-s1"
+  },
+  "thumb.clf.b5": {
+    "value": 0.09648333333333334,
+    "text": "0.10",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_x; share of the 15 neighbours also among the 15 nearest 4x4 thumbnails at b5, mean over c10x-s0/c10x-s1"
+  },
+  "readout.clf.b6": {
+    "value": 0.4698333333333333,
+    "text": "0.47",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_y; share of the 15 neighbours with the image's label at b6, mean over c10x-s0/c10x-s1"
+  },
+  "thumb.clf.b6": {
+    "value": 0.08929999999999999,
+    "text": "0.09",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_x; share of the 15 neighbours also among the 15 nearest 4x4 thumbnails at b6, mean over c10x-s0/c10x-s1"
+  },
+  "readout.clf.b7": {
+    "value": 0.5649333333333333,
+    "text": "0.56",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_y; share of the 15 neighbours with the image's label at b7, mean over c10x-s0/c10x-s1"
+  },
+  "thumb.clf.b7": {
+    "value": 0.07443333333333334,
+    "text": "0.07",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_x; share of the 15 neighbours also among the 15 nearest 4x4 thumbnails at b7, mean over c10x-s0/c10x-s1"
+  },
+  "readout.clf.b8": {
+    "value": 0.63235,
+    "text": "0.63",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_y; share of the 15 neighbours with the image's label at b8, mean over c10x-s0/c10x-s1"
+  },
+  "thumb.clf.b8": {
+    "value": 0.06318333333333334,
+    "text": "0.06",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_x; share of the 15 neighbours also among the 15 nearest 4x4 thumbnails at b8, mean over c10x-s0/c10x-s1"
+  },
+  "readout.clf.b9": {
+    "value": 0.8849166666666667,
+    "text": "0.88",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_y; share of the 15 neighbours with the image's label at b9, mean over c10x-s0/c10x-s1"
+  },
+  "thumb.clf.b9": {
+    "value": 0.045366666666666666,
+    "text": "0.05",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_x; share of the 15 neighbours also among the 15 nearest 4x4 thumbnails at b9, mean over c10x-s0/c10x-s1"
+  },
+  "readout.clf.pool": {
+    "value": 0.88795,
+    "text": "0.89",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_y; share of the 15 neighbours with the image's label at pool, mean over c10x-s0/c10x-s1"
+  },
+  "thumb.clf.pool": {
+    "value": 0.03598333333333334,
+    "text": "0.04",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_x; share of the 15 neighbours also among the 15 nearest 4x4 thumbnails at pool, mean over c10x-s0/c10x-s1"
+  },
+  "readout.clf.last": {
+    "value": 0.88725,
+    "text": "0.89",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_y; share of the 15 neighbours with the image's label at last, mean over c10x-s0/c10x-s1"
+  },
+  "thumb.clf.last": {
+    "value": 0.028816666666666668,
+    "text": "0.03",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_x; share of the 15 neighbours also among the 15 nearest 4x4 thumbnails at last, mean over c10x-s0/c10x-s1"
+  },
+  "readout.zoo.stem": {
+    "value": 0.24348333333333333,
+    "text": "0.24",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_y; share of the 15 neighbours with the image's label at stem, mean over c10-s0/c10-s1"
+  },
+  "thumb.zoo.stem": {
+    "value": 0.21878333333333333,
+    "text": "0.22",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_x; share of the 15 neighbours also among the 15 nearest 4x4 thumbnails at stem, mean over c10-s0/c10-s1"
+  },
+  "readout.zoo.b1": {
+    "value": 0.25455,
+    "text": "0.25",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_y; share of the 15 neighbours with the image's label at b1, mean over c10-s0/c10-s1"
+  },
+  "thumb.zoo.b1": {
+    "value": 0.15585,
+    "text": "0.16",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_x; share of the 15 neighbours also among the 15 nearest 4x4 thumbnails at b1, mean over c10-s0/c10-s1"
+  },
+  "readout.zoo.b2": {
+    "value": 0.28049999999999997,
+    "text": "0.28",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_y; share of the 15 neighbours with the image's label at b2, mean over c10-s0/c10-s1"
+  },
+  "thumb.zoo.b2": {
+    "value": 0.13219999999999998,
+    "text": "0.13",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_x; share of the 15 neighbours also among the 15 nearest 4x4 thumbnails at b2, mean over c10-s0/c10-s1"
+  },
+  "readout.zoo.b3": {
+    "value": 0.35505,
+    "text": "0.36",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_y; share of the 15 neighbours with the image's label at b3, mean over c10-s0/c10-s1"
+  },
+  "thumb.zoo.b3": {
+    "value": 0.11953333333333334,
+    "text": "0.12",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_x; share of the 15 neighbours also among the 15 nearest 4x4 thumbnails at b3, mean over c10-s0/c10-s1"
+  },
+  "readout.zoo.b4": {
+    "value": 0.40518333333333334,
+    "text": "0.41",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_y; share of the 15 neighbours with the image's label at b4, mean over c10-s0/c10-s1"
+  },
+  "thumb.zoo.b4": {
+    "value": 0.10551666666666666,
+    "text": "0.11",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_x; share of the 15 neighbours also among the 15 nearest 4x4 thumbnails at b4, mean over c10-s0/c10-s1"
+  },
+  "readout.zoo.b5": {
+    "value": 0.4344,
+    "text": "0.43",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_y; share of the 15 neighbours with the image's label at b5, mean over c10-s0/c10-s1"
+  },
+  "thumb.zoo.b5": {
+    "value": 0.09586666666666666,
+    "text": "0.10",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_x; share of the 15 neighbours also among the 15 nearest 4x4 thumbnails at b5, mean over c10-s0/c10-s1"
+  },
+  "readout.zoo.b6": {
+    "value": 0.4718833333333333,
+    "text": "0.47",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_y; share of the 15 neighbours with the image's label at b6, mean over c10-s0/c10-s1"
+  },
+  "thumb.zoo.b6": {
+    "value": 0.08886666666666668,
+    "text": "0.09",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_x; share of the 15 neighbours also among the 15 nearest 4x4 thumbnails at b6, mean over c10-s0/c10-s1"
+  },
+  "readout.zoo.b7": {
+    "value": 0.5603666666666667,
+    "text": "0.56",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_y; share of the 15 neighbours with the image's label at b7, mean over c10-s0/c10-s1"
+  },
+  "thumb.zoo.b7": {
+    "value": 0.07088333333333333,
+    "text": "0.07",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_x; share of the 15 neighbours also among the 15 nearest 4x4 thumbnails at b7, mean over c10-s0/c10-s1"
+  },
+  "readout.zoo.b8": {
+    "value": 0.6316333333333333,
+    "text": "0.63",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_y; share of the 15 neighbours with the image's label at b8, mean over c10-s0/c10-s1"
+  },
+  "thumb.zoo.b8": {
+    "value": 0.06108333333333334,
+    "text": "0.06",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_x; share of the 15 neighbours also among the 15 nearest 4x4 thumbnails at b8, mean over c10-s0/c10-s1"
+  },
+  "readout.zoo.b9": {
+    "value": 0.8768,
+    "text": "0.88",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_y; share of the 15 neighbours with the image's label at b9, mean over c10-s0/c10-s1"
+  },
+  "thumb.zoo.b9": {
+    "value": 0.04281666666666667,
+    "text": "0.04",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_x; share of the 15 neighbours also among the 15 nearest 4x4 thumbnails at b9, mean over c10-s0/c10-s1"
+  },
+  "readout.zoo.pool": {
+    "value": 0.88015,
+    "text": "0.88",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_y; share of the 15 neighbours with the image's label at pool, mean over c10-s0/c10-s1"
+  },
+  "thumb.zoo.pool": {
+    "value": 0.0339,
+    "text": "0.03",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_x; share of the 15 neighbours also among the 15 nearest 4x4 thumbnails at pool, mean over c10-s0/c10-s1"
+  },
+  "readout.zoo.last": {
+    "value": 0.8799666666666667,
+    "text": "0.88",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_y; share of the 15 neighbours with the image's label at last, mean over c10-s0/c10-s1"
+  },
+  "thumb.zoo.last": {
+    "value": 0.027633333333333333,
+    "text": "0.03",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_x; share of the 15 neighbours also among the 15 nearest 4x4 thumbnails at last, mean over c10-s0/c10-s1"
+  },
+  "readout.ae10.stem": {
+    "value": 0.23898333333333333,
+    "text": "0.24",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_y; share of the 15 neighbours with the image's label at stem, mean over ae10-s0/ae10-s1"
+  },
+  "thumb.ae10.stem": {
+    "value": 0.6004333333333334,
+    "text": "0.60",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_x; share of the 15 neighbours also among the 15 nearest 4x4 thumbnails at stem, mean over ae10-s0/ae10-s1"
+  },
+  "readout.ae10.b1": {
+    "value": 0.23926666666666668,
+    "text": "0.24",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_y; share of the 15 neighbours with the image's label at b1, mean over ae10-s0/ae10-s1"
+  },
+  "thumb.ae10.b1": {
+    "value": 0.5985666666666667,
+    "text": "0.60",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_x; share of the 15 neighbours also among the 15 nearest 4x4 thumbnails at b1, mean over ae10-s0/ae10-s1"
+  },
+  "readout.ae10.b2": {
+    "value": 0.23915,
+    "text": "0.24",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_y; share of the 15 neighbours with the image's label at b2, mean over ae10-s0/ae10-s1"
+  },
+  "thumb.ae10.b2": {
+    "value": 0.5923166666666667,
+    "text": "0.59",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_x; share of the 15 neighbours also among the 15 nearest 4x4 thumbnails at b2, mean over ae10-s0/ae10-s1"
+  },
+  "readout.ae10.b3": {
+    "value": 0.23988333333333334,
+    "text": "0.24",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_y; share of the 15 neighbours with the image's label at b3, mean over ae10-s0/ae10-s1"
+  },
+  "thumb.ae10.b3": {
+    "value": 0.6024333333333333,
+    "text": "0.60",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_x; share of the 15 neighbours also among the 15 nearest 4x4 thumbnails at b3, mean over ae10-s0/ae10-s1"
+  },
+  "readout.ae10.b4": {
+    "value": 0.23966666666666667,
+    "text": "0.24",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_y; share of the 15 neighbours with the image's label at b4, mean over ae10-s0/ae10-s1"
+  },
+  "thumb.ae10.b4": {
+    "value": 0.5654000000000001,
+    "text": "0.57",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_x; share of the 15 neighbours also among the 15 nearest 4x4 thumbnails at b4, mean over ae10-s0/ae10-s1"
+  },
+  "readout.ae10.b5": {
+    "value": 0.24098333333333333,
+    "text": "0.24",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_y; share of the 15 neighbours with the image's label at b5, mean over ae10-s0/ae10-s1"
+  },
+  "thumb.ae10.b5": {
+    "value": 0.5564833333333333,
+    "text": "0.56",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_x; share of the 15 neighbours also among the 15 nearest 4x4 thumbnails at b5, mean over ae10-s0/ae10-s1"
+  },
+  "readout.ae10.b6": {
+    "value": 0.23688333333333333,
+    "text": "0.24",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_y; share of the 15 neighbours with the image's label at b6, mean over ae10-s0/ae10-s1"
+  },
+  "thumb.ae10.b6": {
+    "value": 0.5442833333333332,
+    "text": "0.54",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_x; share of the 15 neighbours also among the 15 nearest 4x4 thumbnails at b6, mean over ae10-s0/ae10-s1"
+  },
+  "readout.ae10.b7": {
+    "value": 0.24201666666666666,
+    "text": "0.24",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_y; share of the 15 neighbours with the image's label at b7, mean over ae10-s0/ae10-s1"
+  },
+  "thumb.ae10.b7": {
+    "value": 0.49695,
+    "text": "0.50",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_x; share of the 15 neighbours also among the 15 nearest 4x4 thumbnails at b7, mean over ae10-s0/ae10-s1"
+  },
+  "readout.ae10.b8": {
+    "value": 0.24664999999999998,
+    "text": "0.25",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_y; share of the 15 neighbours with the image's label at b8, mean over ae10-s0/ae10-s1"
+  },
+  "thumb.ae10.b8": {
+    "value": 0.43943333333333334,
+    "text": "0.44",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_x; share of the 15 neighbours also among the 15 nearest 4x4 thumbnails at b8, mean over ae10-s0/ae10-s1"
+  },
+  "readout.ae10.b9": {
+    "value": 0.24251666666666666,
+    "text": "0.24",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_y; share of the 15 neighbours with the image's label at b9, mean over ae10-s0/ae10-s1"
+  },
+  "thumb.ae10.b9": {
+    "value": 0.34591666666666665,
+    "text": "0.35",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_x; share of the 15 neighbours also among the 15 nearest 4x4 thumbnails at b9, mean over ae10-s0/ae10-s1"
+  },
+  "readout.ae10.pool": {
+    "value": 0.23803333333333332,
+    "text": "0.24",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_y; share of the 15 neighbours with the image's label at pool, mean over ae10-s0/ae10-s1"
+  },
+  "thumb.ae10.pool": {
+    "value": 0.3155,
+    "text": "0.32",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_x; share of the 15 neighbours also among the 15 nearest 4x4 thumbnails at pool, mean over ae10-s0/ae10-s1"
+  },
+  "readout.ae10.last": {
+    "value": 0.22749999999999998,
+    "text": "0.23",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_y; share of the 15 neighbours with the image's label at last, mean over ae10-s0/ae10-s1"
+  },
+  "thumb.ae10.last": {
+    "value": 0.3027166666666667,
+    "text": "0.30",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_x; share of the 15 neighbours also among the 15 nearest 4x4 thumbnails at last, mean over ae10-s0/ae10-s1"
+  },
+  "readout.ae64.stem": {
+    "value": 0.23245,
+    "text": "0.23",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_y; share of the 15 neighbours with the image's label at stem, mean over ae64-s0/ae64-s1"
+  },
+  "thumb.ae64.stem": {
+    "value": 0.58455,
+    "text": "0.58",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_x; share of the 15 neighbours also among the 15 nearest 4x4 thumbnails at stem, mean over ae64-s0/ae64-s1"
+  },
+  "readout.ae64.b1": {
+    "value": 0.23386666666666667,
+    "text": "0.23",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_y; share of the 15 neighbours with the image's label at b1, mean over ae64-s0/ae64-s1"
+  },
+  "thumb.ae64.b1": {
+    "value": 0.5533666666666667,
+    "text": "0.55",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_x; share of the 15 neighbours also among the 15 nearest 4x4 thumbnails at b1, mean over ae64-s0/ae64-s1"
+  },
+  "readout.ae64.b2": {
+    "value": 0.23601666666666665,
+    "text": "0.24",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_y; share of the 15 neighbours with the image's label at b2, mean over ae64-s0/ae64-s1"
+  },
+  "thumb.ae64.b2": {
+    "value": 0.5552833333333334,
+    "text": "0.56",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_x; share of the 15 neighbours also among the 15 nearest 4x4 thumbnails at b2, mean over ae64-s0/ae64-s1"
+  },
+  "readout.ae64.b3": {
+    "value": 0.23901666666666666,
+    "text": "0.24",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_y; share of the 15 neighbours with the image's label at b3, mean over ae64-s0/ae64-s1"
+  },
+  "thumb.ae64.b3": {
+    "value": 0.5394333333333332,
+    "text": "0.54",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_x; share of the 15 neighbours also among the 15 nearest 4x4 thumbnails at b3, mean over ae64-s0/ae64-s1"
+  },
+  "readout.ae64.b4": {
+    "value": 0.24403333333333332,
+    "text": "0.24",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_y; share of the 15 neighbours with the image's label at b4, mean over ae64-s0/ae64-s1"
+  },
+  "thumb.ae64.b4": {
+    "value": 0.4276833333333333,
+    "text": "0.43",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_x; share of the 15 neighbours also among the 15 nearest 4x4 thumbnails at b4, mean over ae64-s0/ae64-s1"
+  },
+  "readout.ae64.b5": {
+    "value": 0.24373333333333336,
+    "text": "0.24",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_y; share of the 15 neighbours with the image's label at b5, mean over ae64-s0/ae64-s1"
+  },
+  "thumb.ae64.b5": {
+    "value": 0.4176333333333333,
+    "text": "0.42",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_x; share of the 15 neighbours also among the 15 nearest 4x4 thumbnails at b5, mean over ae64-s0/ae64-s1"
+  },
+  "readout.ae64.b6": {
+    "value": 0.23468333333333333,
+    "text": "0.23",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_y; share of the 15 neighbours with the image's label at b6, mean over ae64-s0/ae64-s1"
+  },
+  "thumb.ae64.b6": {
+    "value": 0.4056166666666666,
+    "text": "0.41",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_x; share of the 15 neighbours also among the 15 nearest 4x4 thumbnails at b6, mean over ae64-s0/ae64-s1"
+  },
+  "readout.ae64.b7": {
+    "value": 0.23496666666666666,
+    "text": "0.23",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_y; share of the 15 neighbours with the image's label at b7, mean over ae64-s0/ae64-s1"
+  },
+  "thumb.ae64.b7": {
+    "value": 0.3633,
+    "text": "0.36",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_x; share of the 15 neighbours also among the 15 nearest 4x4 thumbnails at b7, mean over ae64-s0/ae64-s1"
+  },
+  "readout.ae64.b8": {
+    "value": 0.23686666666666667,
+    "text": "0.24",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_y; share of the 15 neighbours with the image's label at b8, mean over ae64-s0/ae64-s1"
+  },
+  "thumb.ae64.b8": {
+    "value": 0.3237833333333333,
+    "text": "0.32",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_x; share of the 15 neighbours also among the 15 nearest 4x4 thumbnails at b8, mean over ae64-s0/ae64-s1"
+  },
+  "readout.ae64.b9": {
+    "value": 0.23143333333333332,
+    "text": "0.23",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_y; share of the 15 neighbours with the image's label at b9, mean over ae64-s0/ae64-s1"
+  },
+  "thumb.ae64.b9": {
+    "value": 0.23415000000000002,
+    "text": "0.23",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_x; share of the 15 neighbours also among the 15 nearest 4x4 thumbnails at b9, mean over ae64-s0/ae64-s1"
+  },
+  "readout.ae64.pool": {
+    "value": 0.23583333333333334,
+    "text": "0.24",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_y; share of the 15 neighbours with the image's label at pool, mean over ae64-s0/ae64-s1"
+  },
+  "thumb.ae64.pool": {
+    "value": 0.24025000000000002,
+    "text": "0.24",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_x; share of the 15 neighbours also among the 15 nearest 4x4 thumbnails at pool, mean over ae64-s0/ae64-s1"
+  },
+  "readout.ae64.last": {
+    "value": 0.24178333333333332,
+    "text": "0.24",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_y; share of the 15 neighbours with the image's label at last, mean over ae64-s0/ae64-s1"
+  },
+  "thumb.ae64.last": {
+    "value": 0.30156666666666665,
+    "text": "0.30",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_x; share of the 15 neighbours also among the 15 nearest 4x4 thumbnails at last, mean over ae64-s0/ae64-s1"
+  },
+  "readout.init.stem": {
+    "value": 0.22278333333333333,
+    "text": "0.22",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_y; share of the 15 neighbours with the image's label at stem, mean over init-s0/init-s1"
+  },
+  "thumb.init.stem": {
+    "value": 0.42278333333333334,
+    "text": "0.42",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_x; share of the 15 neighbours also among the 15 nearest 4x4 thumbnails at stem, mean over init-s0/init-s1"
+  },
+  "readout.init.b1": {
+    "value": 0.2168,
+    "text": "0.22",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_y; share of the 15 neighbours with the image's label at b1, mean over init-s0/init-s1"
+  },
+  "thumb.init.b1": {
+    "value": 0.33905,
+    "text": "0.34",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_x; share of the 15 neighbours also among the 15 nearest 4x4 thumbnails at b1, mean over init-s0/init-s1"
+  },
+  "readout.init.b2": {
+    "value": 0.20656666666666668,
+    "text": "0.21",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_y; share of the 15 neighbours with the image's label at b2, mean over init-s0/init-s1"
+  },
+  "thumb.init.b2": {
+    "value": 0.26308333333333334,
+    "text": "0.26",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_x; share of the 15 neighbours also among the 15 nearest 4x4 thumbnails at b2, mean over init-s0/init-s1"
+  },
+  "readout.init.b3": {
+    "value": 0.20136666666666667,
+    "text": "0.20",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_y; share of the 15 neighbours with the image's label at b3, mean over init-s0/init-s1"
+  },
+  "thumb.init.b3": {
+    "value": 0.2182,
+    "text": "0.22",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_x; share of the 15 neighbours also among the 15 nearest 4x4 thumbnails at b3, mean over init-s0/init-s1"
+  },
+  "readout.init.b4": {
+    "value": 0.19943333333333335,
+    "text": "0.20",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_y; share of the 15 neighbours with the image's label at b4, mean over init-s0/init-s1"
+  },
+  "thumb.init.b4": {
+    "value": 0.19965,
+    "text": "0.20",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_x; share of the 15 neighbours also among the 15 nearest 4x4 thumbnails at b4, mean over init-s0/init-s1"
+  },
+  "readout.init.b5": {
+    "value": 0.19396666666666668,
+    "text": "0.19",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_y; share of the 15 neighbours with the image's label at b5, mean over init-s0/init-s1"
+  },
+  "thumb.init.b5": {
+    "value": 0.1933166666666667,
+    "text": "0.19",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_x; share of the 15 neighbours also among the 15 nearest 4x4 thumbnails at b5, mean over init-s0/init-s1"
+  },
+  "readout.init.b6": {
+    "value": 0.18943333333333334,
+    "text": "0.19",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_y; share of the 15 neighbours with the image's label at b6, mean over init-s0/init-s1"
+  },
+  "thumb.init.b6": {
+    "value": 0.17316666666666666,
+    "text": "0.17",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_x; share of the 15 neighbours also among the 15 nearest 4x4 thumbnails at b6, mean over init-s0/init-s1"
+  },
+  "readout.init.b7": {
+    "value": 0.18733333333333335,
+    "text": "0.19",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_y; share of the 15 neighbours with the image's label at b7, mean over init-s0/init-s1"
+  },
+  "thumb.init.b7": {
+    "value": 0.15686666666666665,
+    "text": "0.16",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_x; share of the 15 neighbours also among the 15 nearest 4x4 thumbnails at b7, mean over init-s0/init-s1"
+  },
+  "readout.init.b8": {
+    "value": 0.18355,
+    "text": "0.18",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_y; share of the 15 neighbours with the image's label at b8, mean over init-s0/init-s1"
+  },
+  "thumb.init.b8": {
+    "value": 0.14196666666666669,
+    "text": "0.14",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_x; share of the 15 neighbours also among the 15 nearest 4x4 thumbnails at b8, mean over init-s0/init-s1"
+  },
+  "readout.init.b9": {
+    "value": 0.18096666666666666,
+    "text": "0.18",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_y; share of the 15 neighbours with the image's label at b9, mean over init-s0/init-s1"
+  },
+  "thumb.init.b9": {
+    "value": 0.13381666666666667,
+    "text": "0.13",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_x; share of the 15 neighbours also among the 15 nearest 4x4 thumbnails at b9, mean over init-s0/init-s1"
+  },
+  "readout.init.pool": {
+    "value": 0.1797166666666667,
+    "text": "0.18",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_y; share of the 15 neighbours with the image's label at pool, mean over init-s0/init-s1"
+  },
+  "thumb.init.pool": {
+    "value": 0.1066,
+    "text": "0.11",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_x; share of the 15 neighbours also among the 15 nearest 4x4 thumbnails at pool, mean over init-s0/init-s1"
+  },
+  "readout.init.last": {
+    "value": 0.16215000000000002,
+    "text": "0.16",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_y; share of the 15 neighbours with the image's label at last, mean over init-s0/init-s1"
+  },
+  "thumb.init.last": {
+    "value": 0.0731,
+    "text": "0.07",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours) and crw-depth-xp-results/probes.npz:c10_x; share of the 15 neighbours also among the 15 nearest 4x4 thumbnails at last, mean over init-s0/init-s1"
+  },
+  "readout.ae.min": {
+    "value": 0.22743333333333332,
+    "text": "0.23",
+    "tier": "R",
+    "source": "min over the four autoencoders and all 12 sites of the label readout"
+  },
+  "readout.ae.max": {
+    "value": 0.24983333333333332,
+    "text": "0.25",
+    "tier": "R",
+    "source": "max over the four autoencoders and all 12 sites of the label readout"
+  },
+  "readout.ae.head_min": {
+    "value": 0.23083333333333333,
+    "text": "0.23",
+    "tier": "R",
+    "source": "min over the four autoencoders and the headline sites of the label readout"
+  },
+  "readout.ae.head_max": {
+    "value": 0.2428,
+    "text": "0.24",
+    "tier": "R",
+    "source": "max over the four autoencoders and the headline sites of the label readout"
+  },
+  "readout.chance": {
+    "value": 0.09954977488744371,
+    "text": "0.10",
+    "tier": "R",
+    "source": "crw-depth-xp-results/probes.npz:c10_y; mean over images of (images of its class - 1) / (N - 1): the label readout of 15 random neighbours"
+  },
+  "thumb.purity": {
+    "value": 0.22403333333333333,
+    "text": "0.22",
+    "tier": "R",
+    "source": "crw-depth-xp-results/probes.npz:c10_x, c10_y; share of each image's 15 nearest thumbnails with its label"
+  },
+  "thumb.perm.max": {
+    "value": 0.008266666666666667,
+    "text": "0.0083",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours); thumbnail readout with thumbnail identities permuted by crw-depth-xp-results/compare_ae/c10.npz:perm, max over the ten networks and 12 sites"
+  },
+  "thumb.net.ae10_s0.stem": {
+    "value": 0.6092333333333334,
+    "text": "0.61",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours); thumbnail readout of ae10-s0 at stem"
+  },
+  "thumb.net.ae10_s0.b3": {
+    "value": 0.6088666666666666,
+    "text": "0.61",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours); thumbnail readout of ae10-s0 at b3"
+  },
+  "thumb.net.ae10_s0.b9": {
+    "value": 0.3471,
+    "text": "0.35",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours); thumbnail readout of ae10-s0 at b9"
+  },
+  "thumb.net.ae10_s0.last": {
+    "value": 0.3011666666666667,
+    "text": "0.30",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours); thumbnail readout of ae10-s0 at last"
+  },
+  "thumb.net.ae10_s1.stem": {
+    "value": 0.5916333333333333,
+    "text": "0.59",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours); thumbnail readout of ae10-s1 at stem"
+  },
+  "thumb.net.ae10_s1.b3": {
+    "value": 0.596,
+    "text": "0.60",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours); thumbnail readout of ae10-s1 at b3"
+  },
+  "thumb.net.ae10_s1.b9": {
+    "value": 0.34473333333333334,
+    "text": "0.34",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours); thumbnail readout of ae10-s1 at b9"
+  },
+  "thumb.net.ae10_s1.last": {
+    "value": 0.3042666666666667,
+    "text": "0.30",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours); thumbnail readout of ae10-s1 at last"
+  },
+  "thumb.net.ae64_s0.stem": {
+    "value": 0.5855666666666667,
+    "text": "0.59",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours); thumbnail readout of ae64-s0 at stem"
+  },
+  "thumb.net.ae64_s0.b3": {
+    "value": 0.5540333333333333,
+    "text": "0.55",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours); thumbnail readout of ae64-s0 at b3"
+  },
+  "thumb.net.ae64_s0.b9": {
+    "value": 0.2252,
+    "text": "0.23",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours); thumbnail readout of ae64-s0 at b9"
+  },
+  "thumb.net.ae64_s0.last": {
+    "value": 0.29746666666666666,
+    "text": "0.30",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours); thumbnail readout of ae64-s0 at last"
+  },
+  "thumb.net.ae64_s1.stem": {
+    "value": 0.5835333333333333,
+    "text": "0.58",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours); thumbnail readout of ae64-s1 at stem"
+  },
+  "thumb.net.ae64_s1.b3": {
+    "value": 0.5248333333333333,
+    "text": "0.52",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours); thumbnail readout of ae64-s1 at b3"
+  },
+  "thumb.net.ae64_s1.b9": {
+    "value": 0.2431,
+    "text": "0.24",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours); thumbnail readout of ae64-s1 at b9"
+  },
+  "thumb.net.ae64_s1.last": {
+    "value": 0.30566666666666664,
+    "text": "0.31",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours); thumbnail readout of ae64-s1 at last"
+  },
+  "thumb.net.c10x_s0.stem": {
+    "value": 0.21280000000000002,
+    "text": "0.21",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours); thumbnail readout of c10x-s0 at stem"
+  },
+  "thumb.net.c10x_s0.b3": {
+    "value": 0.12373333333333333,
+    "text": "0.12",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours); thumbnail readout of c10x-s0 at b3"
+  },
+  "thumb.net.c10x_s0.b9": {
+    "value": 0.04506666666666667,
+    "text": "0.05",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours); thumbnail readout of c10x-s0 at b9"
+  },
+  "thumb.net.c10x_s0.last": {
+    "value": 0.0268,
+    "text": "0.03",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours); thumbnail readout of c10x-s0 at last"
+  },
+  "thumb.net.c10x_s1.stem": {
+    "value": 0.2,
+    "text": "0.20",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours); thumbnail readout of c10x-s1 at stem"
+  },
+  "thumb.net.c10x_s1.b3": {
+    "value": 0.13883333333333334,
+    "text": "0.14",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours); thumbnail readout of c10x-s1 at b3"
+  },
+  "thumb.net.c10x_s1.b9": {
+    "value": 0.04566666666666667,
+    "text": "0.05",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours); thumbnail readout of c10x-s1 at b9"
+  },
+  "thumb.net.c10x_s1.last": {
+    "value": 0.030833333333333334,
+    "text": "0.03",
+    "tier": "R",
+    "source": "embed/<net>/c10/knn.npy (12 sites x 2000 images x 15 neighbours); thumbnail readout of c10x-s1 at last"
+  },
+  "acc.c10x_s0": {
+    "value": 0.9144,
+    "text": "91.4%",
+    "tier": "S",
+    "source": "crw-depth-xp-results/nets/c10x-s0/info.json:log[-1].test_acc"
+  },
+  "acc.c10x_s1": {
+    "value": 0.9172,
+    "text": "91.7%",
+    "tier": "S",
+    "source": "crw-depth-xp-results/nets/c10x-s1/info.json:log[-1].test_acc"
+  },
+  "psnr.ae10_s0": {
+    "value": 16.84306260270477,
+    "text": "16.8",
+    "tier": "S",
+    "source": "crw-depth-xp-results/nets/ae10-s0/info.json:log[-1].test_psnr (10,000 test images)"
+  },
+  "psnr.train.ae10_s0": {
+    "value": 16.91035923447731,
+    "text": "16.9",
+    "tier": "S",
+    "source": "crw-depth-xp-results/nets/ae10-s0/info.json:log[-1].train_psnr"
+  },
+  "psnr.probe.ae10_s0": {
+    "value": 16.871595228446456,
+    "text": "16.9",
+    "tier": "R",
+    "source": "crw-depth-xp-results/nets/ae10-s0/recon.npz:recon against crw-depth-xp-results/probes.npz:c10_x (uint8, pixels in [0, 1])"
+  },
+  "code_std_min.ae10_s0": {
+    "value": 0.1497391164302826,
+    "text": "0.15",
+    "tier": "S",
+    "source": "crw-depth-xp-results/nets/ae10-s0/info.json:code_std, min over code coordinates"
+  },
+  "batch_dep.ae10_s0": {
+    "value": 0.0009426772594451904,
+    "text": "0.0009",
+    "tier": "S",
+    "source": "crw-depth-xp-results/nets/ae10-s0/info.json:eval_batch_dependence"
+  },
+  "psnr.ae10_s1": {
+    "value": 16.855243791645307,
+    "text": "16.9",
+    "tier": "S",
+    "source": "crw-depth-xp-results/nets/ae10-s1/info.json:log[-1].test_psnr (10,000 test images)"
+  },
+  "psnr.train.ae10_s1": {
+    "value": 16.920642666737027,
+    "text": "16.9",
+    "tier": "S",
+    "source": "crw-depth-xp-results/nets/ae10-s1/info.json:log[-1].train_psnr"
+  },
+  "psnr.probe.ae10_s1": {
+    "value": 16.88252026490646,
+    "text": "16.9",
+    "tier": "R",
+    "source": "crw-depth-xp-results/nets/ae10-s1/recon.npz:recon against crw-depth-xp-results/probes.npz:c10_x (uint8, pixels in [0, 1])"
+  },
+  "code_std_min.ae10_s1": {
+    "value": 0.18145973980426788,
+    "text": "0.18",
+    "tier": "S",
+    "source": "crw-depth-xp-results/nets/ae10-s1/info.json:code_std, min over code coordinates"
+  },
+  "batch_dep.ae10_s1": {
+    "value": 0.0009833574295043945,
+    "text": "0.0010",
+    "tier": "S",
+    "source": "crw-depth-xp-results/nets/ae10-s1/info.json:eval_batch_dependence"
+  },
+  "psnr.ae64_s0": {
+    "value": 21.224369737640657,
+    "text": "21.2",
+    "tier": "S",
+    "source": "crw-depth-xp-results/nets/ae64-s0/info.json:log[-1].test_psnr (10,000 test images)"
+  },
+  "psnr.train.ae64_s0": {
+    "value": 21.269577295147904,
+    "text": "21.3",
+    "tier": "S",
+    "source": "crw-depth-xp-results/nets/ae64-s0/info.json:log[-1].train_psnr"
+  },
+  "psnr.probe.ae64_s0": {
+    "value": 21.220458878127747,
+    "text": "21.2",
+    "tier": "R",
+    "source": "crw-depth-xp-results/nets/ae64-s0/recon.npz:recon against crw-depth-xp-results/probes.npz:c10_x (uint8, pixels in [0, 1])"
+  },
+  "code_std_min.ae64_s0": {
+    "value": 0.05819512531161308,
+    "text": "0.06",
+    "tier": "S",
+    "source": "crw-depth-xp-results/nets/ae64-s0/info.json:code_std, min over code coordinates"
+  },
+  "batch_dep.ae64_s0": {
+    "value": 0.00238037109375,
+    "text": "0.0024",
+    "tier": "S",
+    "source": "crw-depth-xp-results/nets/ae64-s0/info.json:eval_batch_dependence"
+  },
+  "psnr.ae64_s1": {
+    "value": 21.247795115034144,
+    "text": "21.2",
+    "tier": "S",
+    "source": "crw-depth-xp-results/nets/ae64-s1/info.json:log[-1].test_psnr (10,000 test images)"
+  },
+  "psnr.train.ae64_s1": {
+    "value": 21.292152637726915,
+    "text": "21.3",
+    "tier": "S",
+    "source": "crw-depth-xp-results/nets/ae64-s1/info.json:log[-1].train_psnr"
+  },
+  "psnr.probe.ae64_s1": {
+    "value": 21.24521588605541,
+    "text": "21.2",
+    "tier": "R",
+    "source": "crw-depth-xp-results/nets/ae64-s1/recon.npz:recon against crw-depth-xp-results/probes.npz:c10_x (uint8, pixels in [0, 1])"
+  },
+  "code_std_min.ae64_s1": {
+    "value": 0.054735518991947174,
+    "text": "0.05",
+    "tier": "S",
+    "source": "crw-depth-xp-results/nets/ae64-s1/info.json:code_std, min over code coordinates"
+  },
+  "batch_dep.ae64_s1": {
+    "value": 0.0034238100051879883,
+    "text": "0.0034",
+    "tier": "S",
+    "source": "crw-depth-xp-results/nets/ae64-s1/info.json:eval_batch_dependence"
+  },
+  "psnr.pca10": {
+    "value": 16.707546507539597,
+    "text": "16.7",
+    "tier": "S",
+    "source": "crw-depth-xp-results/nets/ae10-s0/info.json:pca_psnr (rank 10, fitted on the 50,000 training images)"
+  },
+  "params.enc10": {
+    "value": 269722,
+    "text": "269,722",
+    "tier": "S",
+    "source": "crw-depth-xp-results/nets/ae10-s0/info.json:params_encoder"
+  },
+  "params.dec10": {
+    "value": 433955,
+    "text": "433,955",
+    "tier": "S",
+    "source": "crw-depth-xp-results/nets/ae10-s0/info.json:params_decoder"
+  },
+  "psnr.pca64": {
+    "value": 20.802126277594688,
+    "text": "20.8",
+    "tier": "S",
+    "source": "crw-depth-xp-results/nets/ae64-s0/info.json:pca_psnr (rank 64, fitted on the 50,000 training images)"
+  },
+  "params.enc64": {
+    "value": 273232,
+    "text": "273,232",
+    "tier": "S",
+    "source": "crw-depth-xp-results/nets/ae64-s0/info.json:params_encoder"
+  },
+  "params.dec64": {
+    "value": 655139,
+    "text": "655,139",
+    "tier": "S",
+    "source": "crw-depth-xp-results/nets/ae64-s0/info.json:params_decoder"
+  },
+  "psnr.mean_image": {
+    "value": 12.091195583566508,
+    "text": "12.1",
+    "tier": "S",
+    "source": "crw-depth-xp-results/nets/ae10-s0/info.json:mean_image_psnr"
+  },
+  "train.steps": {
+    "value": 64000,
+    "text": "64,000",
+    "tier": "S",
+    "source": "crw-depth-xp-results/nets/ae10-s0/info.json:steps"
+  },
+  "train.lr": {
+    "value": 0.1,
+    "text": "0.1",
+    "tier": "S",
+    "source": "crw-depth-xp-results/nets/ae10-s0/info.json:lr"
+  },
+  "preflight.init.tensors_10": {
+    "value": 116,
+    "text": "116",
+    "tier": "S",
+    "source": "pre-flight ae_check / learning-rate pilot output reported by the run (not staged); procedure in ae/SPEC.md revisions 5 and 6"
+  },
+  "preflight.init.tensors_64": {
+    "value": 114,
+    "text": "114",
+    "tier": "S",
+    "source": "pre-flight ae_check / learning-rate pilot output reported by the run (not staged); procedure in ae/SPEC.md revisions 5 and 6"
+  },
+  "preflight.batch.mse_from": {
+    "value": 1.19,
+    "text": "1.19",
+    "tier": "S",
+    "source": "pre-flight ae_check / learning-rate pilot output reported by the run (not staged); procedure in ae/SPEC.md revisions 5 and 6"
+  },
+  "preflight.batch.mse_to": {
+    "value": 0.01,
+    "text": "0.010",
+    "tier": "S",
+    "source": "pre-flight ae_check / learning-rate pilot output reported by the run (not staged); procedure in ae/SPEC.md revisions 5 and 6"
+  },
+  "preflight.pilot.lr_0_1": {
+    "value": 0.364,
+    "text": "0.364",
+    "tier": "S",
+    "source": "pre-flight ae_check / learning-rate pilot output reported by the run (not staged); procedure in ae/SPEC.md revisions 5 and 6"
+  },
+  "preflight.pilot.lr_0_03": {
+    "value": 0.37,
+    "text": "0.370",
+    "tier": "S",
+    "source": "pre-flight ae_check / learning-rate pilot output reported by the run (not staged); procedure in ae/SPEC.md revisions 5 and 6"
+  },
+  "preflight.pilot.lr_0_01": {
+    "value": 0.38,
+    "text": "0.380",
+    "tier": "S",
+    "source": "pre-flight ae_check / learning-rate pilot output reported by the run (not staged); procedure in ae/SPEC.md revisions 5 and 6"
+  },
+  "recon.positions": {
+    "value": "2, 18, 22, 1, 7, 34, 0, 4, 3, 5",
+    "text": "2, 18, 22, 1, 7, 34, 0, 4, 3, 5",
+    "tier": "R",
+    "source": "first probe position of each class 0..9"
+  },
+  "recon.classes": {
+    "value": "airplane, automobile, bird, cat, deer, dog, frog, horse, ship, truck",
+    "text": "airplane, automobile, bird, cat, deer, dog, frog, horse, ship, truck",
+    "tier": "S",
+    "source": "data/r20s0b/meta.json:classes"
+  }
+}

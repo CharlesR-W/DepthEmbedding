@@ -2042,6 +2042,246 @@
         "crw-depth-xp-results/x4/pairs.npz": "99d0ed300a28bb736f6be3d8e6493c4255693fec7afa9c32f722ba631e9a009d",
         "crw-depth-xp-results/x4/checks.json": "192525f6a267d9f74b158eed289865a92531b39a99ebf94b2ea47b17f926b973"
       }
+    },
+    "ae-ae10-s0-full": {
+      "file": "crw-depth-xp-results/embed/ae10-s0/c10/op_knn15_full.npz",
+      "volume": "crw-depth-xp-results:embed/ae10-s0/c10/op_knn15_full.npz",
+      "producer": "xp/modal_xp.py:embed",
+      "net": "ae10-s0",
+      "kernel": {
+        "rule": "knn",
+        "param": 15,
+        "label": "k-NN 15"
+      },
+      "chain": "full",
+      "sites": [
+        "stem",
+        "b1",
+        "b2",
+        "b3",
+        "b4",
+        "b5",
+        "b6",
+        "b7",
+        "b8",
+        "b9",
+        "pool",
+        "code"
+      ],
+      "K": 16,
+      "probe": {
+        "id": "c10",
+        "dataset": "cifar10-test",
+        "ids_from": "crw-depth-xp-results/probes.npz:c10_idx",
+        "labels_from": "crw-depth-xp-results/embed/ae10-s0/c10/meta.npz:labels",
+        "viewer": "local/data/r20s0b/probe.npz"
+      },
+      "checks": {
+        "compare": "crw-depth-xp-results/compare_ae/c10.npz",
+        "stage_done": "crw-depth-xp-results/embed/ae10-s0/c10/DONE"
+      },
+      "bundle": {
+        "crw-depth-xp-results/embed/ae10-s0/c10/op_knn15_full.npz": "7c12611b62f130b5376bf190f5913ec59e23990219110bda3ab304c30f0a75f7",
+        "local/data/r20s0b/probe.npz": "4819448905f04a5e02dcecb709b7e479007bcb0941085935652735674b7d18a0",
+        "crw-depth-xp-results/probes.npz": "d23262ab73be388b83f12936660247caf5672815054f9ac0d1661183820b44f3",
+        "crw-depth-xp-results/embed/ae10-s0/c10/meta.npz": "4209a25c38ac5de14b059e974733eefdcbd8a46fc62a5425659231f014dec400",
+        "crw-depth-xp-results/compare_ae/c10.npz": "2311a338acca7c5b5de739ac67cea2181cdc600d560dee54e1e8570e4cacb897",
+        "crw-depth-xp-results/compare_ae/c10.json": "3383f14e2e2494ba3fcdb9b577b931a62101602915112db231f6bfa2298c32fb",
+        "crw-depth-xp-results/nets/ae10-s0/info.json": "64539b581f48ebc980f33a47a6e6fc6e2e6e69c6cc0db8f48df38bfe65532405",
+        "crw-depth-xp-results/nets/ae10-s0/recon.npz": "c8f9a6480ecaca60e34c27232c0753eeaaeb95a0872bf5cbe5db49f11a3390b6",
+        "crw-depth-xp-results/embed/ae10-s0/c10/DONE": "27761ea820136214740beb6e7329a0dcd16ff823372bd5874716f995bd121c2f",
+        "crw-depth-xp-results/nets/c10x-s1/info.json": "2e6775bf5a49b3b2846052e38ac93d400c257a89e7b853936c11bcd48578d402",
+        "crw-depth-xp-results/embed/c10-s0/c10/knn.npy": "1b9448ad41095e892dd41b3b7244129da98ae2f4c649d2ab86c14646f113704f",
+        "crw-depth-xp-results/embed/c10-s1/c10/knn.npy": "597ab84594c22204832169c917593037f13c9fec1d603dd35d4272fefdfa0010",
+        "crw-depth-xp-results/embed/c10x-s0/c10/knn.npy": "7e7e6412ad2ed6d636e5fea8d88c29e082a24a2e5b567fc9481a680b0ad0e56f",
+        "crw-depth-xp-results/embed/c10x-s1/c10/knn.npy": "d2f6923f0165058b3962bb067ae41706becaf222fb07c21d27310e5c742b8050",
+        "crw-depth-xp-results/embed/init-s0/c10/knn.npy": "b463137f861bd8736d2caa92c2e580d35b5175bf4c49756fb38b433ea6151f32",
+        "crw-depth-xp-results/embed/init-s1/c10/knn.npy": "c26a3b35a865bf6e24f5412ceb31cec71377d73164c15582ba30a2efcbe78f00",
+        "crw-depth-xp-results/embed/ae10-s0/c10/knn.npy": "258b36d6811f1e567d3bfcf7f6d9d18ac5ff9d3251272ffa7bf8f8c573a3e127",
+        "crw-depth-xp-results/embed/ae10-s1/c10/knn.npy": "e3c06062fbbe3767955002851655fbaa6636b152bee06d022a5d6fb359d8995e",
+        "crw-depth-xp-results/embed/ae64-s0/c10/knn.npy": "ebd530d684e3680077395afde6dd4b2bf8bce012e3b1c94a5d14ec2db315e732",
+        "crw-depth-xp-results/embed/ae64-s1/c10/knn.npy": "4fa271f31ccc98c2649345ec6d2b736990e892fa90e20bd9cb7b82c6cef4068f"
+      }
+    },
+    "ae-ae10-s1-full": {
+      "file": "crw-depth-xp-results/embed/ae10-s1/c10/op_knn15_full.npz",
+      "volume": "crw-depth-xp-results:embed/ae10-s1/c10/op_knn15_full.npz",
+      "producer": "xp/modal_xp.py:embed",
+      "net": "ae10-s1",
+      "kernel": {
+        "rule": "knn",
+        "param": 15,
+        "label": "k-NN 15"
+      },
+      "chain": "full",
+      "sites": [
+        "stem",
+        "b1",
+        "b2",
+        "b3",
+        "b4",
+        "b5",
+        "b6",
+        "b7",
+        "b8",
+        "b9",
+        "pool",
+        "code"
+      ],
+      "K": 16,
+      "probe": {
+        "id": "c10",
+        "dataset": "cifar10-test",
+        "ids_from": "crw-depth-xp-results/probes.npz:c10_idx",
+        "labels_from": "crw-depth-xp-results/embed/ae10-s1/c10/meta.npz:labels",
+        "viewer": "local/data/r20s0b/probe.npz"
+      },
+      "checks": {
+        "compare": "crw-depth-xp-results/compare_ae/c10.npz",
+        "stage_done": "crw-depth-xp-results/embed/ae10-s1/c10/DONE"
+      },
+      "bundle": {
+        "crw-depth-xp-results/embed/ae10-s1/c10/op_knn15_full.npz": "a0d24f26158a852b9d6c157618b8ef06f7bdb0bce814f2b6baf431048a62cec2",
+        "local/data/r20s0b/probe.npz": "4819448905f04a5e02dcecb709b7e479007bcb0941085935652735674b7d18a0",
+        "crw-depth-xp-results/probes.npz": "d23262ab73be388b83f12936660247caf5672815054f9ac0d1661183820b44f3",
+        "crw-depth-xp-results/embed/ae10-s1/c10/meta.npz": "bb22b9a6f4cc6fac29a2a48c830533573813f5dc517c291f77580534537b135e",
+        "crw-depth-xp-results/compare_ae/c10.npz": "2311a338acca7c5b5de739ac67cea2181cdc600d560dee54e1e8570e4cacb897",
+        "crw-depth-xp-results/compare_ae/c10.json": "3383f14e2e2494ba3fcdb9b577b931a62101602915112db231f6bfa2298c32fb",
+        "crw-depth-xp-results/nets/ae10-s1/info.json": "df1edd77ece675e2bff77e2a5954720db4e2a3c8df52f0699febe98eacd9e877",
+        "crw-depth-xp-results/nets/ae10-s1/recon.npz": "5377b36c3a5a08e5b7f0e07d1496ee27932094cee6c867030b0dd01ec6e47085",
+        "crw-depth-xp-results/embed/ae10-s1/c10/DONE": "1ba7b8c13c9fdd4cff3cdf9bd7190e003b71f30836203a0952b13290d6d30d70",
+        "crw-depth-xp-results/nets/c10x-s1/info.json": "2e6775bf5a49b3b2846052e38ac93d400c257a89e7b853936c11bcd48578d402",
+        "crw-depth-xp-results/embed/c10-s0/c10/knn.npy": "1b9448ad41095e892dd41b3b7244129da98ae2f4c649d2ab86c14646f113704f",
+        "crw-depth-xp-results/embed/c10-s1/c10/knn.npy": "597ab84594c22204832169c917593037f13c9fec1d603dd35d4272fefdfa0010",
+        "crw-depth-xp-results/embed/c10x-s0/c10/knn.npy": "7e7e6412ad2ed6d636e5fea8d88c29e082a24a2e5b567fc9481a680b0ad0e56f",
+        "crw-depth-xp-results/embed/c10x-s1/c10/knn.npy": "d2f6923f0165058b3962bb067ae41706becaf222fb07c21d27310e5c742b8050",
+        "crw-depth-xp-results/embed/init-s0/c10/knn.npy": "b463137f861bd8736d2caa92c2e580d35b5175bf4c49756fb38b433ea6151f32",
+        "crw-depth-xp-results/embed/init-s1/c10/knn.npy": "c26a3b35a865bf6e24f5412ceb31cec71377d73164c15582ba30a2efcbe78f00",
+        "crw-depth-xp-results/embed/ae10-s0/c10/knn.npy": "258b36d6811f1e567d3bfcf7f6d9d18ac5ff9d3251272ffa7bf8f8c573a3e127",
+        "crw-depth-xp-results/embed/ae10-s1/c10/knn.npy": "e3c06062fbbe3767955002851655fbaa6636b152bee06d022a5d6fb359d8995e",
+        "crw-depth-xp-results/embed/ae64-s0/c10/knn.npy": "ebd530d684e3680077395afde6dd4b2bf8bce012e3b1c94a5d14ec2db315e732",
+        "crw-depth-xp-results/embed/ae64-s1/c10/knn.npy": "4fa271f31ccc98c2649345ec6d2b736990e892fa90e20bd9cb7b82c6cef4068f"
+      }
+    },
+    "ae-ae64-s0-full": {
+      "file": "crw-depth-xp-results/embed/ae64-s0/c10/op_knn15_full.npz",
+      "volume": "crw-depth-xp-results:embed/ae64-s0/c10/op_knn15_full.npz",
+      "producer": "xp/modal_xp.py:embed",
+      "net": "ae64-s0",
+      "kernel": {
+        "rule": "knn",
+        "param": 15,
+        "label": "k-NN 15"
+      },
+      "chain": "full",
+      "sites": [
+        "stem",
+        "b1",
+        "b2",
+        "b3",
+        "b4",
+        "b5",
+        "b6",
+        "b7",
+        "b8",
+        "b9",
+        "pool",
+        "code"
+      ],
+      "K": 16,
+      "probe": {
+        "id": "c10",
+        "dataset": "cifar10-test",
+        "ids_from": "crw-depth-xp-results/probes.npz:c10_idx",
+        "labels_from": "crw-depth-xp-results/embed/ae64-s0/c10/meta.npz:labels",
+        "viewer": "local/data/r20s0b/probe.npz"
+      },
+      "checks": {
+        "compare": "crw-depth-xp-results/compare_ae/c10.npz",
+        "stage_done": "crw-depth-xp-results/embed/ae64-s0/c10/DONE"
+      },
+      "bundle": {
+        "crw-depth-xp-results/embed/ae64-s0/c10/op_knn15_full.npz": "6c30cc86956930514fb7f748d1a7c8c97ebc15b5cbb085c1473cf7ccf5fbcb73",
+        "local/data/r20s0b/probe.npz": "4819448905f04a5e02dcecb709b7e479007bcb0941085935652735674b7d18a0",
+        "crw-depth-xp-results/probes.npz": "d23262ab73be388b83f12936660247caf5672815054f9ac0d1661183820b44f3",
+        "crw-depth-xp-results/embed/ae64-s0/c10/meta.npz": "a003b2988143a760dea6ac447f76f715a3b8d8fe5e7b9ac20c1ce0725b06b56c",
+        "crw-depth-xp-results/compare_ae/c10.npz": "2311a338acca7c5b5de739ac67cea2181cdc600d560dee54e1e8570e4cacb897",
+        "crw-depth-xp-results/compare_ae/c10.json": "3383f14e2e2494ba3fcdb9b577b931a62101602915112db231f6bfa2298c32fb",
+        "crw-depth-xp-results/nets/ae64-s0/info.json": "007522ac0297b21563c3f828254aa45368061007c89014dd72941b5430585390",
+        "crw-depth-xp-results/nets/ae64-s0/recon.npz": "b4c29440bc26da8d0fcd259bdf84bb004d44026d3bfc11203d0ac0088502d086",
+        "crw-depth-xp-results/embed/ae64-s0/c10/DONE": "3952e923fb46600dc8638d6268a914e97f6c8026f3dc57f5e1dafe6e746dec85",
+        "crw-depth-xp-results/nets/c10x-s1/info.json": "2e6775bf5a49b3b2846052e38ac93d400c257a89e7b853936c11bcd48578d402",
+        "crw-depth-xp-results/embed/c10-s0/c10/knn.npy": "1b9448ad41095e892dd41b3b7244129da98ae2f4c649d2ab86c14646f113704f",
+        "crw-depth-xp-results/embed/c10-s1/c10/knn.npy": "597ab84594c22204832169c917593037f13c9fec1d603dd35d4272fefdfa0010",
+        "crw-depth-xp-results/embed/c10x-s0/c10/knn.npy": "7e7e6412ad2ed6d636e5fea8d88c29e082a24a2e5b567fc9481a680b0ad0e56f",
+        "crw-depth-xp-results/embed/c10x-s1/c10/knn.npy": "d2f6923f0165058b3962bb067ae41706becaf222fb07c21d27310e5c742b8050",
+        "crw-depth-xp-results/embed/init-s0/c10/knn.npy": "b463137f861bd8736d2caa92c2e580d35b5175bf4c49756fb38b433ea6151f32",
+        "crw-depth-xp-results/embed/init-s1/c10/knn.npy": "c26a3b35a865bf6e24f5412ceb31cec71377d73164c15582ba30a2efcbe78f00",
+        "crw-depth-xp-results/embed/ae10-s0/c10/knn.npy": "258b36d6811f1e567d3bfcf7f6d9d18ac5ff9d3251272ffa7bf8f8c573a3e127",
+        "crw-depth-xp-results/embed/ae10-s1/c10/knn.npy": "e3c06062fbbe3767955002851655fbaa6636b152bee06d022a5d6fb359d8995e",
+        "crw-depth-xp-results/embed/ae64-s0/c10/knn.npy": "ebd530d684e3680077395afde6dd4b2bf8bce012e3b1c94a5d14ec2db315e732",
+        "crw-depth-xp-results/embed/ae64-s1/c10/knn.npy": "4fa271f31ccc98c2649345ec6d2b736990e892fa90e20bd9cb7b82c6cef4068f"
+      }
+    },
+    "ae-ae64-s1-full": {
+      "file": "crw-depth-xp-results/embed/ae64-s1/c10/op_knn15_full.npz",
+      "volume": "crw-depth-xp-results:embed/ae64-s1/c10/op_knn15_full.npz",
+      "producer": "xp/modal_xp.py:embed",
+      "net": "ae64-s1",
+      "kernel": {
+        "rule": "knn",
+        "param": 15,
+        "label": "k-NN 15"
+      },
+      "chain": "full",
+      "sites": [
+        "stem",
+        "b1",
+        "b2",
+        "b3",
+        "b4",
+        "b5",
+        "b6",
+        "b7",
+        "b8",
+        "b9",
+        "pool",
+        "code"
+      ],
+      "K": 16,
+      "probe": {
+        "id": "c10",
+        "dataset": "cifar10-test",
+        "ids_from": "crw-depth-xp-results/probes.npz:c10_idx",
+        "labels_from": "crw-depth-xp-results/embed/ae64-s1/c10/meta.npz:labels",
+        "viewer": "local/data/r20s0b/probe.npz"
+      },
+      "checks": {
+        "compare": "crw-depth-xp-results/compare_ae/c10.npz",
+        "stage_done": "crw-depth-xp-results/embed/ae64-s1/c10/DONE"
+      },
+      "bundle": {
+        "crw-depth-xp-results/embed/ae64-s1/c10/op_knn15_full.npz": "a25e0afad950c3bbb9529b6436df296729ae316a0b3e630ef87486aad0b61d76",
+        "local/data/r20s0b/probe.npz": "4819448905f04a5e02dcecb709b7e479007bcb0941085935652735674b7d18a0",
+        "crw-depth-xp-results/probes.npz": "d23262ab73be388b83f12936660247caf5672815054f9ac0d1661183820b44f3",
+        "crw-depth-xp-results/embed/ae64-s1/c10/meta.npz": "1be08c74c52063f4ff020363503f342df30f3636440fd260e22c021b254437e3",
+        "crw-depth-xp-results/compare_ae/c10.npz": "2311a338acca7c5b5de739ac67cea2181cdc600d560dee54e1e8570e4cacb897",
+        "crw-depth-xp-results/compare_ae/c10.json": "3383f14e2e2494ba3fcdb9b577b931a62101602915112db231f6bfa2298c32fb",
+        "crw-depth-xp-results/nets/ae64-s1/info.json": "30413021b398e0d8055eeb41bd3afc3f2fb8de58020f13192e4360b37f678426",
+        "crw-depth-xp-results/nets/ae64-s1/recon.npz": "9309e69353df37b6b60eb38d8c300228f7fc9bbaf389541d8c60b4d523ef2df3",
+        "crw-depth-xp-results/embed/ae64-s1/c10/DONE": "9aee6581dee1f4517a78c2229996f58c4cd1f13e93c91b45702793bdebca3ca7",
+        "crw-depth-xp-results/nets/c10x-s1/info.json": "2e6775bf5a49b3b2846052e38ac93d400c257a89e7b853936c11bcd48578d402",
+        "crw-depth-xp-results/embed/c10-s0/c10/knn.npy": "1b9448ad41095e892dd41b3b7244129da98ae2f4c649d2ab86c14646f113704f",
+        "crw-depth-xp-results/embed/c10-s1/c10/knn.npy": "597ab84594c22204832169c917593037f13c9fec1d603dd35d4272fefdfa0010",
+        "crw-depth-xp-results/embed/c10x-s0/c10/knn.npy": "7e7e6412ad2ed6d636e5fea8d88c29e082a24a2e5b567fc9481a680b0ad0e56f",
+        "crw-depth-xp-results/embed/c10x-s1/c10/knn.npy": "d2f6923f0165058b3962bb067ae41706becaf222fb07c21d27310e5c742b8050",
+        "crw-depth-xp-results/embed/init-s0/c10/knn.npy": "b463137f861bd8736d2caa92c2e580d35b5175bf4c49756fb38b433ea6151f32",
+        "crw-depth-xp-results/embed/init-s1/c10/knn.npy": "c26a3b35a865bf6e24f5412ceb31cec71377d73164c15582ba30a2efcbe78f00",
+        "crw-depth-xp-results/embed/ae10-s0/c10/knn.npy": "258b36d6811f1e567d3bfcf7f6d9d18ac5ff9d3251272ffa7bf8f8c573a3e127",
+        "crw-depth-xp-results/embed/ae10-s1/c10/knn.npy": "e3c06062fbbe3767955002851655fbaa6636b152bee06d022a5d6fb359d8995e",
+        "crw-depth-xp-results/embed/ae64-s0/c10/knn.npy": "ebd530d684e3680077395afde6dd4b2bf8bce012e3b1c94a5d14ec2db315e732",
+        "crw-depth-xp-results/embed/ae64-s1/c10/knn.npy": "4fa271f31ccc98c2649345ec6d2b736990e892fa90e20bd9cb7b82c6cef4068f"
+      }
     }
   },
   "overlays": {

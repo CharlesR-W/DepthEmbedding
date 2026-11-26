@@ -1,7 +1,8 @@
 # Depth embedding
 
 An interactive viewer of how a fixed set of 2,000 CIFAR-10 probe images moves through the layers of a trained
-network, for seven networks (ResNet-20/32/56, two seeds each, and one VGG-16-BN).
+network, for seven networks (ResNet-20/32/56, two seeds each, and one VGG-16-BN), plus ResNet-20s trained on other
+data (X1) and four trained as autoencoders (`ae/`).
 
 **Site:** <https://charlesr-w.github.io/DepthEmbedding/>
 
@@ -31,6 +32,7 @@ one probe set, a handful of networks, no claims beyond what the viewer shows.
 | `upstream/` | Further modules copied unmodified from CoherentModes that the runners need; see `upstream/README.md`. |
 | `site/` | The site's sources and `site/build_site.py`. `site/xsite/` holds the Experiments tab's data layer: input pins, operator-dataset packagers, per-entry generators and checks (`AUTHORING.md`, `SCHEMA.md`). |
 | `invert/`, `xp/`, `opt/` | The overnight experiments of 2026-11-21/22 (inverting the embedding; X1 training data, X3 adversarial images, X4 interpolation; solver study): specs, code and notes. Their outputs are not in git. |
+| `ae/` | Autoencoders of 2026-11-26: the classifiers' ResNet-20 trained to reconstruct (`ae/SPEC.md`, `ae/README.md`). The code is the X1 pipeline in `xp/` with an `objective='ae'` branch. |
 | `data/`, `build/` | Not in git: the runners' outputs (about 1.1 GB) and the built site (about 100 MB). |
 
 ## Build the site
@@ -46,7 +48,7 @@ datasets in `data/sitex/`. To regenerate those from the staged raw outputs in `d
 
 ```bash
 uv run --with numpy --with scipy --with pillow python site/xsite/ops.py                 # package data/sitex (--entry <name> for one)
-for g in x1 x3 x4 solver inv_a inv_b; do uv run --with numpy --with scipy --with pillow python site/xsite/gen_$g.py; done
+for g in x1 x3 x4 solver inv_a inv_b ae; do uv run --with numpy --with scipy --with pillow python site/xsite/gen_$g.py; done
 uv run --with numpy --with scipy --with pytest python -m pytest -q site/xsite/test_opdata.py
 uv run --with numpy --with scipy python site/xsite/check_numbers.py    # independent recomputation of headline facts
 uv run --with pillow python site/check_browser.py http://127.0.0.1:8765/ data/shots/check

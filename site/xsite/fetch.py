@@ -17,6 +17,8 @@ INV = 'crw-depth-invert-results'
 SITES = ('stem', *(f'b{i}' for i in range(1, 10)), 'pool', 'logits')
 NETS = ('c10-s0', 'c10-s1', 'init-s0', 'init-s1', 'c10x-s0', 'c100-s0', 'c100-s1', 'svhn-s0', 'svhn-s1',
         'anim-s0', 'anim-s1', 'veh-s0', 'veh-s1', 'rand-s0', 'c100c-s0', 'c100c-s1', 'in32-s0', 'in32-s1')
+AE_NETS = tuple(f'ae{d}-s{s}' for d in (10, 64) for s in (0, 1))      # ae/SPEC.md
+AE_COMPARED = ('c10-s0', 'c10-s1', 'c10x-s0', 'c10x-s1', 'init-s0', 'init-s1', *AE_NETS)
 X3_SETS = ('clean', 'u1', 'u2', 'u4', 'u8', 't8', 'n1', 'n2', 'n4', 'n8', 'natA', 'natB')
 X4_STARTS = ('pixels', 'b3', 'b6', 'b9')
 INV_SETS = ('H', 'c100', 'svhn', 'noise20', 'pgd2', 'pgd8')
@@ -28,6 +30,10 @@ REMOTE = {
          *(f'embed/{n}/c10/op_knn15_{c}.npz' for n in NETS for c in ('trunk', 'full')),
          *(f'embed/{n}/c10/{f}' for n in NETS for f in ('meta.npz', 'DONE')),
          *(f'nets/{n}/info.json' for n in NETS if n not in ('c10-s0', 'c10-s1', 'init-s0', 'init-s1')),
+         *(f'embed/{n}/c10/{f}' for n in AE_NETS for f in ('op_knn15_full.npz', 'meta.npz', 'DONE')),
+         *(f'embed/{n}/c10/knn.npy' for n in AE_COMPARED),
+         *(f'nets/{n}/{f}' for n in AE_NETS for f in ('info.json', 'recon.npz')), 'nets/c10x-s1/info.json',
+         'compare_ae/c10.npz', 'compare_ae/c10.json',
          'compare/c10.npz', 'x4/pairs.npz', 'x4/probe_gain.npz', 'x4/checks.json',
          *(f'x4/paths_{s}.npz' for s in X4_STARTS)],
     INV: ['splits.npz', *(f'joint/P2__{k}__L12/modes.npz' for k in ('pr300', 'ea300')),

@@ -1,4 +1,5 @@
 [
+  {"id":"ae-objective", "group":"probing", "pending":true, "title":"Does a network trained to reconstruct represent images like one trained to classify?"},
   {"id":"x3-adversarial", "group":"probing", "pending":true, "title":"Where along depth does an adversarial image leave its class?"},
   {"id":"inv-kernel", "group":"inverting", "pending":true, "title":"Which kernel gives modes that reproduce and a smooth row for a new image?"},
   {"id":"inv-sources", "group":"inverting", "pending":true, "title":"Can the joint coordinate be evaluated from just this site’s kernel row?"},
