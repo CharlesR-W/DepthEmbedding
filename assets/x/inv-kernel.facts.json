@@ -1,0 +1,224 @@
+{
+  "display.knn15": {
+    "value": 0.1527950776232981,
+    "text": "15.28%",
+    "tier": "R",
+    "source": "data/sitex/ops/r20s0-c10-knn15/op.json:axes.pooled; squared projection of peak-mode unit axis"
+  },
+  "top2.p2.knn15": {
+    "value": 0.020283607046058402,
+    "text": "2.0%",
+    "tier": "R",
+    "source": "crw-depth-xp-results/x3/op_c10-s0_knn15.npz:vecs, max first 16 top-two shares (depth-summed squared loadings)"
+  },
+  "display.ea300": {
+    "value": 0.011495694907846316,
+    "text": "1.15%",
+    "tier": "R",
+    "source": "data/sitex/ops/r20s0-p2-ea300/op.json:axes.pooled; squared projection of peak-mode unit axis"
+  },
+  "top2.p2.ea300": {
+    "value": 0.09267854417182904,
+    "text": "9.3%",
+    "tier": "R",
+    "source": "crw-depth-invert-results/joint/P2__ea300__L12/modes.npz:vecs, max first 16 top-two shares (depth-summed squared loadings)"
+  },
+  "display.pr300": {
+    "value": 0.01914896711861586,
+    "text": "1.91%",
+    "tier": "R",
+    "source": "data/sitex/ops/r20s0-p2-pr300/op.json:axes.pooled; squared projection of peak-mode unit axis"
+  },
+  "top2.p2.pr300": {
+    "value": 0.02267495451607485,
+    "text": "2.3%",
+    "tier": "R",
+    "source": "crw-depth-invert-results/joint/P2__pr300__L12/modes.npz:vecs, max first 16 top-two shares (depth-summed squared loadings)"
+  },
+  "top2.p8.ea400": {
+    "value": 0.941821183544611,
+    "text": "94.2%",
+    "tier": "S",
+    "source": "local/data/invert/results.json:modeloc.P8__ea400__L12.top2, max of first 16"
+  },
+  "top2.p8.ea400_count": {
+    "value": 46,
+    "text": "46",
+    "tier": "S",
+    "source": "local/data/invert/results.json:modeloc.P8__ea400__L12.top2, count above 0.1 among first 64"
+  },
+  "hub.raw_min": {
+    "value": 49.0,
+    "text": "49",
+    "tier": "S",
+    "source": "local/data/invert/results.json:kernel.*.raw_cos_hub.max, min across sites"
+  },
+  "hub.raw_max": {
+    "value": 253.0,
+    "text": "253",
+    "tier": "S",
+    "source": "local/data/invert/results.json:kernel.*.raw_cos_hub.max, max across sites"
+  },
+  "hub.knn15_max": {
+    "value": 55.0,
+    "text": "55",
+    "tier": "S",
+    "source": "local/data/invert/results.json:kernel.*.knn15.hub.max, max across sites"
+  },
+  "hub.ea300_max": {
+    "value": 39.0,
+    "text": "39",
+    "tier": "S",
+    "source": "local/data/invert/results.json:kernel.*.ea300.hub.max, max across sites"
+  },
+  "hub.pr300_max": {
+    "value": 42.0,
+    "text": "42",
+    "tier": "S",
+    "source": "local/data/invert/results.json:kernel.*.pr300.hub.max, max across sites"
+  },
+  "hub.ds500_max": {
+    "value": 53.0,
+    "text": "53",
+    "tier": "S",
+    "source": "local/data/invert/results.json:kernel.*.ds500.hub.max, max across sites"
+  },
+  "row.pr300_final_max": {
+    "value": 0.0671584726757531,
+    "text": "6.7%",
+    "tier": "S",
+    "source": "local/data/invert/results.json:kernel.*.pr300.maxw, max across sites after balancing"
+  },
+  "probe.p2": {
+    "value": 2000,
+    "text": "2,000",
+    "tier": "R",
+    "source": "crw-depth-invert-results/splits.npz:P2,P8,H,labels; counts"
+  },
+  "probe.per_class": {
+    "value": 200,
+    "text": "200",
+    "tier": "R",
+    "source": "crw-depth-invert-results/splits.npz:P2,P8,H,labels; counts"
+  },
+  "probe.p8_extra": {
+    "value": 6000,
+    "text": "6,000",
+    "tier": "R",
+    "source": "crw-depth-invert-results/splits.npz:P2,P8,H,labels; counts"
+  },
+  "probe.held": {
+    "value": 2000,
+    "text": "2,000",
+    "tier": "R",
+    "source": "crw-depth-invert-results/splits.npz:P2,P8,H,labels; counts"
+  },
+  "width.knn15.min": {
+    "value": 16.67666272465543,
+    "text": "17",
+    "tier": "S",
+    "source": "local/data/invert/results.json:kernel.*.knn15.perp"
+  },
+  "width.knn15.max": {
+    "value": 21.181712251106212,
+    "text": "21",
+    "tier": "S",
+    "source": "local/data/invert/results.json:kernel.*.knn15.perp"
+  },
+  "width.ea300.min": {
+    "value": 313.84750175565637,
+    "text": "314",
+    "tier": "S",
+    "source": "local/data/invert/results.json:kernel.*.ea300.perp"
+  },
+  "width.ea300.max": {
+    "value": 426.23694805105697,
+    "text": "426",
+    "tier": "S",
+    "source": "local/data/invert/results.json:kernel.*.ea300.perp"
+  },
+  "width.pr300.min": {
+    "value": 477.52044386434903,
+    "text": "478",
+    "tier": "S",
+    "source": "local/data/invert/results.json:kernel.*.pr300.perp"
+  },
+  "width.pr300.max": {
+    "value": 953.2982982543032,
+    "text": "953",
+    "tier": "S",
+    "source": "local/data/invert/results.json:kernel.*.pr300.perp"
+  },
+  "split.global_over_pr": {
+    "value": 7,
+    "text": "7",
+    "tier": "S",
+    "source": "local/data/invert/results.json:kernel.*.*.stab.16"
+  },
+  "split.pr_over_shannon": {
+    "value": 11,
+    "text": "11",
+    "tier": "S",
+    "source": "local/data/invert/results.json:kernel.*.*.stab.16"
+  },
+  "split.sites": {
+    "value": 12,
+    "text": "12",
+    "tier": "R",
+    "source": "Study chain length, xlib.py:SITES"
+  },
+  "refit.k16.ea300.min": {
+    "value": 0.9609573350095313,
+    "text": "0.961",
+    "tier": "S",
+    "source": "data/invert/refit.json:ea300|16.held"
+  },
+  "refit.k16.ea300.max": {
+    "value": 0.9967733408127354,
+    "text": "0.997",
+    "tier": "S",
+    "source": "data/invert/refit.json:ea300|16.held"
+  },
+  "refit.k16.pr300.min": {
+    "value": 0.9345386530389714,
+    "text": "0.935",
+    "tier": "S",
+    "source": "data/invert/refit.json:pr300|16.held"
+  },
+  "refit.k16.pr300.max": {
+    "value": 0.986182829412553,
+    "text": "0.986",
+    "tier": "S",
+    "source": "data/invert/refit.json:pr300|16.held"
+  },
+  "refit.k64.ea300.min": {
+    "value": 0.6459815841089115,
+    "text": "0.646",
+    "tier": "S",
+    "source": "data/invert/refit.json:ea300|64.held"
+  },
+  "refit.k64.ea300.max": {
+    "value": 0.9587484156824255,
+    "text": "0.959",
+    "tier": "S",
+    "source": "data/invert/refit.json:ea300|64.held"
+  },
+  "refit.k64.pr300.min": {
+    "value": 0.7799380674392701,
+    "text": "0.780",
+    "tier": "S",
+    "source": "data/invert/refit.json:pr300|64.held"
+  },
+  "refit.k64.pr300.max": {
+    "value": 0.9177111811707049,
+    "text": "0.918",
+    "tier": "S",
+    "source": "data/invert/refit.json:pr300|64.held"
+  },
+  "refit.k16.shannon_wins": {
+    "value": 12,
+    "text": "12",
+    "tier": "S",
+    "source": "data/invert/refit.json: ea300|16 vs pr300|16 held"
+  }
+}

@@ -1,0 +1,140 @@
+{
+  "depth.k16.condition": {
+    "value": 146.99553479622423,
+    "text": "147",
+    "tier": "R",
+    "source": "crw-depth-invert-results/joint/P2__pr300__L12/modes.npz:c,t,vals; maximum condition through mode 16"
+  },
+  "depth.k16.gain": {
+    "value": 7.209172118607309,
+    "text": "7.21",
+    "tier": "R",
+    "source": "crw-depth-invert-results/joint/P2__pr300__L12/modes.npz:c,t,vals; maximum gain through mode 16"
+  },
+  "depth.k64.condition": {
+    "value": 349.0545957113581,
+    "text": "349",
+    "tier": "R",
+    "source": "crw-depth-invert-results/joint/P2__pr300__L12/modes.npz:c,t,vals; maximum condition through mode 64"
+  },
+  "depth.k64.gain": {
+    "value": 17.82936366525375,
+    "text": "17.83",
+    "tier": "R",
+    "source": "crw-depth-invert-results/joint/P2__pr300__L12/modes.npz:c,t,vals; maximum gain through mode 64"
+  },
+  "depth.k256.condition": {
+    "value": 841.820186844135,
+    "text": "842",
+    "tier": "R",
+    "source": "crw-depth-invert-results/joint/P2__pr300__L12/modes.npz:c,t,vals; maximum condition through mode 256"
+  },
+  "depth.k256.gain": {
+    "value": 43.8817968075197,
+    "text": "43.88",
+    "tier": "R",
+    "source": "crw-depth-invert-results/joint/P2__pr300__L12/modes.npz:c,t,vals; maximum gain through mode 256"
+  },
+  "share.p2.conv_min": {
+    "value": 0.11016362968153576,
+    "text": "11%",
+    "tier": "R",
+    "source": "crw-depth-invert-results/joint/P2__pr300__L12/modes.npz:c,t,vals[:16] via absolute filter row weight, min over stem–b9"
+  },
+  "share.p2.conv_max": {
+    "value": 0.2045945981070323,
+    "text": "20%",
+    "tier": "R",
+    "source": "crw-depth-invert-results/joint/P2__pr300__L12/modes.npz:c,t,vals[:16] via absolute filter row weight, max over stem–b9"
+  },
+  "share.p8.conv_min": {
+    "value": 0.1264021247625351,
+    "text": "13%",
+    "tier": "S",
+    "source": "local/data/invert/results.json:rt.P8__pr400__L12.*__K16.E1|share_ll, min over stem–b9"
+  },
+  "share.p8.conv_max": {
+    "value": 0.2683999538421631,
+    "text": "27%",
+    "tier": "S",
+    "source": "local/data/invert/results.json:rt.P8__pr400__L12.*__K16.E1|share_ll, max over stem–b9"
+  },
+  "attack.joint.b5": {
+    "value": 0.4186041609864801,
+    "text": "0.419",
+    "tier": "R",
+    "source": "crw-depth-invert-results/joint/P2__pr300__L12/coords_{H,pgd2}.npz:y; first 16 modes, all 1000 pairs, b5, squared standardized mean; use corresponding clean-H scale"
+  },
+  "attack.source.b5": {
+    "value": 0.09475448230875719,
+    "text": "0.095",
+    "tier": "R",
+    "source": "crw-depth-invert-results/joint/P2__pr300__L12/coords_{H,pgd2}.npz:onestep; first 16 modes, all 1000 pairs, b5, squared standardized mean; use corresponding clean-H scale"
+  },
+  "attack.source.b6": {
+    "value": 0.1191823540794936,
+    "text": "0.119",
+    "tier": "R",
+    "source": "crw-depth-invert-results/joint/P2__pr300__L12/coords_{H,pgd2}.npz:onestep; first 16 modes, all 1000 pairs, b6, squared standardized mean; use corresponding clean-H scale"
+  },
+  "attack.source.b8": {
+    "value": 0.34711085857912766,
+    "text": "0.347",
+    "tier": "R",
+    "source": "crw-depth-invert-results/joint/P2__pr300__L12/coords_{H,pgd2}.npz:onestep; first 16 modes, all 1000 pairs, b8, squared standardized mean; use corresponding clean-H scale"
+  },
+  "attack.source.b9": {
+    "value": 1.5784878923103858,
+    "text": "1.578",
+    "tier": "R",
+    "source": "crw-depth-invert-results/joint/P2__pr300__L12/coords_{H,pgd2}.npz:onestep; first 16 modes, all 1000 pairs, b9, squared standardized mean; use corresponding clean-H scale"
+  },
+  "attack.truncated.b5": {
+    "value": 0.01480864361273923,
+    "text": "0.015",
+    "tier": "R",
+    "source": "crw-depth-invert-results/joint/P2__pr300__L12/coords_{H,pgd2}.npz:onestep then filter; first 16 modes, all 1000 pairs, b5, squared standardized mean; set Δs=0 at b7 through logits, then apply filter; use clean-H joint scale"
+  },
+  "patch.b5.swap": {
+    "value": 0.5097529888153076,
+    "text": "51%",
+    "tier": "S",
+    "source": "local/data/invert/results.json:rt.P8__pr400__L12.b5__K16.E4|swap|prog_D"
+  },
+  "attack.n": {
+    "value": 1000,
+    "text": "1,000",
+    "tier": "R",
+    "source": "crw-depth-invert-results/joint/P2__pr300__L12/coords_pgd2.npz:y, image count"
+  },
+  "attack.shown": {
+    "value": 300,
+    "text": "300",
+    "tier": "S",
+    "source": "data/sitex/ops/r20s0-p2-pr300/ov/pgd2.json:n"
+  },
+  "patch.cohort": {
+    "value": 256,
+    "text": "256",
+    "tier": "S",
+    "source": "P2 rerun meta.m_full; same default m in invert/stage_rt.py for P8"
+  },
+  "display.pgd2.joint": {
+    "value": 0.10882269443606352,
+    "text": "10.9%",
+    "tier": "R",
+    "source": "crw-depth-invert-results/joint/P2__pr300__L12/{coords_H.npz,coords_pgd2.npz}:y, b5, all pairs; shipped joint PCA axes"
+  },
+  "display.pgd2.source": {
+    "value": 0.07055689893564321,
+    "text": "7.1%",
+    "tier": "R",
+    "source": "crw-depth-invert-results/joint/P2__pr300__L12/{coords_H.npz,coords_pgd2.npz}:onestep, b5, all pairs; shipped joint PCA axes"
+  },
+  "attack.arrows": {
+    "value": 60,
+    "text": "60",
+    "tier": "S",
+    "source": "gen_inv_a.py:ARROWS, initial display setting"
+  }
+}
